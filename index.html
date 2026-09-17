@@ -1579,8 +1579,19 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .abo-reg-fld{margin-bottom:14px}
 .abo-reg-fld label{display:block;font-size:11.5px;font-weight:600;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
 .abo-reg-fld label .opt{text-transform:none;font-weight:400;letter-spacing:0}
-.abo-reg-fld input,.abo-reg-fld textarea{width:100%;padding:10px 12px;border:1px solid var(--filo);border-radius:var(--radio-s,9px);font-family:var(--f-ui,inherit);font-size:13.5px;color:var(--tinta);background:var(--carta);box-sizing:border-box}
-.abo-reg-fld input:focus,.abo-reg-fld textarea:focus{outline:none;border-color:#14294a}
+.abo-reg-fld input,.abo-reg-fld textarea,.abo-reg-fld select{width:100%;padding:10px 12px;border:1px solid var(--filo);border-radius:var(--radio-s,9px);font-family:var(--f-ui,inherit);font-size:13.5px;color:var(--tinta);background:var(--carta);box-sizing:border-box}
+.abo-reg-fld input:focus,.abo-reg-fld textarea:focus,.abo-reg-fld select:focus{outline:none;border-color:#14294a}
+.abo-reg-fld select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:30px;
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235c6672' stroke-width='1.6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center}
+.abo-com-sec{margin:14px 0;padding:14px;border:1px solid var(--filo);border-radius:var(--radio-s,9px);background:var(--carta)}
+.abo-com-sec-h{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--tinta-suave);margin-bottom:10px}
+.abo-com-sec-n{font-size:11.5px;color:var(--tinta-suave);line-height:1.5;margin-top:8px}
+.abo-com-fila{display:flex;gap:10px;align-items:flex-end}
+.abo-com-fila .abo-reg{flex:0 0 auto;height:38px}
+@media (max-width:620px){ .abo-com-fila{flex-wrap:wrap} .abo-com-fila .abo-reg-fld.mes{flex:1 1 140px} }
+.abo-com-fila .abo-reg-fld{flex:1;margin:0}
+.abo-com-fila .abo-reg-fld.mes{flex:0 0 140px}
 .abo-reg-fld textarea{resize:vertical}
 .abo-reg-comprob{margin-top:2px}
 .abo-comprob-drop{display:flex;align-items:center;gap:10px;padding:14px;border:1.5px dashed var(--filo);border-radius:var(--radio-s,9px);cursor:pointer;font-size:13px;color:var(--tinta-suave);background:var(--papel);transition:border-color .15s}
@@ -6629,8 +6640,31 @@ async function sbDelete(tabla, id) {
   const r = await sbFetch(`${SB_URL}/rest/v1/${tabla}?id=eq.${id}`, { method: 'DELETE' }, { 'Prefer': 'return=minimal' });
   if (!r.ok && r.status !== 404) throw new Error(tabla + ' delete ' + r.status);
 }
+// Los archivos que viven en OneDrive o Google Drive figuran en la carpeta pero su
+// contenido está en la nube. Al mandarlos directo al `fetch`, el navegador intenta
+// leerlos mientras el sincronizador todavía los está bajando, aborta y devuelve
+// "Failed to fetch" con 0 kB enviados. Leerlos a memoria primero fuerza la descarga
+// y espera a que termine; recién ahí se sube.
+async function sbLeerArchivo(blob) {
+  if (!blob || typeof blob.arrayBuffer !== 'function') return blob;
+  if (typeof File !== 'undefined' && !(blob instanceof File)) return blob;  // ya está en memoria
+  let ultimo = null;
+  for (let intento = 0; intento < 3; intento++) {
+    try {
+      const buf = await blob.arrayBuffer();
+      if (buf.byteLength === 0 && blob.size > 0) throw new Error('lectura vacía');
+      return new Blob([buf], { type: blob.type || 'application/octet-stream' });
+    } catch (e) {
+      ultimo = e;
+      await new Promise(res => setTimeout(res, 400 * (intento + 1)));   // dar tiempo al sincronizador
+    }
+  }
+  throw new Error('NO_SE_PUDO_LEER:' + (blob.name || 'el archivo') + ':' + (ultimo && ultimo.message || ''));
+}
+
 async function sbUploadFile(bucket, nombre, blob) {
   if (appBloqueada()) throw new Error('sesión requerida');   // candado
+  blob = await sbLeerArchivo(blob);
   const path = `${bucket}/${nombre}`;
   const _url = `${SB_URL}/storage/v1/object/${encodeURIComponent(bucket)}/${encodeURIComponent(nombre)}`;
   // Los archivos elegidos desde el celular suelen venir sin tipo: mandar
@@ -6745,6 +6779,7 @@ var SB_TIENE_JUD_COM_PARA = false;
 var SB_TIENE_APODO = false;
 var SB_TIENE_ABO_CLI = false;
 var SB_TIENE_ABO_EXTRAS = false;
+var SB_TIENE_ABO_COM   = false;   // abonos_clientes.comision_para (text)
 var SB_TIENE_ARIC_DOCS = false;   // aric_licencias.docs (jsonb)
 var SB_TIENE_INA_DRIVE = false;   // inase_clientes.drive (text)
 var SB_TIENE_INA_VIG   = false;   // inase_clientes.vigente (bool)
@@ -6953,6 +6988,8 @@ async function __sbCargarTodoInterno() {
       SB_TIENE_ABO_CLI = true;
     if (sbTiene(rAboCli, 'incluye'))
       SB_TIENE_ABO_EXTRAS = true;
+    if (sbTiene(rAboCli, 'comision_para'))
+      SB_TIENE_ABO_COM = true;
     if (sbTiene(rAric, 'docs'))
       SB_TIENE_ARIC_DOCS = true;
     if (sbTiene(rInaCli, 'drive'))
@@ -7651,6 +7688,11 @@ function abonoClienteFila(c){
   // Vínculo con la ficha del CRM
   if (typeof SB_TIENE_ABO_CLI !== 'undefined' && SB_TIENE_ABO_CLI)
     f.cliente_id = (c.clienteId === null || c.clienteId === undefined || c.clienteId === '') ? null : Number(c.clienteId);
+  // Comisión de venta: se asigna una sola vez, al dar de alta el abono
+  if (typeof SB_TIENE_ABO_COM !== 'undefined' && SB_TIENE_ABO_COM){
+    f.comision_para = c.comisionPara || null;
+    f.comision_mes  = c.comisionMes || null;
+  }
   // Qué incluye, forma de pago y su observación
   if (typeof SB_TIENE_ABO_EXTRAS !== 'undefined' && SB_TIENE_ABO_EXTRAS){
     f.incluye = c.incluye || '';
@@ -7699,6 +7741,8 @@ function abonosDesdeNube(clientes, pagos){
     base.incluye = f.incluye || '';
     base.formaPago = f.forma_pago === 'vencido' ? 'vencido' : 'adelantado';
     base.formaPagoObs = f.forma_pago_obs || '';
+    base.comisionPara = f.comision_para || '';
+    base.comisionMes = f.comision_mes || '';
     base.pagos = [];
     porId[id] = base;
   });
@@ -7880,6 +7924,19 @@ function abonoGuardarForma(cliId){
   saveAbonos(); sbPushAbonoCli(cliId);
   abonoCerrarForma(); renderAbonos();
 }
+// Guardado propio de la comisión: no depende del detalle del abono
+function abonoGuardarComision(cliId){
+  const c = abonoBuscarCli(cliId); if (!c) return;
+  const s = document.getElementById('aboComPara');
+  const m = document.getElementById('aboComMes');
+  c.comisionPara = s ? (s.value || '') : '';
+  c.comisionMes = (m && /^\d{4}-\d{2}$/.test(m.value || '')) ? m.value : '';
+  if (!c.comisionPara) c.comisionMes = '';
+  saveAbonos(); sbPushAbonoCli(cliId);
+  try { aricToast(c.comisionPara ? 'Comisión asignada a ' + aboComNombre(c.comisionPara) : 'Comisión quitada'); } catch(e){}
+  if (typeof abonoPintarRegistro === 'function' && ABONO_REG_CLI === cliId) abonoPintarRegistro();
+  renderAbonos();
+}
 function abonoSetFactura(cliId, val){
   const c = abonoBuscarCli(cliId); if(!c) return;
   c.factura = val || '';
@@ -7950,6 +8007,14 @@ function inflTrimestreLabels(){
 }
 // Al aplicar un ajuste, el trimestre queda consumido y se corre al siguiente
 function inflAvanzarAncla(){ inflSetAncla(inflMasMeses(inflAncla(), 3)); }
+// El panel pide el PRIMER mes del trimestre; el ancla guarda el mes anterior a ese.
+function inflSetPrimerMes(ym){
+  if (!/^\d{4}-\d{2}$/.test(ym || '')) return;
+  inflSetAncla(inflMasMeses(ym, -1));
+  if (typeof renderAbonos === 'function') { try { renderAbonos(); } catch(e){} }
+  if (typeof renderIngresos === 'function') { try { renderIngresos(); } catch(e){} }
+  if (typeof aricToast === 'function') aricToast('Trimestre actualizado');
+}
 // ¿Ya llegó el momento de hacer el ajuste? (recién en el mes de cierre del trimestre)
 function inflTocaAjuste(){ return hoyISO().slice(0,7) >= inflMesCierre(); }
 
@@ -10952,6 +11017,11 @@ function renderAbonosInflacion(cont){
         <input type="month" value="${esc(abonoInflDesde())}" onchange="abonoInflSetDesde(this.value)">
         <span class="abo-infl-desde-n">inclusive · los meses anteriores no se tocan</span>
       </div>
+      <div class="abo-infl-desde">
+        <label>Primer mes del trimestre</label>
+        <input type="month" value="${esc(inflTrimestre()[0])}" onchange="inflSetPrimerMes(this.value)">
+        <span class="abo-infl-desde-n">cambia los tres meses de inflación que se piden arriba</span>
+      </div>
       <div class="abo-infl-acc">
         <button class="abo-infl-aplicar" onclick="abonoConfirmarInflacion()">Aplicar ajuste</button>
         <button class="abo-infl-deshacer ${puedeDeshacer?'':'off'}" ${puedeDeshacer?'':'disabled'} onclick="abonoConfirmarDeshacer()">↺ Deshacer último ajuste</button>
@@ -11290,6 +11360,10 @@ function abonoAbrirNuevo(){
           <div class="ina-money"><span>%</span>
             <input type="number" min="0" max="100" step="5" id="abonoNuevoPctInput" value="50"></div>
         </div>
+        <div class="abo-reg-fld">
+          <label>Asignar comisión de venta a</label>
+          <select id="abonoNuevoComPara">${aboComOpciones('')}</select>
+        </div>
       </div>
       <div class="abo-montos-hint" style="margin:0">El monto rige desde el mes que elijas en adelante: los meses anteriores quedan en cero, así no se altera ningún balance ya cerrado. Si el cliente no está en el CRM, se le crea la ficha sola al guardar.</div>
     </div>
@@ -11401,8 +11475,11 @@ function abonoCrearNuevo(){
   const desde = (iDesde && iDesde.value) ? iDesde.value : abonoMesActual();
   const rep = ABONOS.find(c => (c.nombre||'').trim().toLowerCase() === nombre.toLowerCase());
   if(rep && !confirm('Ya hay un abono cargado a nombre de «'+rep.nombre+'».\n\n¿Lo agregás igual?')) return;
+  const iCom = document.getElementById('abonoNuevoComPara');
+  const comPara = iCom ? (iCom.value || '') : '';
   const c = { id: abonoNuevoId(), nombre, moneda, monto: 0, tipo: '', estado: 'activo', pagos: [],
               formaPago: ABONO_NUEVO.formaPago === 'vencido' ? 'vencido' : 'adelantado', incluye: '', formaPagoObs: '',
+              comisionPara: comPara, comisionMes: comPara ? desde : '',
               montoHist: monto ? [{ desde, monto }] : [] };
   ABONOS.push(c);
   saveAbonos();
@@ -11658,6 +11735,21 @@ function abonoPintarRegistro(){
             <button class="abo-reg" onclick="abonoGuardarIncluye(${c.id})">Guardar detalle</button>
           </div>
         </div>
+      </div>
+
+      <!-- Comisión de venta o renovación: sección aparte, no cuelga de "qué incluye" -->
+      <div class="abo-com-sec">
+        <div class="abo-com-sec-h">Comisión de venta o renovación</div>
+        <div class="abo-com-fila">
+          <div class="abo-reg-fld"><label>Le corresponde a</label>
+            <select id="aboComPara">${aboComOpciones(c.comisionPara)}</select></div>
+          <div class="abo-reg-fld mes"><label>Mes</label>
+            <input type="month" id="aboComMes" value="${esc(abonoComMes(c))}"></div>
+          <button class="abo-reg" onclick="abonoGuardarComision(${c.id})">Guardar</button>
+        </div>
+        <div class="abo-com-sec-n">${c.comisionPara
+          ? 'Hoy la cobra <b>' + esc(aboComNombre(c.comisionPara)) + '</b> en ' + esc(abonoMesLabel(abonoComMes(c))) + '. Se paga una sola vez: si es por una renovación, poné el mes en que se renovó.'
+          : 'Se paga una sola vez, sobre el monto mensual del abono. Si es por una renovación, poné el mes en que se renovó.'}</div>
       </div>
 
       <div class="abo-pp-lista">${listaParc}</div>
@@ -12360,7 +12452,7 @@ async function cannabisSubirDoc(key, input){
     cannabisPintarFicha();
     renderAric();
     aricToast('Documento adjuntado');
-  } catch(err){ console.error(err); aricToast('No se pudo adjuntar'); }
+  } catch(err){ console.error(err); aricToast(sbMsgAdjunto(err)); input.value = ''; }
 }
 function cannabisVerDoc(key){
   const c = cannabisClientes().find(x=>x.id===CANNABIS_FICHA); if(!c) return;
@@ -13182,7 +13274,21 @@ function aricVincularCRM(c, existiaCRM){
 
 // ── util UI ──
 function aricCopiar(txt,ev){ ev.stopPropagation(); try{ navigator.clipboard.writeText(txt); }catch(e){} aricToast('Copiado: '+txt); }
-function aricToast(m){ let t=document.getElementById('aricToast'); if(!t) return; t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1500); }
+// Traduce el fallo de lectura en una instrucción concreta. El aviso genérico dejaba
+// al usuario sin saber qué hacer, que es justo lo que el sistema no debe hacer.
+function sbMsgAdjunto(err){
+  const m = String((err && err.message) || err || '');
+  if (m.indexOf('NO_SE_PUDO_LEER') === 0) {
+    const arch = m.split(':')[1] || 'el archivo';
+    return 'No se pudo leer «' + arch + '». Si está en OneDrive o Drive, abrilo una vez o marcalo como "Conservar siempre en este dispositivo" y reintentá.';
+  }
+  if (/Failed to fetch|NetworkError|ERR_FAILED/i.test(m))
+    return 'No se pudo subir el archivo: se cortó la conexión o el archivo no está descargado en la computadora.';
+  if (m.indexOf('falta crear el bucket') === 0) return m;
+  if (m.indexOf('sesión requerida') === 0) return 'Sesión vencida: volvé a entrar y reintentá.';
+  return 'No se pudo adjuntar: ' + m;
+}
+function aricToast(m,ms){ let t=document.getElementById('aricToast'); if(!t) return; t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), ms || (String(m).length > 60 ? 7000 : 1500)); }
 
 // ═══ MÓDULO ARICCAME (fin) ═══
 
@@ -15856,6 +15962,20 @@ const COM_SOC_PERSONAS = [
   { id: 'sofit', nombre: 'Sofi T' }
 ];
 function comSocNombre(pid){ const p = COM_SOC_PERSONAS.find(x => x.id === pid); return p ? p.nombre : ''; }
+// Quiénes pueden comisionar por la VENTA de un abono. Es una lista propia porque
+// acá también entra Ori, que no comisiona en la caja societaria.
+const ABO_COM_PERSONAS = [
+  { id: 'brenda', nombre: 'Brenda' },
+  { id: 'ori',    nombre: 'Ori'    },
+  { id: 'naza',   nombre: 'Naza'   },
+  { id: 'sofig',  nombre: 'Sofi G' },
+  { id: 'sofit',  nombre: 'Sofi T' }
+];
+function aboComNombre(pid){ const p = ABO_COM_PERSONAS.find(x => x.id === pid); return p ? p.nombre : (pid || ''); }
+function aboComOpciones(sel){
+  return '<option value="">Sin comisión</option>' + ABO_COM_PERSONAS
+    .map(p => `<option value="${p.id}" ${sel === p.id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('');
+}
 
 // Escalón de comisión en pesos a partir de la venta en USD
 function comSocEscalon(ventaUsd){
@@ -16003,6 +16123,70 @@ function abonoComTempranaMes(ym){
   return { n, monto: esc ? esc.monto : 0, lista,
            proximo: n < 10 ? 10 : (n < 20 ? 20 : null) };
 }
+// ── Comisión de VENTA de un abono ──
+// Se paga una sola vez, en el mes en que se dio de alta el abono, a la persona
+// elegida al cargarlo. La base es el monto MENSUAL (no el anual) llevado a dólares,
+// con la misma escala que el resto: cada 200 USD = $10.000. Si después el cliente
+// se da de baja, la comisión ya devengada queda igual.
+// El alta se reconstruye del id, que es la marca de tiempo de creación.
+// OJO: a diferencia del resto del sistema, los abonos NO usan Date.now() como id
+// (ver abonoNuevoId: es max+1). Un id chico interpretado como marca de tiempo daba
+// "1969-12". Así que el alta sale del primer tramo del historial de montos, que es
+// el mes desde el que rige el abono, y solo se mira el id cuando de verdad es una
+// marca de tiempo.
+function abonoMesAlta(c){
+  if (!c) return '';
+  const hist = Array.isArray(c.montoHist) ? c.montoHist.filter(x => x && /^\d{4}-\d{2}$/.test(x.desde)) : [];
+  if (hist.length) return hist.map(x => x.desde).sort()[0];
+  const n = Number(c.id);
+  if (n > 1e12) {                      // solo entonces es una fecha real
+    const d = new Date(n);
+    if (!isNaN(d.getTime())) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+  return '';
+}
+// Monto mensual del abono al momento de la venta, en dólares
+function abonoVentaUsd(c, dolarRef){
+  if (!c) return 0;
+  const ym = abonoComMes(c);
+  const base = (typeof abonoMontoVigente === 'function') ? (abonoMontoVigente(c, ym) || Number(c.monto) || 0) : (Number(c.monto) || 0);
+  if (!(base > 0)) return 0;
+  if ((c.moneda || 'ARS') === 'USD') return base;
+  return dolarRef > 0 ? base / dolarRef : 0;
+}
+function abonoComVentaMonto(c, dolarRef){
+  if (!c || !c.comisionPara) return 0;
+  return comSocEscalon(abonoVentaUsd(c, dolarRef));
+}
+// Mes al que se imputa la comisión. Por defecto el del alta, pero se puede mover:
+// una renovación comisiona igual y no crea un abono nuevo.
+function abonoComMes(c){
+  if (!c) return '';
+  const m = c.comisionMes || '';
+  if (/^\d{4}-\d{2}$/.test(m)) return m;
+  return abonoMesAlta(c) || (typeof abonoMesActual === 'function' ? abonoMesActual() : '');
+}
+// Las comisiones de venta de una persona en un mes dado
+function abonoComVentaDe(pid, ym, dolarRef){
+  if (!pid || typeof ABONOS === 'undefined') return [];
+  const d = dolarRef || 0;
+  return ABONOS
+    .filter(c => c.comisionPara === pid && (!ym || abonoComMes(c) === ym))
+    .map(c => {
+      const monto = abonoComVentaMonto(c, d);
+      if (!monto) return null;
+      const mes = abonoComMes(c);
+      return { id: 'abo-venta-' + c.id, fecha: mes ? mes + '-01' : '',
+               concepto: (c.comisionMes && c.comisionMes !== abonoMesAlta(c)) ? 'Renovación de abono' : 'Venta de abono',
+               cliente: c.nombre || '',
+               monto, moneda: 'ARS', origen: 'abono-venta', auto: true };
+    })
+    .filter(Boolean);
+}
+function abonoComVentaTotal(pid, ym, dolarRef){
+  return abonoComVentaDe(pid, ym, dolarRef).reduce((a, x) => a + (x.monto || 0), 0);
+}
+
 function abonoComTempranaDe(pid, ym){
   if (pid !== ABO_COM_PERSONA) return [];
   const r = abonoComTempranaMes(ym);
@@ -16075,7 +16259,8 @@ function comTodasDe(pid, ym, dolarRef){
                  montoOrig: Number(c.monto)||0, moneda: c.moneda || 'ARS',
                  origen: 'manual', auto: false }));
   const temprana = (typeof abonoComTempranaDe === 'function') ? abonoComTempranaDe(pid, ym) : [];
-  return [...comJudDe(pid, ym, d), ...comSocAutoDe(pid, ym, d), ...manuales, ...temprana]
+  const ventas = (typeof abonoComVentaDe === 'function') ? abonoComVentaDe(pid, ym, d) : [];
+  return [...comJudDe(pid, ym, d), ...comSocAutoDe(pid, ym, d), ...manuales, ...temprana, ...ventas]
     .sort((a,b) => (a.fecha||'').localeCompare(b.fecha||''));
 }
 function comTodasTotalMes(pid, ym, dolarRef){
@@ -17978,7 +18163,7 @@ function renderCajaCom(){
       ? (modoOri
           ? 'Comisión sobre los cobros marcados con «Comisión de Ori»: <b>5 %</b> de cada uno.'
           : 'Comisión por porcentaje sobre cada cobro de esta caja: <b>Kevin 10 %</b>, o <b>5 % y 5 %</b> cuando el pago se marca como «Comisión de Ori».')
-      : 'La comisión se asigna al registrar el pago, con el selector «Asignar comisión a». Cada 200 USD de venta = $10.000, y en planes se imputa en la 1ª cuota. Se ven las tres fuentes juntas.'}</div>
+      : 'La comisión se asigna al registrar el pago, con el selector «Asignar comisión a». Cada 200 USD de venta = $10.000, y en planes se imputa en la 1ª cuota. La venta de un abono también paga comisión, una sola vez, en el mes del alta. Se ven todas las fuentes juntas.'}</div>
     <div class="fondo-tablero" style="margin-bottom:14px">${tablero}</div>
     ${filas.length ? `<div style="overflow-x:auto"><table class="tabla-caja"><thead><tr>
         <th style="width:110px">Fecha</th><th style="width:120px">${esPct ? '%' : 'Origen'}</th><th>Concepto</th><th style="width:150px;text-align:right">Monto</th>
