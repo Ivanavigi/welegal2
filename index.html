@@ -2259,6 +2259,8 @@ body.locked .app{margin-left:0}
 .sue-kpi .sub{font-size:11.5px;color:var(--tinta-suave);margin-top:7px;line-height:1.5}
 .sue-kpi .bar{height:6px;background:var(--filo-suave);border-radius:4px;overflow:hidden;margin-top:10px}
 .sue-kpi .sue-arr{margin-top:5px;font-size:10.5px;font-weight:600;color:var(--ok);text-transform:uppercase;letter-spacing:.5px}
+.sue-kpi .sue-arr.deuda{color:var(--mal)}
+.sue-des-row.deuda span,.sue-des-row.deuda b{color:var(--mal)}
 .sue-kpi .bar span{display:block;height:100%;background:#14294a;border-radius:4px;transition:width .4s}
 .sue-kpi.principal{background:#14294a;border-color:#c9a961;border-width:2px}
 .sue-kpi.principal .lbl{color:#c9a961}
@@ -18341,8 +18343,10 @@ function sueldoCalculo(ym){
 function sueldoPagosMes(ym){ loadSueldo(); return SUELDO.pagos[ym] || []; }
 function sueldoCobrado(ym){ return sueldoPagosMes(ym).reduce((a,p)=> a + (Number(p.monto)||0), 0); }
 
-// ── Excedente que se traslada al mes siguiente ──
+// ── Saldo que se traslada al mes siguiente, en los dos sentidos ──
 // Si en un mes se cobró de más, ese sobrante arranca el mes siguiente como ya cobrado.
+// Si se cobró de menos, la diferencia queda como deuda y el mes siguiente arranca
+// con esa falta encima, para que no se pierda de vista lo que quedó sin cobrar.
 // El encadenado se recalcula desde el primer mes con cobros registrados.
 function sueldoMesPrev(ym){
   const y = Number(ym.slice(0,4)), m = Number(ym.slice(5,7));
@@ -18366,7 +18370,8 @@ function sueldoArrastre(ym){
   for (const mm of meses){
     const total = sueldoCobrado(mm) + acum;
     const ex = total - sueldoCalculo(mm).aCobrar;
-    acum = ex > 1 ? ex : 0;
+    // Se arrastra tanto el sobrante como la deuda; el redondeo de un peso no cuenta.
+    acum = Math.abs(ex) > 1 ? ex : 0;
   }
   return acum;
 }
@@ -18381,8 +18386,9 @@ function sueldoEstado(ym){
   const saldado = bruto < 1;
   const falta = saldado ? (bruto <= -1 ? bruto : 0) : bruto;
   const excedente = falta < 0 ? -falta : 0;  // pasa al mes siguiente
+  const deuda = arrastre < 0 ? -arrastre : 0;  // lo que quedó sin cobrar de meses anteriores
   const estado = cobrado <= 0 ? 'pendiente' : (saldado ? 'pagado' : 'parcial');
-  return { ...c, pagado, arrastre, cobrado, falta, excedente, estado };
+  return { ...c, pagado, arrastre, cobrado, falta, excedente, deuda, estado };
 }
 function sueldoAgregarPago(ym, datos){
   loadSueldo();
@@ -18848,13 +18854,13 @@ function renderSueldo(){
       <div class="sue-kpi">
         <div class="lbl">Ya cobró</div>
         <div class="val">${fmt(st.cobrado)}</div>
-        <div class="sub">${pagos.length} cobro${pagos.length!==1?'s':''} registrado${pagos.length!==1?'s':''}${st.arrastre > 0 ? ' · incluye ' + fmt(st.arrastre) + ' del mes anterior' : ''}</div>
+        <div class="sub">${pagos.length} cobro${pagos.length!==1?'s':''} registrado${pagos.length!==1?'s':''}${st.arrastre > 0 ? ' · incluye ' + fmt(st.arrastre) + ' del mes anterior' : ''}${st.deuda > 0 ? ' · menos ' + fmt(st.deuda) + ' que quedaron sin cobrar antes' : ''}</div>
         <div class="bar"><span style="width:${pct.toFixed(1)}%"></span></div>
       </div>
       <div class="sue-kpi ${st.falta>0?'falta':'ok'}">
         <div class="lbl">Falta cobrar</div>
         <div class="val">${fmtS(st.falta)}</div>
-        <div class="sub">${chip}${st.excedente > 0 ? '<div class="sue-arr">Se traslada al mes siguiente</div>' : ''}</div>
+        <div class="sub">${chip}${st.excedente > 0 ? '<div class="sue-arr">Se traslada al mes siguiente</div>' : ''}${st.deuda > 0 ? '<div class="sue-arr deuda">Incluye ' + fmt(st.deuda) + ' pendientes de meses anteriores</div>' : ''}</div>
       </div>
     </div>
 
@@ -18866,7 +18872,9 @@ function renderSueldo(){
       <div class="sue-des-row"><span>Mínimo garantizado</span><b>${fmt(st.minimo)}</b></div>
       <div class="sue-des-row total"><span>${st.aplicaMinimo ? 'Cobra el mínimo, porque la suma no lo alcanza' : 'Cobra base + comisiones, porque supera el mínimo'}</span><b>${fmt(st.aCobrar)}</b></div>
       ${st.arrastre > 0 ? `<div class="sue-des-row"><span>Excedente arrastrado del mes anterior</span><b>${fmt(st.arrastre)}</b></div>` : ''}
+      ${st.deuda > 0 ? `<div class="sue-des-row deuda"><span>Quedó sin cobrar de meses anteriores</span><b>${fmt(st.deuda)}</b></div>` : ''}
       ${st.excedente > 0 ? `<div class="sue-des-row"><span>Excedente que pasa al mes siguiente</span><b>${fmt(st.excedente)}</b></div>` : ''}
+      ${st.falta > 0 && st.estado !== 'pendiente' ? `<div class="sue-des-row"><span>Queda sin cobrar y pasa al mes siguiente</span><b>${fmt(st.falta)}</b></div>` : ''}
     </div>
 
     <div class="abo-sec">
