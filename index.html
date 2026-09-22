@@ -1705,6 +1705,10 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .cnb-docs-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .cnb-docs-topbar .cnb-docs-h{margin-bottom:0}
 .cnb-wa-btn{display:inline-flex;align-items:center;gap:7px;background:#25d366;color:#fff;border:none;border-radius:8px;font-family:var(--f-ui,inherit);font-size:12.5px;font-weight:700;padding:8px 13px;cursor:pointer}
+.cnb-docs-acc{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.cnb-zip-btn{display:inline-flex;align-items:center;gap:6px;background:var(--carta);color:var(--sello);border:1px solid var(--sello);border-radius:8px;font-family:var(--f-ui,inherit);font-size:12.5px;font-weight:700;padding:7px 13px;cursor:pointer;transition:background .12s}
+.cnb-zip-btn:hover:not(:disabled){background:var(--sello);color:#fff}
+.cnb-zip-btn:disabled{opacity:.45;cursor:not-allowed;border-color:var(--filo);color:var(--tinta-suave)}
 .cnb-wa-btn:hover{background:#1eb85a}
 .cnb-wa-btn .wa-ico{width:17px;height:17px}
 .cnb-card-acc{margin-top:13px;padding-top:12px;border-top:1px solid var(--filo-suave)}
@@ -12411,7 +12415,12 @@ function cannabisPintarFicha(){
       </label>
       <div class="cnb-docs-topbar">
         <div class="cnb-docs-h">Documentación</div>
-        <button class="cnb-wa-btn" onclick="cannabisAvisarDocs()"><img src="${WA_LOGO_B64}" class="wa-ico" alt="WhatsApp"> Pedir lo que falta</button>
+        <div class="cnb-docs-acc">
+          ${(() => { const n = cannabisDocsAdjuntos(c).length;
+            return `<button class="cnb-zip-btn" id="cnbZipBtn" ${n ? '' : 'disabled'} onclick="cannabisDescargarZip()"
+              title="${n ? 'Descarga los documentos adjuntos en un .zip' : 'Todavía no hay documentos adjuntos'}">⬇ Descargar documentación${n ? ' (' + n + ')' : ''}</button>`; })()}
+          <button class="cnb-wa-btn" onclick="cannabisAvisarDocs()"><img src="${WA_LOGO_B64}" class="wa-ico" alt="WhatsApp"> Pedir lo que falta</button>
+        </div>
       </div>
       <div class="cnb-docs">${docs.map(filaDoc).join('')}</div>
       <div class="cnb-iniciar">
@@ -12456,6 +12465,137 @@ async function cannabisSubirDoc(key, input){
     aricToast('Documento adjuntado');
   } catch(err){ console.error(err); aricToast(sbMsgAdjunto(err)); input.value = ''; }
 }
+// ═══ ZIP propio, sin dependencias ═══
+// Método STORE (sin compresión): los PDF e imágenes ya vienen comprimidos, así que
+// comprimir de nuevo no ahorra casi nada. Evita sumar una biblioteca de terceros,
+// en línea con la documentación técnica (PDF.js es la única externa).
+const ZIP_CRC_TABLA = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function zipCrc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = ZIP_CRC_TABLA[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function zipFechaDos(d) {
+  const t = ((d.getHours() & 31) << 11) | ((d.getMinutes() & 63) << 5) | ((d.getSeconds() >> 1) & 31);
+  const f = (((d.getFullYear() - 1980) & 127) << 9) | (((d.getMonth() + 1) & 15) << 5) | (d.getDate() & 31);
+  return { t, f };
+}
+// archivos: [{ nombre: 'carpeta/archivo.pdf', datos: Uint8Array }]  →  Blob .zip
+function zipArmar(archivos) {
+  const enc = new TextEncoder();
+  const { t, f } = zipFechaDos(new Date());
+  const partes = [], central = [];
+  let offset = 0;
+  archivos.forEach(a => {
+    const nom = enc.encode(a.nombre);
+    const datos = a.datos;
+    const crc = zipCrc32(datos);
+    const loc = new DataView(new ArrayBuffer(30));
+    loc.setUint32(0, 0x04034b50, true);   // firma de encabezado local
+    loc.setUint16(4, 20, true);           // versión necesaria
+    loc.setUint16(6, 0x0800, true);       // bit 11: nombres en UTF-8 (acentos y eñes)
+    loc.setUint16(8, 0, true);            // STORE
+    loc.setUint16(10, t, true); loc.setUint16(12, f, true);
+    loc.setUint32(14, crc, true);
+    loc.setUint32(18, datos.length, true); loc.setUint32(22, datos.length, true);
+    loc.setUint16(26, nom.length, true); loc.setUint16(28, 0, true);
+    partes.push(new Uint8Array(loc.buffer), nom, datos);
+
+    const cen = new DataView(new ArrayBuffer(46));
+    cen.setUint32(0, 0x02014b50, true);   // firma de directorio central
+    cen.setUint16(4, 20, true); cen.setUint16(6, 20, true);
+    cen.setUint16(8, 0x0800, true); cen.setUint16(10, 0, true);
+    cen.setUint16(12, t, true); cen.setUint16(14, f, true);
+    cen.setUint32(16, crc, true);
+    cen.setUint32(20, datos.length, true); cen.setUint32(24, datos.length, true);
+    cen.setUint16(28, nom.length, true);
+    cen.setUint16(30, 0, true); cen.setUint16(32, 0, true); cen.setUint16(34, 0, true);
+    cen.setUint16(36, 0, true); cen.setUint32(38, 0, true);
+    cen.setUint32(42, offset, true);
+    central.push(new Uint8Array(cen.buffer), nom);
+    offset += 30 + nom.length + datos.length;
+  });
+  const tamCentral = central.reduce((s, x) => s + x.length, 0);
+  const fin = new DataView(new ArrayBuffer(22));
+  fin.setUint32(0, 0x06054b50, true);     // fin del directorio central
+  fin.setUint16(8, archivos.length, true); fin.setUint16(10, archivos.length, true);
+  fin.setUint32(12, tamCentral, true); fin.setUint32(16, offset, true);
+  return new Blob([...partes, ...central, new Uint8Array(fin.buffer)], { type: 'application/zip' });
+}
+// Nombre apto para cualquier sistema de archivos
+function zipNombreLimpio(s) {
+  return String(s || '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 90) || 'sin nombre';
+}
+function zipExtension(nombre) {
+  const m = String(nombre || '').match(/\.([a-z0-9]{1,5})$/i);
+  return m ? '.' + m[1].toLowerCase() : '';
+}
+
+// ═══ Descarga de la documentación de un cliente de cannabis ═══
+// Baja solo los documentos adjuntos, en una carpeta con el nombre del cliente,
+// numerados en el orden del checklist. Funciona con lo que haya cargado, aunque
+// sea un solo documento.
+function cannabisDocsAdjuntos(c) {
+  if (!c) return [];
+  return cannabisDocsDe(c)
+    .map((d, i) => ({ d, i, e: cannabisDocEstado(c, d.key) }))
+    .filter(x => x.e && x.e.adjunto && (x.e.path || x.e.url));
+}
+async function cannabisDescargarZip() {
+  const c = cannabisClientes().find(x => x.id === CANNABIS_FICHA); if (!c) return;
+  const lista = cannabisDocsAdjuntos(c);
+  if (!lista.length) { aricToast('Este cliente no tiene documentos adjuntos'); return; }
+
+  const btn = document.getElementById('cnbZipBtn');
+  const txtBtn = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Preparando…'; }
+
+  const carpeta = zipNombreLimpio(c.nombre);
+  const archivos = [], fallaron = [];
+  const usados = new Set();
+  try {
+    for (const x of lista) {
+      try {
+        let url = x.e.path ? await sbUrlFirmada(x.e.path, 300) : null;
+        if (!url) url = x.e.url || null;
+        if (!url) throw new Error('sin enlace');
+        const r = await fetch(url);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const datos = new Uint8Array(await r.arrayBuffer());
+        let nombre = String(x.i + 1).padStart(2, '0') + ' - ' + zipNombreLimpio(x.d.label) + zipExtension(x.e.nombre);
+        while (usados.has(nombre)) nombre = nombre.replace(/(\.[^.]*)?$/, ' (2)$1');
+        usados.add(nombre);
+        archivos.push({ nombre: carpeta + '/' + nombre, datos });
+      } catch (err) {
+        console.error('ZIP:', x.d.label, err);
+        fallaron.push(x.d.label);
+      }
+    }
+    if (!archivos.length) { aricToast('No se pudo bajar ningún documento. Revisá la conexión y reintentá.'); return; }
+
+    const blob = zipArmar(archivos);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Documentación - ' + carpeta + '.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+
+    aricToast(fallaron.length
+      ? 'Se descargaron ' + archivos.length + ' documentos. No se pudo bajar: ' + fallaron.join(', ') + '.'
+      : 'Se descargaron ' + archivos.length + ' documento' + (archivos.length !== 1 ? 's' : '') + '.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = txtBtn; }
+  }
+}
+
 function cannabisVerDoc(key){
   const c = cannabisClientes().find(x=>x.id===CANNABIS_FICHA); if(!c) return;
   const e = cannabisDocEstado(c, key); if(!e) return;
