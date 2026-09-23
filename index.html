@@ -588,6 +588,12 @@ body.inicio-crm-first .quick-ivana{display:flex}
 .tabla-caja tr:hover td{background:#fbfaf6;}
 .tabla-caja .monto{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;text-align:right;}
 .tabla-caja .usd{color:var(--info);}
+.chip-mixto{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.04em;background:#eef2f8;color:#1b3a6b;border:1px solid #c9d6e8;vertical-align:middle}
+.mto-mixto{font-size:11.5px;font-weight:600;opacity:.85;white-space:nowrap}
+.cs-mixto-chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--tinta);cursor:pointer;margin-bottom:6px;white-space:nowrap}
+.cs-mixto-chk input{accent-color:var(--sello)}
+.cs-mixto-chk:has(input:checked){color:var(--sello);font-weight:700}
+.f-col label.lbl-mixto{font-weight:800;color:var(--sello)}
 .mini-btn{background:none;border:1px solid var(--filo);border-radius:6px;font-size:11px;padding:3px 8px;cursor:pointer;color:var(--tinta-suave);transition:all .15s;white-space:nowrap;}
 .mini-btn:hover{border-color:var(--sello);color:var(--sello);background:var(--laurel);}
 .chip-moneda{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--laurel);color:var(--sello);}
@@ -3519,7 +3525,7 @@ body.locked .app{margin-left:0}
           <div class="f-row" style="align-items:end">
             <div class="f-col" style="flex:0 0 155px" id="csFechaWrap"><label id="csFechaLbl">Fecha</label><input type="date" id="csFecha"></div>
             <div class="f-col" style="flex:0 0 130px"><label>Tipo</label>
-              <select id="csTipo" onchange="csToggleCuotaVisibilidad();csPackHint();csToggleFondo();csVincPintar()"><option value="ingreso">▲ Ingreso</option><option value="gasto">▼ Gasto ordinario</option><option value="gasto_esc">▼ Gasto escribanía</option></select>
+              <select id="csTipo" onchange="csToggleCuotaVisibilidad();csPackHint();csToggleFondo();csVincPintar();csMixtoActualizarVisible(this.value)"><option value="ingreso">▲ Ingreso</option><option value="gasto">▼ Gasto ordinario</option><option value="gasto_esc">▼ Gasto escribanía</option></select>
             </div>
             <div class="f-col" style="flex:1;min-width:160px;position:relative"><label>Cliente / proveedor</label><input id="csContra" placeholder="Branca e Hijos SAS" autocomplete="off" oninput="csSugRender()" onfocus="csSugRender()" onkeydown="csSugTecla(event)"><div id="csSugBox" class="cj-sug" style="display:none"></div></div>
             <div class="f-col" style="flex:1.3;min-width:180px"><label>Concepto</label><input id="csConcepto" placeholder="Constitución SAS / Tasa IGJ" oninput="csPackSync()"></div>
@@ -3535,9 +3541,10 @@ body.locked .app{margin-left:0}
           <div class="f-row" style="align-items:end">
             <div class="f-col" style="flex:0 0 140px" id="csMontoWrap"><label id="csMontoLbl">Monto</label><input type="text" inputmode="decimal" id="csMonto" oninput="fmtMiles(this);csPackHint();csChequearDesglose()" placeholder="450.000"></div>
             <div class="f-col" style="flex:0 0 95px" id="csMonedaWrap"><label>Moneda</label>
-              <select id="csMoneda" onchange="csToggleDolarDia();csPackHint();csChequearDesglose()"><option value="ARS">$ ARS</option><option value="USD">u$s USD</option></select>
+              <select id="csMoneda" onchange="csToggleDolarDia();csPackHint();csChequearDesglose();csToggleMixto()"><option value="ARS">$ ARS</option><option value="USD">u$s USD</option></select>
             </div>
-            <div class="f-col" style="flex:0 0 165px" id="csDolarDiaWrap"><label>Valor del dólar hoy ($)</label><input type="text" inputmode="decimal" id="csDolarDia" oninput="fmtMiles(this)" placeholder="Ej: 1.480"></div>
+            <div class="f-col" style="flex:0 0 150px;display:none" id="csMixtoWrap"><label id="csMixtoLbl">Parte en dólares</label><input type="text" inputmode="decimal" id="csMixtoMonto" oninput="fmtMiles(this);csPackHint()" placeholder="200"></div>
+            <div class="f-col" style="flex:0 0 165px" id="csDolarDiaWrap"><label id="csDolarLbl">Valor del dólar hoy ($)</label><input type="text" inputmode="decimal" id="csDolarDia" oninput="fmtMiles(this)" placeholder="Ej: 1.480"></div>
             <div class="f-col" style="flex:0 0 140px"><label>Método</label>
               <select id="csMetodo" onchange="labelReceptorSoc()">
                 <option value="efectivo">Efectivo</option>
@@ -3549,6 +3556,8 @@ body.locked .app{margin-left:0}
             <div class="f-col" style="flex:0 0 150px"><label id="csReceptorLabel">Recibió el efectivo</label><input id="csReceptor" placeholder="Kevin / Ivana" list="csReceptoresList"></div>
             <div class="f-col" style="flex:0 0 190px;display:none" id="csFondoWrap"><label>¿Se pagó con el fondo?</label>
               <select id="csFondoDe"><option value="">No, salió de la caja</option></select></div>
+            <label class="cs-mixto-chk" id="csMixtoChkWrap" title="El cliente dejó una parte en pesos y otra en dólares">
+              <input type="checkbox" id="csMixto" onchange="csToggleMixto()"> <span>Pagó en pesos y dólares</span></label>
             <button class="btn-ghost" style="margin-bottom:2px" id="csAdjBtn" onclick="document.getElementById('csAdjInput').click()">📎 Adjuntar foto / PDF</button>
           </div>
 
@@ -6781,6 +6790,7 @@ var SB_TIENE_FONDO_DE = false;
 var SB_TIENE_GASTOS_PEND = false;
 var SB_TIENE_GASTOS_PAGOS = false;
 var SB_TIENE_CAJA_DEST = false;
+var SB_TIENE_GRUPO_ID  = false;   // caja_soc.grupo_id (text) — pagos mixtos
 var SB_TIENE_JUD_COM_PARA = false;
 var SB_TIENE_APODO = false;
 var SB_TIENE_ABO_CLI = false;
@@ -6986,6 +6996,8 @@ async function __sbCargarTodoInterno() {
       SB_TIENE_GASTOS_PAGOS = true;
     if (sbTiene(rCajaSoc, 'caja_dest'))
       SB_TIENE_CAJA_DEST = true;
+    if (sbTiene(rCajaSoc, 'grupo_id'))
+      SB_TIENE_GRUPO_ID = true;
     if (sbTiene(rCaja, 'comision_para'))
       SB_TIENE_JUD_COM_PARA = true;
     if (sbTiene(rClientes, 'apodo'))
@@ -15292,6 +15304,7 @@ function movAFila(m) {  /* incluye plan de cuotas */
     gastos_fecha: (typeof SB_TIENE_GASTOS_PEND !== 'undefined' && SB_TIENE_GASTOS_PEND) ? (m.gastosFecha || null) : undefined,
     gastos_pagos: (typeof SB_TIENE_GASTOS_PAGOS !== 'undefined' && SB_TIENE_GASTOS_PAGOS) ? (m.gastosPagos || []) : undefined, comision_para: m.comisionPara || null, revisado: !!m.revisado,
     caja_dest: (typeof SB_TIENE_CAJA_DEST !== 'undefined' && SB_TIENE_CAJA_DEST) ? (m.cajaDest || 'soc') : undefined,
+    grupo_id: (typeof SB_TIENE_GRUPO_ID !== 'undefined' && SB_TIENE_GRUPO_ID) ? (m.grupoId || null) : undefined,
     adjunto_path: (CAJASOC_ADJ[m.id] || {}).path || null };
 }
 function filaAMov(f) {
@@ -15300,7 +15313,7 @@ function filaAMov(f) {
     metodo: f.metodo || '', receptor: f.receptor || '', cargadoPor: f.cargado_por || '', clienteId: f.cliente_id || null, planId: f.plan_id || null, nroCuota: f.nro_cuota || null, dolarDia: f.dolar_dia != null ? Number(f.dolar_dia) : null, honorarios: f.honorarios != null ? Number(f.honorarios) : null, gastosIncl: f.gastos_incl != null ? Number(f.gastos_incl) : null, gastosMon: f.gastos_mon || '', fondoDe: f.fondo_de || '',
     gastosPend: !!f.gastos_pend, gastosFecha: f.gastos_fecha || '',
     gastosPagos: Array.isArray(f.gastos_pagos) ? f.gastos_pagos : [], comisionPara: f.comision_para || '', revisado: !!f.revisado,
-    cajaDest: f.caja_dest === 'wl' ? 'wl' : 'soc' };
+    cajaDest: f.caja_dest === 'wl' ? 'wl' : 'soc', grupoId: f.grupo_id || '' };
 }
 function toggleRevisadoSoc(id) {
   if (!puedeRevisar()) return;
@@ -15484,7 +15497,7 @@ function csToggleDesglose() {
   if (mt) mt.disabled = false;
   if (ms) ms.disabled = false;
   const lbl = document.getElementById('csMontoLbl');
-  if (lbl) lbl.textContent = on ? 'Honorarios' : 'Monto';
+  if (lbl && !csEsMixto()) lbl.textContent = on ? 'Honorarios' : 'Monto';
   if (on) csChequearDesglose();
 }
 // Honorarios y gastos son dos líneas independientes: cada una con su monto y su
@@ -15514,11 +15527,62 @@ function csChequearDesglose() {
   hint.innerHTML = '✓ Entra ' + partes.join(' y ') + '. Los gastos entran y salen: no cuentan como ingreso neto ni se reparten en los packs.';
   hint.style.color = '#1e7a48';
 }
+// ── Pago mixto: una parte en pesos y otra en dólares ──
+// Se guarda como DOS movimientos hermanados por `grupoId`: así el balance, las tres
+// vistas de moneda, los packs y los planes siguen leyendo un movimiento con UNA
+// moneda, sin tocar nada de eso. Para el usuario es un solo pago: se carga en un
+// formulario, se ve en una fila y se borra junto.
+function csEsMixto(){ const c = document.getElementById('csMixto'); return !!(c && c.checked); }
+function csMixtoMoneda(){ return ((document.getElementById('csMoneda')||{}).value === 'USD') ? 'ARS' : 'USD'; }
+function csToggleMixto(){
+  const on = csEsMixto();
+  const w = document.getElementById('csMixtoWrap');
+  const lbl = document.getElementById('csMixtoLbl');
+  const lblMonto = document.getElementById('csMontoLbl');
+  const lblDolar = document.getElementById('csDolarLbl');
+  const monWrap = document.getElementById('csMonedaWrap');
+  const mon = document.getElementById('csMoneda');
+  const campo = document.getElementById('csMonto');
+  if (w) w.style.display = on ? '' : 'none';
+  if (on){
+    // El orden queda fijo: pesos, dólares, cotización. Elegir moneda dejaría de
+    // tener sentido (hay una de cada una) y era lo que generaba la confusión.
+    if (mon){ mon.value = 'ARS'; }
+    if (monWrap) monWrap.style.display = 'none';
+    if (lblMonto){ lblMonto.textContent = '1 · Monto en pesos ($)'; lblMonto.classList.add('lbl-mixto'); }
+    if (lbl){ lbl.textContent = '2 · Monto en dólares (u$s)'; lbl.classList.add('lbl-mixto'); }
+    if (lblDolar){ lblDolar.textContent = '3 · Cotización del dólar ($)'; lblDolar.classList.add('lbl-mixto'); }
+    if (campo) campo.placeholder = '500.000';
+  } else {
+    if (monWrap) monWrap.style.display = '';
+    if (lblMonto){
+      const des = document.getElementById('csTieneGastos');
+      lblMonto.textContent = (des && des.checked) ? 'Honorarios' : 'Monto';
+      lblMonto.classList.remove('lbl-mixto');
+    }
+    if (lbl) lbl.classList.remove('lbl-mixto');
+    if (lblDolar){ lblDolar.textContent = 'Valor del dólar hoy ($)'; lblDolar.classList.remove('lbl-mixto'); }
+    if (campo) campo.placeholder = '450.000';
+    const i = document.getElementById('csMixtoMonto'); if (i) i.value = '';
+  }
+  try { csToggleDolarDia(); } catch(e){}
+  try { csPackHint(); } catch(e){}
+}
+// El mixto solo tiene sentido en un ingreso: en gastos el monto va contra el fondo
+// y en una cuota de plan tiene que coincidir con la moneda del plan.
+function csMixtoActualizarVisible(tipo){
+  const w = document.getElementById('csMixtoChkWrap');
+  const c = document.getElementById('csMixto');
+  const ok = tipo === 'ingreso';
+  if (w) w.style.display = ok ? '' : 'none';
+  if (!ok && c && c.checked){ c.checked = false; csToggleMixto(); }
+}
+
 function csToggleDolarDia() {
   const mon = document.getElementById('csMoneda').value;
   const wrap = document.getElementById('csDolarDiaWrap');
   if (!wrap) return;
-  const esArs = mon === 'ARS';
+  const esArs = mon === 'ARS' || csEsMixto();   // el mixto siempre necesita cotización
   wrap.style.display = esArs ? '' : 'none';
   // Precargar el valor de referencia del dólar si el campo está vacío
   if (esArs) {
@@ -15763,7 +15827,24 @@ function registrarMovSoc() {
       if (plan && (plan.pagadas||[]).length === 1) etiquetaServ = plan.concepto + ' (plan ' + plan.total + ' cuotas)';
     }
   }
-  CAJASOC.push(m); saveCajaSoc(); sbPushMovSoc(m);
+  // ── Pago mixto: se agrega el movimiento hermano con la otra moneda ──
+  // Comparten `grupoId`, fecha, concepto, cliente y comisión. Cada uno queda con su
+  // propia moneda, así todo lo que ya existe los lee sin cambios.
+  let mHermano = null;
+  if (csEsMixto() && tipo === 'ingreso'){
+    const otroMonto = numDe((document.getElementById('csMixtoMonto') || {}).value);
+    if (!(otroMonto > 0)){ alert('Cargá el monto de la otra moneda o destildá «Pagó en pesos y dólares».'); return; }
+    if (!(m.dolarDia > 0)){ alert('Para un pago mixto hace falta el valor del dólar del día: sin eso no se puede calcular la comisión ni dolarizar el balance.'); return; }
+    const gid = 'g' + m.id;
+    m.grupoId = gid;
+    mHermano = { ...m, id: m.id + 1, monto: otroMonto, moneda: csMixtoMoneda(), grupoId: gid };
+    // El desglose de gastos y el plan quedan en el movimiento principal, para no duplicarlos
+    delete mHermano.honorarios; delete mHermano.gastosIncl; delete mHermano.gastosMon;
+    delete mHermano.gastosPend; delete mHermano.gastosFecha; delete mHermano.gastosPagos;
+    delete mHermano.planId; delete mHermano.nroCuota;
+  }
+  CAJASOC.push(m); if (mHermano) CAJASOC.push(mHermano);
+  saveCajaSoc(); sbPushMovSoc(m); if (mHermano) sbPushMovSoc(mHermano);
   // Ofrecer sumarlo al historial de servicios del cliente (sea pago suelto o plan de cuotas)
   const conceptoServSoc = esCuotaSoc ? etiquetaServ : concepto;
   if (fichaNuevaSoc) {
@@ -15785,7 +15866,8 @@ function registrarMovSoc() {
       saveCajaSocAdj(); sbPushMovSoc(m); renderCajaSoc();
     }).catch(e => sbAvisarError(e));
   }
-  ['csContra','csConcepto','csMonto','csReceptor','csDolarDia','csGastos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['csContra','csConcepto','csMonto','csReceptor','csDolarDia','csGastos','csMixtoMonto'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const mx = document.getElementById('csMixto'); if (mx) { mx.checked = false; try { csToggleMixto(); } catch(e){} }
   const cp = document.getElementById('csComisionPara'); if (cp) cp.value = '';
   const pk = document.getElementById('csPack'); if (pk) pk.value = '';
   try { csPackHint(); } catch(e){}
@@ -15906,11 +15988,18 @@ function eliminarMovSoc(id) {
       alert('Solo podés eliminar los gastos que cargaste vos.'); return;
     }
   }
-  if (!confirm('¿Eliminar este movimiento?')) return;
-  const mov = CAJASOC.find(m => m.id === id);
-  CAJASOC = CAJASOC.filter(m => m.id !== id);
-  delete CAJASOC_ADJ[id];
-  saveCajaSoc(); saveCajaSocAdj(); sbDelMovSoc(id);
+  const mov0 = CAJASOC.find(m => m.id === id);
+  // Un pago mixto son dos movimientos hermanados: se borran los dos juntos, porque
+  // para el estudio fue un solo pago.
+  const hermanos = (mov0 && mov0.grupoId)
+    ? CAJASOC.filter(m => m.grupoId === mov0.grupoId).map(m => m.id) : [id];
+  if (!confirm(hermanos.length > 1
+      ? '¿Eliminar este pago? Se van a borrar las dos partes, la de pesos y la de dólares.'
+      : '¿Eliminar este movimiento?')) return;
+  const mov = mov0;
+  CAJASOC = CAJASOC.filter(m => hermanos.indexOf(m.id) < 0);
+  hermanos.forEach(hid => { delete CAJASOC_ADJ[hid]; });
+  saveCajaSoc(); saveCajaSocAdj(); hermanos.forEach(hid => sbDelMovSoc(hid));
   if (mov && mov.tipo === 'ingreso') {
     const cid = mov.clienteId != null ? mov.clienteId : __clienteIdPorNombre(mov.contraparte);
     // Si era una cuota: desmarcarla del plan (y borrar el plan si queda vacío)
@@ -16383,11 +16472,31 @@ function comJudTotalMes(pid, ym, dolarRef){
 function comSocAutoDe(pid, ym, dolarRef){
   if (typeof CAJASOC === 'undefined') return [];
   const d = dolarRef || (typeof equipoDolarRef === 'function' ? equipoDolarRef() : 0);
-  return CAJASOC
-    .filter(m => m.comisionPara === pid && (!ym || (m.fecha||'').slice(0,7) === ym))
-    .map(m => ({ id: m.id, fecha: m.fecha || '', concepto: m.concepto || m.contraparte || '—',
+  const movs = CAJASOC
+    .filter(m => m.comisionPara === pid && (!ym || (m.fecha||'').slice(0,7) === ym));
+  // Un pago mixto son dos movimientos hermanados, pero para la comisión es UNA venta:
+  // se suman sus partes en dólares y recién ahí se aplica el escalón. Si se calculara
+  // por movimiento, dos partes de 100 USD pagarían dos tramos en vez de uno.
+  const grupos = new Map(), sueltos = [];
+  movs.forEach(m => {
+    if (m.grupoId){
+      if (!grupos.has(m.grupoId)) grupos.set(m.grupoId, []);
+      grupos.get(m.grupoId).push(m);
+    } else sueltos.push(m);
+  });
+  const filas = sueltos.map(m => ({ id: m.id, fecha: m.fecha || '', concepto: m.concepto || m.contraparte || '—',
                  cliente: m.contraparte || '', monto: comisionSocDe(m, d), moneda: 'ARS',
-                 origen: 'soc', auto: true }))
+                 origen: 'soc', auto: true }));
+  grupos.forEach(hs => {
+    const base = hs.slice().sort((a,b) => a.id - b.id)[0];
+    // Se redondea a dos decimales antes del escalón: sumar dos conversiones puede
+    // dar 200.00000000000003 por coma flotante, y eso saltaría un tramo entero.
+    const usd = Math.round(hs.reduce((a,m) => a + comSocVentaUsd(m, d), 0) * 100) / 100;
+    filas.push({ id: base.id, fecha: base.fecha || '', concepto: base.concepto || base.contraparte || '—',
+                 cliente: base.contraparte || '', monto: comSocEscalon(usd), moneda: 'ARS',
+                 origen: 'soc', auto: true, mixto: true });
+  });
+  return filas
     .filter(x => x.monto > 0)
     .sort((a,b) => (a.fecha||'').localeCompare(b.fecha||''));
 }
@@ -17033,7 +17142,12 @@ function renderCajaSoc() {
       <div class="cs-monto usd"><span class="cs-cur">u$s</span><span class="cs-val" style="color:#b3372a">${fmtNumStr(t.geUsd)}</span></div>
       <div class="cs-sub">${gastosEsc.length} mov.</div></div>
     ${tileActas}`;
+  // Pago mixto: los dos movimientos hermanados se muestran como UNA fila. La fila la
+  // dibuja el de id más bajo y el otro aporta su importe debajo.
+  const csHermanos = m => (m.grupoId ? CAJASOC.filter(x => x.grupoId === m.grupoId).sort((a,b)=>a.id-b.id) : [m]);
+  const csEsBase = m => !m.grupoId || csHermanos(m)[0].id === m.id;
   const filaMov = m => {
+    const hs = csHermanos(m), esMix = hs.length > 1;
     const sim = m.moneda === 'USD' ? 'u$s ' : '$ ';
     const met = m.metodo === 'efectivo' ? 'Efectivo' : m.metodo === 'transferencia' ? 'Transf.' : m.metodo === 'cripto' ? 'Cripto' : 'Otro';
     const gasto = m.tipo !== 'ingreso' && m.tipo;
@@ -17049,7 +17163,7 @@ function renderCajaSoc() {
     return `<tr>
       <td style="white-space:nowrap">${formatFechaCorta(m.fecha)}</td>
       <td style="font-weight:600">${esc(m.contraparte || '—')}${comChip}</td>
-      <td>${esc(m.concepto || '—')}${packChip}${m.planId ? ' ' + etiquetaCuota(m.planId, m.nroCuota) : ''}${m.gastosIncl > 0 ? `<div class="desglose-linea">${csSimb(m.moneda) + fmtNumStr(m.gastosMon ? (m.monto||0) : (m.honorarios || 0))} honorarios · ${csSimb(socGastosMon(m)) + fmtNumStr(m.gastosIncl)} gastos${socGastosPendiente(m) ? ` <span class="chip-pend">debe ${csSimb(socGastosMon(m))}${fmtNumStr(socGastosSaldo(m))}</span>` : (m.gastosFecha && m.gastosFecha !== m.fecha ? ' <span class="chip-com">cobrados el ' + fmtFechaCortaCRM(m.gastosFecha) + '</span>' : '')}</div>` : ''}${packLinea}${comLinea}</td>
+      <td>${esc(m.concepto || '—')}${packChip}${esMix ? ' <span class="chip-mixto">Pago mixto</span>' : ''}${m.planId ? ' ' + etiquetaCuota(m.planId, m.nroCuota) : ''}${m.gastosIncl > 0 ? `<div class="desglose-linea">${csSimb(m.moneda) + fmtNumStr(m.gastosMon ? (m.monto||0) : (m.honorarios || 0))} honorarios · ${csSimb(socGastosMon(m)) + fmtNumStr(m.gastosIncl)} gastos${socGastosPendiente(m) ? ` <span class="chip-pend">debe ${csSimb(socGastosMon(m))}${fmtNumStr(socGastosSaldo(m))}</span>` : (m.gastosFecha && m.gastosFecha !== m.fecha ? ' <span class="chip-com">cobrados el ' + fmtFechaCortaCRM(m.gastosFecha) + '</span>' : '')}</div>` : ''}${packLinea}${comLinea}</td>
       <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;color:${gasto ? '#b3372a' : '#1e7a48'}">${(() => {
         // Vista dolarizada: el monto principal SIEMPRE en dólares. Debajo, en chico,
         // el importe original en pesos y la cotización con la que se convirtió.
@@ -17063,7 +17177,17 @@ function renderCajaSoc() {
         }
         return sim + fmtNumStr(m.monto)
           + (pesif && m.moneda === 'USD' ? `<br><span class="mto-orig">≈ $ ${fmtNumStr(m.monto * dolar)}</span>` : '');
-      })()}</td>
+      })()}${esMix ? hs.filter(x => x.id !== m.id).map(x => {
+        // La otra parte del pago, con el mismo criterio de vista que la principal
+        const s2 = x.moneda === 'USD' ? 'u$s ' : '$ ';
+        if (dolarizar){
+          const c2 = csMontoEnUsd(x, dolar);
+          if (x.moneda === 'USD') return `<div class="mto-mixto">+ u$s ${fmtNumStr(x.monto)}</div>`;
+          if (c2.sinDato) return `<div class="mto-mixto">+ $ ${fmtNumStr(x.monto)}</div>`;
+          return `<div class="mto-mixto">+ u$s ${fmtNumStr(Math.round(c2.usd))}${c2.propio ? '' : ' *'}</div>`;
+        }
+        return `<div class="mto-mixto">+ ${s2}${fmtNumStr(x.monto)}${pesif && x.moneda === 'USD' ? ' <span class="mto-orig">≈ $ ' + fmtNumStr(x.monto * dolar) + '</span>' : ''}</div>`;
+      }).join('') : ''}</td>
       <td style="font-size:11.5px">${met}${m.receptor ? ' → ' + esc(m.receptor) : ''}</td>
       <td>${(() => {
         const hon = CAJASOC_ADJ[m.id];
@@ -17083,7 +17207,7 @@ function renderCajaSoc() {
     if (mini) mini.textContent = lista.length + ' ' + etiqueta + (lista.length !== 1 ? 's' : '') + ' · ' + mesLargo(mes);
     if (!lista.length) { tabla.innerHTML = ''; vacia.style.display = 'block'; return; }
     vacia.style.display = 'none';
-    tabla.innerHTML = cab + '<tbody>' + lista.map(filaMov).join('') + '</tbody>';
+    tabla.innerHTML = cab + '<tbody>' + lista.filter(csEsBase).map(filaMov).join('') + '</tbody>';
   };
   pinta(ingresos, 'csTablaIn', 'csVaciaIn', 'csMiniIn', 'ingreso');
   pinta(gastosOrd, 'csTablaGa', 'csVaciaGa', 'csMiniGa', 'gasto ordinario');
