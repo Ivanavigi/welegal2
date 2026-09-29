@@ -17726,6 +17726,14 @@ function comisionesDe(p) {
   const ro = p.comisionOri ? 0.05 : 0;
   return { k: p.monto * rk, o: p.monto * ro };
 }
+// ── Comisión de Kevin por las reuniones que entran a la caja judicial ──
+// Las reuniones no son pagos de CAJA: viven en REUNIONES y su importe se suma al
+// ingreso del mes aparte. Igual comisionan al 10 %, como cualquier cobro judicial.
+// Siempre se cobran en pesos, así que no hay conversión de por medio.
+function comKevReuMes(ym){
+  if (typeof reuDeCaja !== 'function' || !ym) return 0;
+  try { return (reuDeCaja('judicial', ym).total || 0) * 0.10; } catch(e){ return 0; }
+}
 function cajaAdjuntoElegido(input) {
   const file = input.files && input.files[0];
   input.value = '';
@@ -18369,7 +18377,21 @@ function comKevOriDe(pid, ym, dolarRef){
                origen: 'jud', pct, auto: true };
     })
     .filter(Boolean)
+    .concat(pid === 'kevin' ? comKevReuFilas(ym) : [])
     .sort((a,b) => (a.fecha||'').localeCompare(b.fecha||''));
+}
+// Una línea por reunión cobrada en el mes, con el 10 % que le toca a Kevin.
+// Ori no entra: la marca «comisión de Ori» es de los pagos de caja, no de reuniones.
+function comKevReuFilas(ym){
+  if (typeof reuDeCaja !== 'function' || !ym) return [];
+  let d;
+  try { d = reuDeCaja('judicial', ym); } catch(e){ return []; }
+  return (d.filas || []).map(f => ({
+    id: 'reu-' + (f.reu && f.reu.id), fecha: (f.pagos && f.pagos.length ? f.pagos[0].fecha : f.fecha) || '',
+    concepto: 'Reunión' + (f.motivo ? ' · ' + f.motivo : ''),
+    cliente: f.cliente || '', monto: (f.monto || 0) * 0.10, montoOrig: (f.monto || 0) * 0.10,
+    moneda: 'ARS', origen: 'jud', pct: '10 %', auto: true
+  })).filter(x => x.monto > 0);
 }
 function comKevOriTotalMes(pid, ym, dolarRef){
   return comKevOriDe(pid, ym, dolarRef).reduce((a,x)=> a + (x.monto||0), 0);
@@ -18460,6 +18482,7 @@ function renderCaja() {
   const t = totalesCaja(pagos);
   const reuJud = (typeof reuDeCaja === 'function') ? reuDeCaja('judicial', mes) : { total:0, n:0 };
   t.ars += reuJud.total;                       // reuniones asignadas a Kevin
+  t.kArs += comKevReuMes(mes);                 // y su comisión del 10 %
   const totalPes = t.ars + t.usd * dolar;
   const kPes = t.kArs + t.kUsd * dolar;
   const oPes = t.oArs + t.oUsd * dolar;
@@ -18592,7 +18615,7 @@ function sueldoComisionesMes(ym){
   if (typeof pagosDelMes !== 'function' || typeof totalesCaja !== 'function') return 0;
   const t = totalesCaja(pagosDelMes(ym));
   const dolar = (typeof valorDolar === 'function') ? valorDolar() : 0;
-  return (t.kArs || 0) + (t.kUsd || 0) * (dolar || 0);
+  return (t.kArs || 0) + (t.kUsd || 0) * (dolar || 0) + comKevReuMes(ym);
 }
 // Cuánto le corresponde cobrar ese mes
 function sueldoCalculo(ym){
