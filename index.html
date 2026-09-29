@@ -1573,6 +1573,10 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 /* ── Modal de registro de pago de abono ── */
 .abo-reg-modal{display:none;position:fixed;inset:0;background:rgba(12,20,15,.5);z-index:344;align-items:center;justify-content:center;padding:20px}
 .abo-reg-card{background:var(--carta);border-radius:var(--radio,12px);width:540px;max-width:96vw;max-height:92vh;overflow:auto;box-shadow:0 22px 64px rgba(12,20,15,.32)}
+/* La ficha de un abono ya cargado muestra pagos, descuentos y comisión: con 540px
+   se recortaba. El alta sigue angosta, que tiene pocos campos. */
+#abonoRegModal .abo-reg-card{width:820px}
+@media (max-width:880px){ #abonoRegModal .abo-reg-card{width:96vw} }
 .abo-reg-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:20px 24px;border-bottom:2px solid var(--oro,#c9a961);background:#14294a}
 .abo-reg-cli{font-family:var(--serif,'Palatino Linotype');font-size:19px;font-weight:700;color:#fff}
 .abo-reg-sub{font-size:12.5px;color:#e7ddc4;margin-top:3px}
@@ -1593,11 +1597,22 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .abo-com-sec{margin:14px 0;padding:14px;border:1px solid var(--filo);border-radius:var(--radio-s,9px);background:var(--carta)}
 .abo-com-sec-h{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--tinta-suave);margin-bottom:10px}
 .abo-com-sec-n{font-size:11.5px;color:var(--tinta-suave);line-height:1.5;margin-top:8px}
+.abo-desc-item{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;padding:7px 0;border-bottom:1px solid var(--filo-suave)}
+.abo-desc-item:last-of-type{border-bottom:none}
+.abo-desc-item.rige{color:var(--sello)}
+.abo-desc-obs{font-size:11px;color:var(--tinta-suave);font-style:italic}
+.chip-desc{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;text-transform:uppercase;letter-spacing:.03em;background:rgba(2,196,93,.14);color:#0a7a3d;border:1px solid rgba(2,196,93,.35)}
 .abo-com-fila{display:flex;gap:10px;align-items:flex-end}
 .abo-com-fila .abo-reg{flex:0 0 auto;height:38px}
-@media (max-width:620px){ .abo-com-fila{flex-wrap:wrap} .abo-com-fila .abo-reg-fld.mes{flex:1 1 140px} }
+@media (max-width:620px){ .abo-com-fila{flex-wrap:wrap} .abo-com-fila .abo-reg-fld.mes{flex:1 1 140px} .abo-com-fila .abo-reg-fld.mesc{flex:1 1 118px} }
 .abo-com-fila .abo-reg-fld{flex:1;margin:0}
 .abo-com-fila .abo-reg-fld.mes{flex:0 0 140px}
+.abo-com-fila .abo-reg-fld.pct{flex:0 0 66px}
+.abo-com-fila .abo-reg-fld.mesc{flex:0 0 118px}
+/* El selector de mes nativo trae relleno de sobra: se recorta para que el
+   motivo quede con espacio real para escribir. */
+.abo-com-fila .abo-reg-fld.mesc input{padding-left:7px;padding-right:2px;font-size:12.5px}
+.abo-com-fila .abo-reg-fld.mesc input::-webkit-calendar-picker-indicator{padding:0;margin:0}
 .abo-reg-fld textarea{resize:vertical}
 .abo-reg-comprob{margin-top:2px}
 .abo-comprob-drop{display:flex;align-items:center;gap:10px;padding:14px;border:1.5px dashed var(--filo);border-radius:var(--radio-s,9px);cursor:pointer;font-size:13px;color:var(--tinta-suave);background:var(--papel);transition:border-color .15s}
@@ -6796,6 +6811,7 @@ var SB_TIENE_APODO = false;
 var SB_TIENE_ABO_CLI = false;
 var SB_TIENE_ABO_EXTRAS = false;
 var SB_TIENE_ABO_COM   = false;   // abonos_clientes.comision_para (text)
+var SB_TIENE_ABO_DESC  = false;   // abonos_clientes.descuentos (jsonb)
 var SB_TIENE_ARIC_DOCS = false;   // aric_licencias.docs (jsonb)
 var SB_TIENE_INA_DRIVE = false;   // inase_clientes.drive (text)
 var SB_TIENE_INA_VIG   = false;   // inase_clientes.vigente (bool)
@@ -6852,6 +6868,7 @@ function sbDelCliente(id) { if (SB_ON) sbDelete('clientes', id).catch(sbAvisarEr
 
 // ── Carga inicial: pisa los stores locales con lo que hay en Supabase ──
 let __cargando = false;
+let __repintarAbonos = false;
 async function sbCargarTodo() {
   if (!SB_ON) return;
   // Sin sesión válida los pedidos darían 401 y aparecería el aviso rojo.
@@ -6941,7 +6958,9 @@ async function __sbCargarTodoInterno() {
     // Abonos (tablas abonos_clientes y abonos_pagos)
     if (rAboCli && rAboCli.length) {
       abonosDesdeNube(rAboCli, rAboPag);
-      if (typeof renderAbonos === 'function' && document.getElementById('abonosPanel')) renderAbonos();
+      // El repintado se hace más abajo, después de aplicar `config`: el reparto de
+      // cada abono vive ahí y pintar antes mostraría el de la planilla.
+      __repintarAbonos = true;
     }
 
     // Reuniones (tabla reuniones; si todavía no existe, se queda con lo local)
@@ -7008,6 +7027,8 @@ async function __sbCargarTodoInterno() {
       SB_TIENE_ABO_EXTRAS = true;
     if (sbTiene(rAboCli, 'comision_para'))
       SB_TIENE_ABO_COM = true;
+    if (sbTiene(rAboCli, 'descuentos'))
+      SB_TIENE_ABO_DESC = true;
     if (sbTiene(rAric, 'docs'))
       SB_TIENE_ARIC_DOCS = true;
     if (sbTiene(rInaCli, 'drive'))
@@ -7067,6 +7088,10 @@ async function __sbCargarTodoInterno() {
     if (cfg.sueldos_equipo && typeof equipoDesdeNube === 'function') equipoDesdeNube(cfg.sueldos_equipo);
     // Reparto de cada abono entre la caja de abonos y societario
     if (cfg.abonos_caja) { try { appStore.setItem(ABONOS_CAJA_KEY, cfg.abonos_caja); } catch(e){} }
+    if (__repintarAbonos && typeof renderAbonos === 'function' && document.getElementById('abonosPanel')) {
+      __repintarAbonos = false;
+      try { renderAbonos(); } catch(e){}
+    }
     // Costo y seña de las reuniones, con su historial de vigencias
     if (cfg.reuniones_cfg) { try { appStore.setItem(REU_CFG_KEY, cfg.reuniones_cfg); } catch(e){} }
     // Turno de la rotación de encargadas, para que la rueda siga igual en todas las máquinas
@@ -7519,7 +7544,7 @@ function abonoTotalMes(cli, ym){
 // Estado del mes: 'pagado' | 'parcial' | 'pendiente' (+ cuánto falta)
 function abonoEstadoMes(cli, ym){
   const p = abonoPagoDe(cli, ym);
-  const esperado = abonoMontoVigente(cli, ym);
+  const esperado = abonoMontoAPagar(cli, ym);
   const abonado = abonoTotalMes(cli, ym);
   const nParc = p && p.parciales ? p.parciales.length : 0;
   if(nParc === 0) return { estado:'pendiente', abonado:0, esperado, falta:esperado };
@@ -7584,7 +7609,7 @@ function abonoRepartirEntreMeses(cli, meses, total){
   ms.forEach((mes,i)=>{
     if(i === ms.length-1){ out.push({ mes, monto: Math.round(resto*100)/100 }); resto = 0; return; }
     const st = abonoEstadoMes(cli, mes);
-    const falta = st.falta > 0 ? st.falta : abonoMontoVigente(cli, mes);
+    const falta = st.falta > 0 ? st.falta : abonoMontoAPagar(cli, mes);
     const asignado = Math.min(resto, falta);
     out.push({ mes, monto: Math.round(asignado*100)/100 });
     resto -= asignado;
@@ -7637,6 +7662,54 @@ function abonoMontoVigente(cli, ym){
   for(const h of hist){ if(h.desde <= ym) val = h.monto; else break; }
   return val;
 }
+// ── Descuentos por tramo de meses ──
+// Van como capa aparte del precio de lista: `montoHist` guarda la lista y el
+// descuento se aplica encima. Así el ajuste por inflación sigue trabajando sobre
+// la lista y no deja el descuento incrustado en el monto para siempre.
+// Forma: [{ desde:'2026-09', hasta:'2026-11', pct:20, obs:'promo alta' }]
+// `hasta` vacío = sin vencimiento.
+function abonoDescuentos(cli){
+  const l = (cli && Array.isArray(cli.descuentos)) ? cli.descuentos : [];
+  return l.filter(d => d && /^\d{4}-\d{2}$/.test(d.desde) && Number(d.pct) > 0)
+          .sort((a,b) => a.desde.localeCompare(b.desde));
+}
+// El descuento que rige en un mes. Si se superponen, gana el que empezó último.
+function abonoDescuentoDe(cli, ym){
+  if (!ym) return null;
+  const v = abonoDescuentos(cli).filter(d => d.desde <= ym && (!d.hasta || ym <= d.hasta));
+  return v.length ? v[v.length - 1] : null;
+}
+function abonoDescPct(cli, ym){
+  const d = abonoDescuentoDe(cli, ym);
+  return d ? Math.max(0, Math.min(100, Number(d.pct) || 0)) : 0;
+}
+// Lo que el cliente tiene que pagar ese mes: lista menos descuento.
+function abonoMontoAPagar(cli, ym){
+  const base = abonoMontoVigente(cli, ym) || 0;
+  const pct = abonoDescPct(cli, ym);
+  if (!pct) return base;
+  return Math.round(base * (100 - pct)) / 100;
+}
+// Corre un mes N posiciones hacia adelante: 2026-09 + 2 = 2026-11
+function abonoMesMas(ym, n){
+  if (!/^\d{4}-\d{2}$/.test(ym || '')) return '';
+  const [y, m] = ym.split('-').map(Number);
+  const d = new Date(y, (m - 1) + (Number(n) || 0), 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+// Cuántos meses dura, para mostrarlo
+function abonoDescMeses(d){
+  if (!d || !d.hasta) return 0;
+  const [ay,am] = d.desde.split('-').map(Number), [by,bm] = d.hasta.split('-').map(Number);
+  return (by - ay) * 12 + (bm - am) + 1;
+}
+function abonoDescTxt(cli, ym){
+  const d = abonoDescuentoDe(cli, ym);
+  if (!d) return '';
+  const n = abonoDescMeses(d);
+  return d.pct + '% off' + (n ? ' · ' + n + ' mes' + (n !== 1 ? 'es' : '') : '');
+}
+
 // Monto que regía en el mes inmediatamente anterior a 'desde' (ignorando el cambio de 'desde' en sí)
 function abonoMontoPrevioA(cli, desde){
   const hist = (Array.isArray(cli.montoHist) ? cli.montoHist.slice() : []).sort((a,b)=> a.desde.localeCompare(b.desde));
@@ -7707,6 +7780,8 @@ function abonoClienteFila(c){
   if (typeof SB_TIENE_ABO_CLI !== 'undefined' && SB_TIENE_ABO_CLI)
     f.cliente_id = (c.clienteId === null || c.clienteId === undefined || c.clienteId === '') ? null : Number(c.clienteId);
   // Comisión de venta: se asigna una sola vez, al dar de alta el abono
+  if (typeof SB_TIENE_ABO_DESC !== 'undefined' && SB_TIENE_ABO_DESC)
+    f.descuentos = Array.isArray(c.descuentos) ? c.descuentos : [];
   if (typeof SB_TIENE_ABO_COM !== 'undefined' && SB_TIENE_ABO_COM){
     f.comision_para = c.comisionPara || null;
     f.comision_mes  = c.comisionMes || null;
@@ -7761,6 +7836,7 @@ function abonosDesdeNube(clientes, pagos){
     base.formaPagoObs = f.forma_pago_obs || '';
     base.comisionPara = f.comision_para || '';
     base.comisionMes = f.comision_mes || '';
+    base.descuentos = Array.isArray(f.descuentos) ? f.descuentos : [];
     base.pagos = [];
     porId[id] = base;
   });
@@ -7942,6 +8018,33 @@ function abonoGuardarForma(cliId){
   saveAbonos(); sbPushAbonoCli(cliId);
   abonoCerrarForma(); renderAbonos();
 }
+// ── Alta y baja de descuentos ──
+function abonoAgregarDescuento(cliId){
+  const c = abonoBuscarCli(cliId); if (!c) return;
+  const v = id => (document.getElementById(id) || {}).value || '';
+  const pct = Number(v('aboDescPct'));
+  const desde = v('aboDescDesde'), hasta = v('aboDescHasta');
+  if (!(pct > 0 && pct <= 100)) { aricToast('El descuento tiene que estar entre 1 y 100'); return; }
+  if (!/^\d{4}-\d{2}$/.test(desde)) { aricToast('Elegí desde qué mes rige'); return; }
+  if (hasta && hasta < desde) { aricToast('El mes de fin no puede ser anterior al de inicio'); return; }
+  if (!Array.isArray(c.descuentos)) c.descuentos = [];
+  c.descuentos.push({ desde, hasta: hasta || '', pct, obs: v('aboDescObs').trim() });
+  saveAbonos(); sbPushAbonoCli(cliId);
+  try { aricToast('Descuento del ' + pct + '% aplicado'); } catch(e){}
+  if (typeof abonoPintarRegistro === 'function' && ABONO_REG_CLI === cliId) abonoPintarRegistro();
+  renderAbonos();
+}
+function abonoQuitarDescuento(cliId, i){
+  const c = abonoBuscarCli(cliId); if (!c || !Array.isArray(c.descuentos)) return;
+  const ordenados = abonoDescuentos(c);
+  const d = ordenados[i]; if (!d) return;
+  if (!confirm('¿Quitar este descuento?')) return;
+  c.descuentos = c.descuentos.filter(x => x !== d);
+  saveAbonos(); sbPushAbonoCli(cliId);
+  if (typeof abonoPintarRegistro === 'function' && ABONO_REG_CLI === cliId) abonoPintarRegistro();
+  renderAbonos();
+}
+
 // Guardado propio de la comisión: no depende del detalle del abono
 function abonoGuardarComision(cliId){
   const c = abonoBuscarCli(cliId); if (!c) return;
@@ -10270,7 +10373,11 @@ function abonoCajaMapa(){
   let m = null;
   try { m = JSON.parse(appStore.getItem(ABONOS_CAJA_KEY) || 'null'); } catch(e){ m = null; }
   if (m && typeof m === 'object') return m;
-  // Primera vez: se siembra desde la planilla, buscando por nombre
+  // Sin mapa local se siembra desde la planilla, PERO NO SE GUARDA. Guardarlo acá
+  // pisaba la distribución real en la nube: al abrir en otro dispositivo el mapa
+  // todavía no había llegado de `config`, se sembraba y el push mandaba la semilla
+  // por encima de lo que el estudio había configurado. Solo persiste lo que el
+  // usuario cambia a mano, en abonoCajaSet.
   m = {};
   const norm = s => (typeof __normBusqueda === 'function') ? __normBusqueda(s || '') : (s || '').toLowerCase();
   (typeof ABONOS !== 'undefined' ? ABONOS : []).forEach(c => {
@@ -10278,7 +10385,6 @@ function abonoCajaMapa(){
     const s = ABONOS_CAJA_SEED.find(x => n.indexOf(x.nom) !== -1);
     if (s) m[String(c.id)] = { caja: s.caja, pct: s.pct };
   });
-  abonoCajaGuardar(m);
   return m;
 }
 function abonoCajaGuardar(m){
@@ -10352,7 +10458,7 @@ function abonoRepartoMes(cli, ym){
 function abonoEsperadoSoc(cli, ym){
   const r = abonoCajaDe(cli);
   if (!r.pct) return 0;
-  return (abonoMontoVigente(cli, ym) || 0) * r.pct / 100;
+  return (abonoMontoAPagar(cli, ym) || 0) * r.pct / 100;
 }
 // Resumen del mes: la parte societaria de todos los abonos de actas.
 //
@@ -10662,7 +10768,7 @@ function ingresosPendientes(ym){
   let aboVencArs = 0, aboVencUsd = 0;
   (typeof ABONOS !== 'undefined' ? ABONOS : []).filter(c=>c.estado==='activo').forEach(c => {
     // Un abono que arranca después del mes que se mira todavía no se debe
-    if (abonoMontoVigente(c, mesVer) <= 0) return;
+    if (abonoMontoAPagar(c, mesVer) <= 0) return;
     const st = abonoEstadoMes(c, mesVer);
     if(st.estado === 'pagado') return;
     // Los de mes vencido todavía no deben nada: ese abono se cobra el mes que viene
@@ -10775,7 +10881,7 @@ function renderAbonos(){
     const cs = activos.filter(c=>c.moneda===moneda);
     let esperado=0, cobrado=0, pagados=0;
     cs.forEach(c=>{
-      esperado += abonoMontoVigente(c, ym);
+      esperado += abonoMontoAPagar(c, ym);
       const st = abonoEstadoMes(c, ym);
       cobrado += st.abonado;
       if (st.estado==='pagado') pagados++;
@@ -10860,8 +10966,9 @@ function renderAbonos(){
   const filaCli = (c) => {
     const p = abonoPagoDe(c, ym);
     const st = abonoEstadoMes(c, ym);
-    const monto = abonoMontoVigente(c, ym);
-    const montoTxt = monto ? fmtM(monto, c.moneda) : '—';
+    const monto = abonoMontoAPagar(c, ym);
+    const pctD = abonoDescPct(c, ym);
+    const montoTxt = monto ? fmtM(monto, c.moneda) + (pctD ? ` <span class="chip-desc">-${pctD}%</span>` : '') : '—';
     const abonadoTxt = st.abonado ? fmtM(st.abonado, c.moneda) : '—';
     const parciales = p && p.parciales ? p.parciales : [];
     const conComprob = parciales.filter(x => x.comprobante && (x.comprobante.url || x.comprobante.path));
@@ -11116,7 +11223,7 @@ function renderAbonosCaja(cont){
   const fmtM = (n, mon) => (mon === 'USD' ? 'US$ ' : '$ ') + Math.round(Number(n) || 0).toLocaleString('es-AR');
   const filaCli = c => {
     const r = abonoCajaDe(c);
-    const vig = abonoMontoVigente(c, ym) || 0;
+    const vig = abonoMontoAPagar(c, ym) || 0;
     const soc = vig * r.pct / 100;
     const opt = (v, t) => `<option value="${v}"${r.caja === v ? ' selected' : ''}>${t}</option>`;
     return `<div class="abo-row abo-crow" data-cli="${c.id}">
@@ -11335,7 +11442,7 @@ function abonoAbrirNuevo(){
       <div class="abo-reg-fld" style="position:relative">
         <label>Cliente</label>
         <input type="text" id="abonoNuevoNombre" placeholder="Buscá por entidad o por referente" autocomplete="off"
-               oninput="aboSugRender()" onfocus="aboSugRender()" onkeydown="aboSugTecla(event)">
+               oninput="aboSugRender()" onkeydown="aboSugTecla(event)">
         <div id="aboSugBox" class="cj-sug" style="display:none"></div>
         <div class="abo-nv-aviso" id="abonoNuevoAviso"></div>
       </div>
@@ -11382,6 +11489,14 @@ function abonoAbrirNuevo(){
           <label>Asignar comisión de venta a</label>
           <select id="abonoNuevoComPara">${aboComOpciones('')}</select>
         </div>
+        <div class="abo-reg-fld">
+          <label>Descuento inicial (%)</label>
+          <input type="number" id="abonoNuevoDescPct" min="1" max="100" step="1" placeholder="sin descuento">
+        </div>
+        <div class="abo-reg-fld">
+          <label>Por cuántos meses</label>
+          <input type="number" id="abonoNuevoDescMeses" min="1" max="60" step="1" placeholder="3">
+        </div>
       </div>
       <div class="abo-montos-hint" style="margin:0">El monto rige desde el mes que elijas en adelante: los meses anteriores quedan en cero, así no se altera ningún balance ya cerrado. Si el cliente no está en el CRM, se le crea la ficha sola al guardar.</div>
     </div>
@@ -11422,6 +11537,8 @@ function aboSugRender(){
   if (!inp || !box) return;
   abonoNuevoChequearCRM();
   ABONO_NUEVO.clienteId = null;    // si vuelve a escribir, hay que reelegir
+  // Con el campo vacío no se sugiere nada: el listado entero tapaba el formulario.
+  if ((inp.value || '').trim().length < 1){ box.style.display = 'none'; return; }
   const items = aboSugItems(inp.value);
   __aboSugSel = -1;
   if (!items.length){ box.style.display = 'none'; return; }
@@ -11495,7 +11612,16 @@ function abonoCrearNuevo(){
   if(rep && !confirm('Ya hay un abono cargado a nombre de «'+rep.nombre+'».\n\n¿Lo agregás igual?')) return;
   const iCom = document.getElementById('abonoNuevoComPara');
   const comPara = iCom ? (iCom.value || '') : '';
-  const c = { id: abonoNuevoId(), nombre, moneda, monto: 0, tipo: '', estado: 'activo', pagos: [],
+  // Descuento inicial: tramo que arranca en el mes desde el que rige el abono
+  const dPct = Number((document.getElementById('abonoNuevoDescPct') || {}).value);
+  const dMeses = Number((document.getElementById('abonoNuevoDescMeses') || {}).value);
+  const descuentos = [];
+  if (dPct > 0){
+    if (!(dPct <= 100)){ alert('El descuento tiene que estar entre 1 y 100.'); return; }
+    const n = (dMeses > 0) ? Math.floor(dMeses) : 0;
+    descuentos.push({ desde, hasta: n ? abonoMesMas(desde, n - 1) : '', pct: dPct, obs: 'Descuento de alta' });
+  }
+  const c = { id: abonoNuevoId(), nombre, moneda, monto: 0, tipo: '', estado: 'activo', pagos: [], descuentos,
               formaPago: ABONO_NUEVO.formaPago === 'vencido' ? 'vencido' : 'adelantado', incluye: '', formaPagoObs: '',
               comisionPara: comPara, comisionMes: comPara ? desde : '',
               montoHist: monto ? [{ desde, monto }] : [] };
@@ -11698,7 +11824,7 @@ function abonoPintarRegistro(){
   const simbolo = c.moneda === 'USD' ? 'US$' : '$';
   const fmtM = (n)=> simbolo+' '+Math.round(Number(n)||0).toLocaleString('es-AR');
   const st = abonoEstadoMes(c, ym);
-  const monto = abonoMontoVigente(c, ym);
+  const monto = abonoMontoAPagar(c, ym);
 
   const body = document.getElementById('abonoRegBody');
   // Lista de pagos parciales ya cargados
@@ -11804,13 +11930,41 @@ function abonoPintarRegistro(){
         </div>
         <button class="abo-pp-add" onclick="abonoAgregarPagoDesdeModal()">+ Agregar este pago</button>
       </div>
+
+      <!-- Descuentos por tramo de meses -->
+      <div class="abo-com-sec">
+        <div class="abo-com-sec-h">Descuentos</div>
+        ${(abonoDescuentos(c).length ? abonoDescuentos(c).map((d, i) => {
+          const n = abonoDescMeses(d);
+          const rige = abonoDescuentoDe(c, ym) === d;
+          return `<div class="abo-desc-item${rige ? ' rige' : ''}">
+            <b>${d.pct}%</b> desde ${esc(abonoMesLabel(d.desde))}${d.hasta ? ' hasta ' + esc(abonoMesLabel(d.hasta)) : ' (sin vencimiento)'}${n ? ' · ' + n + ' mes' + (n !== 1 ? 'es' : '') : ''}
+            ${d.obs ? '<span class="abo-desc-obs">' + esc(d.obs) + '</span>' : ''}
+            ${rige ? '<span class="chip-desc">rige este mes</span>' : ''}
+            <button class="tarea-del" onclick="abonoQuitarDescuento(${c.id}, ${i})" title="Quitar">✕</button>
+          </div>`;
+        }).join('') : '<div class="abo-com-sec-n">Sin descuentos. El cliente paga el monto de lista.</div>')}
+        <div class="abo-com-fila" style="margin-top:10px">
+          <div class="abo-reg-fld pct"><label>%</label>
+            <input type="number" id="aboDescPct" min="1" max="100" step="1" placeholder="20"></div>
+          <div class="abo-reg-fld mesc"><label>Desde</label>
+            <input type="month" id="aboDescDesde" value="${esc(ym)}"></div>
+          <div class="abo-reg-fld mesc"><label>Hasta</label>
+            <input type="month" id="aboDescHasta"></div>
+          <div class="abo-reg-fld"><label>Motivo (opcional)</label>
+            <input type="text" id="aboDescObs" placeholder="Promo de alta"></div>
+          <button class="abo-reg" onclick="abonoAgregarDescuento(${c.id})">Agregar</button>
+        </div>
+        <div class="abo-com-sec-n">Se descuenta del monto de lista solo en esos meses. Dejá «Hasta» vacío si no vence. El ajuste por inflación sigue calculándose sobre la lista, no sobre el precio con descuento.</div>
+      </div>
     </div>
     <div class="abo-reg-foot">
       <button class="abo-reg-del" onclick="abonoPausar(${c.id})" title="Pausar el abono de este cliente">⏸ Pausar abono</button>
       <div class="abo-reg-foot-r" style="margin-left:auto">
         <button class="abo-reg-cancel" onclick="abonoCerrarRegistro()">Cerrar</button>
       </div>
-    </div>`;
+    </div>
+    `;
   abonoPintarComprob();
   abonoLlenarAQuien();
   abonoMMActualizarHint();
@@ -16279,7 +16433,7 @@ function abonoDetalleTemprano(c, ym, dia){
   if (!mesesTocados.length) return null;
   // De esos, alguno tiene que haber quedado SALDADO con lo cobrado hasta el día tope
   for (const mes of mesesTocados.sort()){
-    const objetivo = abonoMontoVigente(c, mes) || 0;
+    const objetivo = abonoMontoAPagar(c, mes) || 0;
     if (objetivo <= 0) continue;
     const p = abonoPagoDe(c, mes);
     let acum = 0, ultima = '';
@@ -24341,7 +24495,7 @@ function accPagos(c) {
   if (abo){
     const ymA = (typeof abonoMesActual === 'function') ? abonoMesActual() : '';
     const st = (typeof abonoEstadoMes === 'function') ? abonoEstadoMes(abo, ymA) : null;
-    const vig = (typeof abonoMontoVigente === 'function') ? (abonoMontoVigente(abo, ymA) || 0) : 0;
+    const vig = (typeof abonoMontoAPagar === 'function') ? (abonoMontoAPagar(abo, ymA) || 0) : 0;
     const sim = abo.moneda === 'USD' ? 'u$s ' : '$ ';
     const chip = !st ? '' : st.estado === 'pagado'
       ? '<span class="crm-abo-chip ok">Pagado</span>'
