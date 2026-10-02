@@ -1601,6 +1601,13 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .abo-desc-item:last-of-type{border-bottom:none}
 .abo-desc-item.rige{color:var(--sello)}
 .abo-desc-obs{font-size:11px;color:var(--tinta-suave);font-style:italic}
+.abo-caja-aviso{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(14px);z-index:9999;
+  padding:16px 30px;border-radius:12px;font-family:var(--f-ui,inherit);font-size:19.5px;font-weight:700;color:#fff;
+  border:3px solid #062240;box-shadow:0 0 0 3px rgba(255,255,255,.9),0 14px 40px rgba(6,34,64,.38);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;max-width:90vw;text-align:center}
+.abo-caja-aviso.ver{opacity:1;transform:translateX(-50%) translateY(0)}
+.abo-caja-aviso.ok{background:#0a7a3d}
+.abo-caja-aviso.ok::before{content:'✓ ';font-weight:800}
+.abo-caja-aviso.mal{background:var(--mal,#b3372a)}
 .chip-desc{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;text-transform:uppercase;letter-spacing:.03em;background:rgba(2,196,93,.14);color:#0a7a3d;border:1px solid rgba(2,196,93,.35)}
 .abo-com-fila{display:flex;gap:10px;align-items:flex-end}
 .abo-com-fila .abo-reg{flex:0 0 auto;height:38px}
@@ -1765,6 +1772,41 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .abo-mm-chip.on{background:var(--sello);border-color:var(--sello);box-shadow:0 1px 4px rgba(27,58,107,.28)}
 .abo-mm-chip.on .mm-m,.abo-mm-chip.on .mm-y{color:#fff}
 .abo-mm-hint{margin-top:8px;font-size:12px;color:var(--tinta-suave)}
+/* Ficha del abono: resumen arriba, pagos del mes y configuración en bloques separados */
+#abonoRegModal .abo-sum{display:grid;grid-template-columns:auto 1fr 1fr 1fr;align-items:center;gap:0;border:1px solid var(--filo);border-radius:10px;background:var(--papel);overflow:hidden}
+#abonoRegModal .abo-sum-est{padding:14px 16px;border-right:1px solid var(--filo);align-self:stretch;display:flex;align-items:center}
+#abonoRegModal .abo-sum-n{padding:12px 16px;border-right:1px solid var(--filo);display:flex;flex-direction:column;gap:2px;min-width:0}
+#abonoRegModal .abo-sum-n:last-child{border-right:none}
+#abonoRegModal .abo-sum-n span{font-size:11px;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+#abonoRegModal .abo-sum-n b{font-family:var(--serif,'Palatino Linotype'),serif;font-size:20px;color:var(--tinta);font-variant-numeric:tabular-nums}
+#abonoRegModal .abo-sum-n small{font-size:11px;color:var(--tinta-suave);text-decoration:line-through}
+#abonoRegModal .abo-sum-n.falta b{color:var(--mal,#b3372a)}
+#abonoRegModal .abo-sum-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 0;min-height:4px}
+#abonoRegModal .abo-sum-tag{font-size:11.5px;color:var(--tinta-suave);background:var(--papel);border:1px solid var(--filo);border-radius:20px;padding:3px 10px}
+#abonoRegModal .abo-sum-tag b{color:var(--tinta)}
+#abonoRegModal .abo-blq{margin-top:26px}
+#abonoRegModal .abo-blq-h{font-family:var(--serif,'Palatino Linotype'),serif;font-size:16px;font-weight:700;color:var(--sello,#1b3a6b);padding-bottom:7px;margin-bottom:12px;border-bottom:1px solid var(--filo)}
+#abonoRegModal .abo-pp-lista{margin-bottom:12px}
+#abonoRegModal .abo-pp-l1 b{font-size:14.5px}
+#abonoRegModal .abo-pp-caja{border:1px solid var(--filo);border-top:1px solid var(--filo);border-radius:10px;background:var(--papel);padding:14px 16px}
+#abonoRegModal .abo-pp-caja .abo-pp-nuevo-h{color:var(--tinta);font-size:13px;text-transform:none;letter-spacing:0}
+#abonoRegModal .abo-pp-caja .abo-reg-fld:last-of-type{margin-bottom:12px}
+#abonoRegModal .abo-cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+#abonoRegModal .abo-cfg-grid .abo-com-sec{margin:0;display:flex;flex-direction:column}
+#abonoRegModal .abo-cfg-grid .abo-com-fila{flex-wrap:wrap}
+#abonoRegModal .abo-cfg-grid .abo-com-fila > .abo-reg-fld:first-child{flex:1 1 100%}
+#abonoRegModal .abo-cfg-grid .abo-com-fila > .abo-reg-fld.mes,#abonoRegModal .abo-cfg-grid .abo-com-fila > .abo-reg-fld.pct{flex:1 1 auto}
+#abonoRegModal .abo-cfg-grid .abo-com-sec-n{margin-top:auto;padding-top:8px}
+#abonoRegModal .abo-com-sec{margin:0 0 12px}
+#abonoRegModal .abo-com-sec-h{font-size:13.5px;text-transform:none;letter-spacing:0;color:var(--tinta)}
+#abonoRegModal .abo-inc-acc{margin:0}
+@media (max-width:620px){
+  #abonoRegModal .abo-sum{grid-template-columns:1fr 1fr}
+  #abonoRegModal .abo-sum-est{grid-column:1 / -1;border-right:none;border-bottom:1px solid var(--filo);padding:10px 14px}
+  #abonoRegModal .abo-sum-n:nth-child(3){border-right:none}
+  #abonoRegModal .abo-sum-n:last-child{grid-column:1 / -1;border-top:1px solid var(--filo)}
+  #abonoRegModal .abo-cfg-grid{grid-template-columns:1fr}
+}
 .actas-atras{font-size:10.5px;color:var(--tinta-suave);font-style:italic;font-variant-numeric:normal;margin-top:2px}
 .actas-atras-box{background:#f6f5ef;border:1px solid #e4e0d2;border-left:3px solid var(--oro);border-radius:6px;padding:10px 12px;margin-bottom:12px}
 .actas-atras-t{font-size:13px;color:var(--tinta)}
@@ -6881,6 +6923,10 @@ async function sbCargarTodo() {
   } finally { __cargando = false; }
 }
 async function __sbCargarTodoInterno() {
+  // Momento en que arranca esta carga. Si el usuario edita el reparto de abonos
+  // mientras los pedidos están en vuelo, la respuesta que llegue ya es vieja y no
+  // debe pisarlo. Va acá, no en el envoltorio, porque es acá donde se lee `config`.
+  const __t0 = Date.now();
   if (!SB_ON) return;
   // Los accesos se leen primero: definen qué puede ver quien está entrando.
   try {
@@ -7087,7 +7133,15 @@ async function __sbCargarTodoInterno() {
     // Tabla de sueldos del equipo (viaja en config, no tiene tabla propia)
     if (cfg.sueldos_equipo && typeof equipoDesdeNube === 'function') equipoDesdeNube(cfg.sueldos_equipo);
     // Reparto de cada abono entre la caja de abonos y societario
-    if (cfg.abonos_caja) { try { appStore.setItem(ABONOS_CAJA_KEY, cfg.abonos_caja); } catch(e){} }
+    // Si el usuario cambió el reparto mientras esta consulta estaba en vuelo, lo que
+    // llega ya es viejo: pisarlo le borraba el cambio en pantalla y, al tocar otra
+    // cosa, el mapa viejo volvía a subir a la nube.
+    if (cfg.abonos_caja && (typeof __aboCajaTocado === 'undefined' || __aboCajaTocado < __t0)) {
+      try { appStore.setItem(ABONOS_CAJA_KEY, cfg.abonos_caja); } catch(e){}
+    }
+    // Desde acá el reparto se puede editar: ya sabemos qué hay guardado. Vale aunque
+    // la clave no exista todavía en `config`, porque eso también es una respuesta.
+    if (typeof __aboCajaListo !== 'undefined') __aboCajaListo = true;
     if (__repintarAbonos && typeof renderAbonos === 'function' && document.getElementById('abonosPanel')) {
       __repintarAbonos = false;
       try { renderAbonos(); } catch(e){}
@@ -8056,6 +8110,33 @@ function abonoGuardarComision(cliId){
   saveAbonos(); sbPushAbonoCli(cliId);
   try { aricToast(c.comisionPara ? 'Comisión asignada a ' + aboComNombre(c.comisionPara) : 'Comisión quitada'); } catch(e){}
   if (typeof abonoPintarRegistro === 'function' && ABONO_REG_CLI === cliId) abonoPintarRegistro();
+  renderAbonos();
+}
+// Distribución desde la ficha del abono
+function abonoCajaSelUI(){
+  const s = document.getElementById('aboCajaSel'), w = document.getElementById('aboCajaPctWrap');
+  if (s && w) w.style.display = s.value === 'mixto' ? '' : 'none';
+}
+function abonoGuardarCajaFicha(cliId){
+  const c = abonoBuscarCli(cliId); if (!c) return;
+  const s = document.getElementById('aboCajaSel'); if (!s) return;
+  const caja = ABO_CAJAS[s.value] ? s.value : 'abono';
+  let pct = null;
+  if (caja === 'mixto'){
+    const i = document.getElementById('aboCajaPct');
+    pct = Number(String(i ? i.value : '').replace(',', '.'));
+    if (!(i && i.value !== '' && isFinite(pct) && pct >= 0 && pct <= 100)){
+      aricToast('El porcentaje tiene que estar entre 0 y 100'); if (i) i.focus(); return;
+    }
+  }
+  // Mismo freno que abonoCajaSet, pero sin repintar: así no se pierde lo elegido
+  if (typeof SB_ON !== 'undefined' && SB_ON && !__aboCajaListo){
+    aricToast('Todavía se está sincronizando. Esperá unos segundos y volvé a intentarlo.'); return;
+  }
+  const act = abonoCajaDe(c);
+  if (act.caja === caja && (caja !== 'mixto' || act.pct === pct)){ aricToast('No hay cambios para guardar'); return; }
+  abonoCajaSet(cliId, caja, pct);   // el aviso de confirmación contra la base lo da abonoCajaGuardar
+  if (String(ABONO_REG_CLI) === String(cliId)) abonoPintarRegistro();
   renderAbonos();
 }
 function abonoSetFactura(cliId, val){
@@ -10387,9 +10468,43 @@ function abonoCajaMapa(){
   });
   return m;
 }
-function abonoCajaGuardar(m){
-  try { appStore.setItem(ABONOS_CAJA_KEY, JSON.stringify(m)); } catch(e){}
-  if (typeof sbPushConfig === 'function') sbPushConfig('abonos_caja', JSON.stringify(m));
+// Momento de la última edición manual del reparto. Sirve para no pisarla con una
+// respuesta de `config` que ya venía en camino cuando el usuario tocó el selector.
+var __aboCajaTocado = 0;
+// Se pone en true cuando la config de la nube ya llegó y se aplicó.
+var __aboCajaListo = false;
+// Guarda el reparto y CONFIRMA contra la base: no alcanza con que el upsert no
+// tire error, porque sbUpsert se va en silencio si no hay sesión. Se relee la
+// fila y se compara antes de avisar que quedó guardado.
+async function abonoCajaGuardar(m){
+  __aboCajaTocado = Date.now();
+  const txt = JSON.stringify(m);
+  try { appStore.setItem(ABONOS_CAJA_KEY, txt); } catch(e){}
+  if (typeof SB_ON === 'undefined' || !SB_ON) return;
+  try {
+    await sbUpsert('config', { clave: 'abonos_caja', valor: txt });
+    const r = await sbFetch(`${SB_URL}/rest/v1/config?clave=eq.abonos_caja&select=valor`, {});
+    const filas = r.ok ? await r.json() : null;
+    const guardado = Array.isArray(filas) && filas[0] ? filas[0].valor : null;
+    if (guardado === txt) abonoCajaAviso('Cambio guardado', 'ok');
+    else abonoCajaAviso('No se pudo confirmar el guardado. Revisá la conexión y reintentá.', 'mal');
+  } catch(err){
+    console.error('abonos_caja:', err);
+    abonoCajaAviso('No se pudo guardar el cambio: ' + ((err && err.message) || err), 'mal');
+  }
+}
+// Aviso fijo al pie de la pantalla
+function abonoCajaAviso(msg, tipo){
+  let el = document.getElementById('aboCajaAviso');
+  if (!el){
+    el = document.createElement('div');
+    el.id = 'aboCajaAviso';
+    document.body.appendChild(el);
+  }
+  el.className = 'abo-caja-aviso ' + (tipo === 'mal' ? 'mal' : 'ok') + ' ver';
+  el.textContent = msg;
+  clearTimeout(el.__t);
+  el.__t = setTimeout(() => { el.classList.remove('ver'); }, tipo === 'mal' ? 7000 : 2600);
 }
 // { caja, pct } — pct es el porcentaje que va a la caja societaria
 function abonoCajaDe(cli){
@@ -10404,6 +10519,13 @@ function abonoCajaDe(cli){
   return { caja: 'mixto', pct: Math.max(0, Math.min(100, pct)) };
 }
 function abonoCajaSet(cliId, caja, pct){
+  // Sin la config de la nube, abonoCajaMapa() devuelve la semilla: guardar sobre eso
+  // subiría la semilla y borraría el reparto del resto de los clientes.
+  if (typeof __aboCajaListo !== 'undefined' && !__aboCajaListo && typeof SB_ON !== 'undefined' && SB_ON){
+    try { aricToast('Todavía se está sincronizando. Esperá unos segundos y volvé a intentarlo.'); } catch(e){}
+    try { renderAbonos(); } catch(e){}   // deja el selector como estaba
+    return;
+  }
   const m = abonoCajaMapa();
   const k = String(cliId);
   if (caja === 'abono') delete m[k];
@@ -11826,6 +11948,11 @@ function abonoPintarRegistro(){
   const st = abonoEstadoMes(c, ym);
   const monto = abonoMontoAPagar(c, ym);
 
+  const falta = st.estado === 'pagado' ? 0 : Math.max(0, Number(st.falta) || 0);
+  const chipEst = st.estado === 'pagado' ? '<span class="abo-estado ok">✓ Pagado</span>'
+    : st.estado === 'parcial' ? '<span class="abo-estado parcial">Pago parcial</span>'
+    : '<span class="abo-estado debe">Pendiente</span>';
+  const descMes = (typeof abonoDescuentoDe === 'function') ? abonoDescuentoDe(c, ym) : null;
   const body = document.getElementById('abonoRegBody');
   // Lista de pagos parciales ya cargados
   const listaParc = parciales.length ? parciales.map((x,i)=>{
@@ -11862,43 +11989,23 @@ function abonoPintarRegistro(){
       <button class="abo-reg-x" onclick="abonoCerrarRegistro()">✕</button>
     </div>
     <div class="abo-reg-body">
-      <div class="abo-reg-resumen">${resumen}</div>
-
-      <!-- Qué incluye el abono: se despliega tocando el título y se edita acá mismo -->
-      <div class="abo-inc-acc" id="aboIncAcc">
-        <button type="button" class="abo-inc-cab" onclick="abonoIncToggle()">
-          <span class="abo-inc-cab-t">${esc(c.tipo || 'Sin tipo')} · qué incluye este abono</span>
-          <span class="abo-inc-cab-f" id="aboIncFlecha">▾</span>
-        </button>
-        <div class="abo-inc-cuerpo" id="aboIncCuerpo" style="display:none">
-          <div class="abo-reg-fld"><label>Tipo de abono</label>
-            <input type="text" id="aboIncTipo" maxlength="40" value="${esc(c.tipo || '')}" placeholder="Ej: Abono especial"></div>
-          <div class="abo-reg-fld" style="margin-top:8px"><label>Servicios incluidos</label>
-            <textarea id="aboIncTx" rows="5" placeholder="Escribí acá todo lo que incluye este abono.">${esc(c.incluye || '')}</textarea></div>
-          <div style="display:flex;justify-content:flex-end;margin-top:8px">
-            <button class="abo-reg" onclick="abonoGuardarIncluye(${c.id})">Guardar detalle</button>
-          </div>
-        </div>
+      <div class="abo-sum">
+        <div class="abo-sum-est">${chipEst}</div>
+        <div class="abo-sum-n"><span>Abono del mes</span><b>${fmtM(monto)}</b>${descMes ? `<small>lista ${fmtM(abonoMontoVigente(c, ym))}</small>` : ''}</div>
+        <div class="abo-sum-n"><span>Cobrado</span><b>${fmtM(st.abonado || 0)}</b></div>
+        <div class="abo-sum-n${falta > 0 ? ' falta' : ''}"><span>Falta</span><b>${fmtM(falta)}</b></div>
+      </div>
+      <div class="abo-sum-tags">
+        ${abonoEtiquetaCaja(c, false)}
+        ${descMes ? `<span class="chip-desc">${descMes.pct}% de descuento</span>` : ''}
+        ${c.comisionPara ? `<span class="abo-sum-tag">Comisión: <b>${esc(aboComNombre(c.comisionPara))}</b> · ${esc(abonoMesLabel(abonoComMes(c)))}</span>` : ''}
       </div>
 
-      <!-- Comisión de venta o renovación: sección aparte, no cuelga de "qué incluye" -->
-      <div class="abo-com-sec">
-        <div class="abo-com-sec-h">Comisión de venta o renovación</div>
-        <div class="abo-com-fila">
-          <div class="abo-reg-fld"><label>Le corresponde a</label>
-            <select id="aboComPara">${aboComOpciones(c.comisionPara)}</select></div>
-          <div class="abo-reg-fld mes"><label>Mes</label>
-            <input type="month" id="aboComMes" value="${esc(abonoComMes(c))}"></div>
-          <button class="abo-reg" onclick="abonoGuardarComision(${c.id})">Guardar</button>
-        </div>
-        <div class="abo-com-sec-n">${c.comisionPara
-          ? 'Hoy la cobra <b>' + esc(aboComNombre(c.comisionPara)) + '</b> en ' + esc(abonoMesLabel(abonoComMes(c))) + '. Se paga una sola vez: si es por una renovación, poné el mes en que se renovó.'
-          : 'Se paga una sola vez, sobre el monto mensual del abono. Si es por una renovación, poné el mes en que se renovó.'}</div>
-      </div>
-
+      <div class="abo-blq">
+        <div class="abo-blq-h">Pagos de ${esc(abonoMesLabel(ym))}</div>
       <div class="abo-pp-lista">${listaParc}</div>
 
-      <div class="abo-pp-nuevo">
+      <div class="abo-pp-nuevo abo-pp-caja">
         <div class="abo-pp-nuevo-h">Agregar un pago</div>
         <div class="abo-reg-fld">
           <label>¿Qué meses cubre este pago?</label>
@@ -11931,6 +12038,47 @@ function abonoPintarRegistro(){
         <button class="abo-pp-add" onclick="abonoAgregarPagoDesdeModal()">+ Agregar este pago</button>
       </div>
 
+      </div>
+
+      <div class="abo-blq">
+        <div class="abo-blq-h">Configuración del abono</div>
+        <div class="abo-cfg-grid">
+      <!-- Distribución: a qué caja se imputan los cobros. Antes solo se elegía al crear el abono -->
+      ${(function(){
+        const r = abonoCajaDe(c);
+        const op = (v, t) => `<option value="${v}"${r.caja === v ? ' selected' : ''}>${t}</option>`;
+        const hoy = r.caja === 'societario' ? 'Hoy va <b>entero a la caja societaria</b>.'
+          : r.caja === 'mixto' ? 'Hoy se reparte: <b>' + Math.round(r.pct) + ' %</b> a societaria y ' + Math.round(100 - r.pct) + ' % a abonos.'
+          : 'Hoy va <b>entero a la caja de abonos</b>.';
+        return `<div class="abo-com-sec">
+        <div class="abo-com-sec-h">Distribución</div>
+        <div class="abo-com-fila">
+          <div class="abo-reg-fld"><label>Los cobros van a</label>
+            <select id="aboCajaSel" onchange="abonoCajaSelUI()">${op('abono', 'Caja de abonos')}${op('societario', 'Caja societaria')}${op('mixto', 'Mixto (por porcentaje)')}</select></div>
+          <div class="abo-reg-fld pct" id="aboCajaPctWrap"${r.caja === 'mixto' ? '' : ' style="display:none"'}><label>% soc.</label>
+            <input type="number" id="aboCajaPct" min="0" max="100" step="5" value="${r.caja === 'mixto' ? Math.round(r.pct) : 50}"></div>
+          <button class="abo-reg" onclick="abonoGuardarCajaFicha(${c.id})">Guardar</button>
+        </div>
+        <div class="abo-com-sec-n">${hoy} Los cobros parciales se reparten en la misma proporción.</div>
+      </div>`;
+      })()}
+
+      <!-- Comisión de venta o renovación: sección aparte, no cuelga de "qué incluye" -->
+      <div class="abo-com-sec">
+        <div class="abo-com-sec-h">Comisión de venta o renovación</div>
+        <div class="abo-com-fila">
+          <div class="abo-reg-fld"><label>Le corresponde a</label>
+            <select id="aboComPara">${aboComOpciones(c.comisionPara)}</select></div>
+          <div class="abo-reg-fld mes"><label>Mes</label>
+            <input type="month" id="aboComMes" value="${esc(abonoComMes(c))}"></div>
+          <button class="abo-reg" onclick="abonoGuardarComision(${c.id})">Guardar</button>
+        </div>
+        <div class="abo-com-sec-n">${c.comisionPara
+          ? 'Hoy la cobra <b>' + esc(aboComNombre(c.comisionPara)) + '</b> en ' + esc(abonoMesLabel(abonoComMes(c))) + '. Se paga una sola vez: si es por una renovación, poné el mes en que se renovó.'
+          : 'Se paga una sola vez, sobre el monto mensual del abono. Si es por una renovación, poné el mes en que se renovó.'}</div>
+      </div>
+
+        </div>
       <!-- Descuentos por tramo de meses -->
       <div class="abo-com-sec">
         <div class="abo-com-sec-h">Descuentos</div>
@@ -11956,6 +12104,24 @@ function abonoPintarRegistro(){
           <button class="abo-reg" onclick="abonoAgregarDescuento(${c.id})">Agregar</button>
         </div>
         <div class="abo-com-sec-n">Se descuenta del monto de lista solo en esos meses. Dejá «Hasta» vacío si no vence. El ajuste por inflación sigue calculándose sobre la lista, no sobre el precio con descuento.</div>
+      </div>
+      <!-- Qué incluye el abono: se despliega tocando el título y se edita acá mismo -->
+      <div class="abo-inc-acc" id="aboIncAcc">
+        <button type="button" class="abo-inc-cab" onclick="abonoIncToggle()">
+          <span class="abo-inc-cab-t">${esc(c.tipo || 'Sin tipo')} · qué incluye este abono</span>
+          <span class="abo-inc-cab-f" id="aboIncFlecha">▾</span>
+        </button>
+        <div class="abo-inc-cuerpo" id="aboIncCuerpo" style="display:none">
+          <div class="abo-reg-fld"><label>Tipo de abono</label>
+            <input type="text" id="aboIncTipo" maxlength="40" value="${esc(c.tipo || '')}" placeholder="Ej: Abono especial"></div>
+          <div class="abo-reg-fld" style="margin-top:8px"><label>Servicios incluidos</label>
+            <textarea id="aboIncTx" rows="5" placeholder="Escribí acá todo lo que incluye este abono.">${esc(c.incluye || '')}</textarea></div>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px">
+            <button class="abo-reg" onclick="abonoGuardarIncluye(${c.id})">Guardar detalle</button>
+          </div>
+        </div>
+      </div>
+
       </div>
     </div>
     <div class="abo-reg-foot">
@@ -12371,12 +12537,14 @@ function cannabisClientesHTML(){
 
 // Solapa "Licencias iniciadas" de cannabis: replica la vista de cáñamo (cards + drawer).
 function cannabisLicenciasHTML(){
-  const cli = cannabisConLic();
+  // Pasa por el mismo filtro que cáñamo: antes usaba cannabisConLic() sin filtrar
+  // y ni el buscador ni las tarjetas de estado tenían efecto en esta solapa.
+  const cli = aricFiltrarClientes();
   const tot = cli.reduce((a,c)=>a+c.licencias.length,0);
   const cards = cli.map(aricCliCard).join('') || '<div class="aric-empty" style="padding:40px;text-align:center">Todavía no hay licencias iniciadas. Cuando un cliente complete la documentación, usá «Iniciar licencia» desde su ficha.</div>';
   return `${aricMetsHTML()}
     <div class="aric-toolbar">
-      <input placeholder="Buscar por cliente o CUIT..." value="${aricEsc(ARIC_Q)}" oninput="ARIC_Q=aricNorm(this.value);renderAric()">
+      <input placeholder="Buscar por cliente o CUIT..." value="${aricEsc(ARIC_Q)}" oninput="ARIC_Q=this.value;aricRefrescar()">
       <button class="aric-btn aric-btn-cuadro" onclick="aricAbrirCuadroReunion()">📊 Generar cuadro de situación</button>
     </div>
     <div class="aric-count">${cli.length} cliente(s) · ${tot} licencia(s)</div>
@@ -12778,6 +12946,9 @@ function cannabisBorrarDoc(key){
 
 // ═══ RENDER ═══
 function renderAric(){
+  // ¿El usuario estaba escribiendo en el buscador? Se mira antes de tocar el DOM.
+  const __act = document.activeElement;
+  const __aricFocoBuscador = !!(__act && __act.tagName === 'INPUT' && __act.closest && __act.closest('.aric-toolbar'));
   const p=document.getElementById('aricPanel'); if(!p) return;
   if(ARIC_VIEW==='cannabis'){
     const tab = (ARIC_TAB==='lic'||ARIC_TAB==='pagos') ? ARIC_TAB : 'docs';
@@ -12795,7 +12966,13 @@ function renderAric(){
     <button class="${ARIC_TAB==='dj'?'on':''}" onclick="ARIC_TAB='dj';renderAric()">Declaraciones juradas</button></div>
     ${ARIC_TAB==='solic'?aricSolicHTML():aricDjHTML()}`;
   }
-  if(ARIC_TAB==='solic'&&ARIC_Q){ const i=p.querySelector('.aric-toolbar input'); if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);} }
+  // Si el foco estaba en el buscador antes de repintar, se devuelve con el cursor
+  // al final. Antes solo se hacía en la solapa de cáñamo, y en Cannabis había que
+  // volver a clickear después de cada letra.
+  if (__aricFocoBuscador){
+    const i = p.querySelector('.aric-toolbar input');
+    if (i){ i.focus(); try { i.setSelectionRange(i.value.length, i.value.length); } catch(e){} }
+  }
 }
 
 function aricMetsHTML(){
@@ -12834,11 +13011,16 @@ function aricCliCard(c, idx){
 function aricFiltrarClientes(){
   return aricData().map(c=>{
     let lics=c.licencias;
-    if(ARIC_FTIPO) lics=lics.filter(l=>aricNorm(l.tipo).startsWith(ARIC_FTIPO));
+    if(ARIC_FTIPO && ARIC_VIEW==='canamo') lics=lics.filter(l=>aricNorm(l.tipo).startsWith(ARIC_FTIPO));
     if(ARIC_FEST==='__dj') lics=lics.filter(l=>aricDjCuenta(l)>0);
     else if(ARIC_FEST) lics=lics.filter(l=>l.estado===ARIC_FEST);
     return {...c,licencias:lics};
-  }).filter(c=>c.licencias.length && (!ARIC_Q||aricNorm(c.nombre).includes(ARIC_Q)||aricNorm(c.cuit).includes(ARIC_Q)));
+  }).filter(c=>{
+    if (!c.licencias.length) return false;
+    const q = aricNorm(ARIC_Q);          // se normaliza acá, no al tipear
+    if (!q) return true;
+    return aricNorm(c.nombre).includes(q) || aricNorm(c.cuit).includes(q);
+  });
 }
 // ── Cuadro para reunión con ARICCAME (cáñamo): licencias en trámite y a subsanar ──
 // Limpia el nombre para el cuadro: saca lo que esté entre paréntesis y pasa a mayúsculas.
@@ -13011,7 +13193,7 @@ function aricSolicHTML(){
   <option value="indu" ${ARIC_FTIPO==='indu'?'selected':''}>Solo Industrial</option></select>` : '';
   return `${aricMetsHTML()}
   <div class="aric-toolbar">
-  <input placeholder="Buscar por cliente o CUIT..." value="${aricEsc(ARIC_Q)}" oninput="ARIC_Q=aricNorm(this.value);aricRefrescar()">
+  <input placeholder="Buscar por cliente o CUIT..." value="${aricEsc(ARIC_Q)}" oninput="ARIC_Q=this.value;aricRefrescar()">
   ${filtroTipo}
   ${ARIC_VIEW==='canamo'?`<button class="aric-btn aric-btn-cuadro" onclick="aricAbrirCuadroReunion()">📊 Generar cuadro de situación</button>`:''}
   <button class="aric-btn" onclick="aricAbrirModalLic()">+ Nueva licencia</button></div>
@@ -13019,7 +13201,9 @@ function aricSolicHTML(){
   <div class="aric-cards" id="aricLista">${cli.map(aricCliCard).join('')||'<div class="aric-empty">Sin resultados</div>'}</div>`;
 }
 function aricRefrescar(){ const cli=aricFiltrarClientes(); const el=document.getElementById('aricLista');
-  if(el) el.innerHTML=cli.map(aricCliCard).join('')||'<div class="aric-empty">Sin resultados</div>'; }
+  if(el) el.innerHTML=cli.map(aricCliCard).join('')||'<div class="aric-empty">Sin resultados</div>';
+  const cnt=document.querySelector('#aricPanel .aric-count');
+  if(cnt){ const tot=cli.reduce((a,c)=>a+c.licencias.length,0); cnt.textContent=`${cli.length} cliente(s) · ${tot} licencia(s)`; } }
 
 // ═══ DRAWER de edición ═══
 function aricAbrirDrawer(id){ const r=aricBuscarLic(id); if(!r) return; ARIC_EDIT=r.c; ARIC_EDITLIC=r.idx; aricPintarDrawer();
@@ -19032,8 +19216,12 @@ function equipoComisionesMes(pid, ym){
   if (p.fuente === 'jud'){
     if (typeof pagosDelMes !== 'function' || typeof totalesCaja !== 'function') return 0;
     const t = totalesCaja(pagosDelMes(ym));
-    return p.id === 'ori' ? (t.oArs || 0) + (t.oUsd || 0) * dolar
-                          : (t.kArs || 0) + (t.kUsd || 0) * dolar;
+    if (p.id === 'ori') return (t.oArs || 0) + (t.oUsd || 0) * dolar;
+    // Kevin: se delega en la MISMA función que usa la caja judicial y su sueldo, en
+    // lugar de recalcularlo acá. Antes esta cuenta omitía las reuniones y Control
+    // financiero mostraba un número distinto al de la caja para el mismo mes.
+    if (typeof sueldoComisionesMes === 'function') return sueldoComisionesMes(ym);
+    return (t.kArs || 0) + (t.kUsd || 0) * dolar;
   }
   if (p.fuente === 'soc'){
     if (typeof CAJASOC === 'undefined' || typeof comisionSocDe !== 'function') return 0;
