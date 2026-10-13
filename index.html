@@ -893,6 +893,8 @@ body.locked .ofi-overlay,body.locked #causaDetalleOverlay{display:none !importan
 .crm-item-fecha{margin-left:auto;font-size:11px;color:var(--tinta-suave);font-weight:400}
 .crm-item-edit{display:flex;gap:7px;align-items:center;margin-bottom:7px;flex-wrap:wrap}
 .crm-item-edit input,.crm-item-edit select{padding:7px 9px;border:1px solid var(--filo);border-radius:7px;font-size:12px;font-family:inherit;background:var(--carta);min-width:0}
+/* El nombre del servicio no se achica por debajo de lo legible: en pantallas angostas el estado baja de renglón */
+.crm-item-edit [data-serv-nombre]{min-width:170px}
 .crm-item-del{background:var(--carta);border:1px solid var(--filo);color:var(--crm-rojo);border-radius:6px;cursor:pointer;padding:6px 9px;font-size:12px;flex:0 0 auto}
 .crm-item-del:hover{background:var(--crm-rojo-bg)}
 .crm-add-fila{background:var(--laurel);border:1px dashed var(--sello);color:var(--sello);border-radius:8px;padding:8px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px}
@@ -1602,7 +1604,7 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .abo-desc-item.rige{color:var(--sello)}
 .abo-desc-obs{font-size:11px;color:var(--tinta-suave);font-style:italic}
 .abo-caja-aviso{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(14px);z-index:9999;
-  padding:16px 30px;border-radius:12px;font-family:var(--f-ui,inherit);font-size:19.5px;font-weight:700;color:#fff;
+  padding:12px 22px;border-radius:9px;font-family:var(--f-ui,inherit);font-size:14.6px;font-weight:700;color:#fff;
   border:3px solid #062240;box-shadow:0 0 0 3px rgba(255,255,255,.9),0 14px 40px rgba(6,34,64,.38);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;max-width:90vw;text-align:center}
 .abo-caja-aviso.ver{opacity:1;transform:translateX(-50%) translateY(0)}
 .abo-caja-aviso.ok{background:#0a7a3d}
@@ -1772,6 +1774,22 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .abo-mm-chip.on{background:var(--sello);border-color:var(--sello);box-shadow:0 1px 4px rgba(27,58,107,.28)}
 .abo-mm-chip.on .mm-m,.abo-mm-chip.on .mm-y{color:#fff}
 .abo-mm-hint{margin-top:8px;font-size:12px;color:var(--tinta-suave)}
+/* Caja societaria: reparto de un gasto entre clientes */
+.cs-rep-monto{font-variant-numeric:tabular-nums;font-weight:600;padding:9px 0;font-size:13px}
+/* CRM: etiquetas y grupo */
+.cchip.etq{background:#e7eef8;color:#1b3a6b;font-weight:700}
+.cchip.grupo{background:#f1efe6;color:#6b6340}
+.crm-etq-fila{display:flex;flex-wrap:wrap;gap:6px}
+.crm-etq{border:1px dashed var(--filo);background:transparent;border-radius:20px;padding:3px 11px;font:inherit;font-size:12px;font-weight:600;color:var(--tinta-suave);cursor:pointer}
+.crm-etq.on{border-style:solid;border-color:#1b3a6b;background:#e7eef8;color:#1b3a6b}
+.crm-etq small{font-weight:400;opacity:.75;margin-left:3px}
+/* CRM: varios packs por cliente */
+.crm-pack-blq + .crm-pack-blq{margin-top:14px;padding-top:12px;border-top:1px solid var(--filo)}
+.crm-pack-blq-h{font-family:var(--serif,'Palatino Linotype'),serif;font-weight:700;font-size:14px;color:var(--sello,#1b3a6b);margin-bottom:8px}
+.crm-pack-ed{border:1px solid var(--filo);border-radius:10px;padding:12px 14px;margin-bottom:12px;background:var(--papel)}
+.crm-pack-ed-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--tinta-suave)}
+.crm-pack-quitar{background:none;border:1px solid var(--filo);border-radius:6px;padding:3px 9px;font-size:11px;color:var(--mal,#b3372a);cursor:pointer}
+.cchip.serv-pend{background:#fbf3e3;color:#8a6516}
 /* Ficha del abono: resumen arriba, pagos del mes y configuración en bloques separados */
 #abonoRegModal .abo-sum{display:grid;grid-template-columns:auto 1fr 1fr 1fr;align-items:center;gap:0;border:1px solid var(--filo);border-radius:10px;background:var(--papel);overflow:hidden}
 #abonoRegModal .abo-sum-est{padding:14px 16px;border-right:1px solid var(--filo);align-self:stretch;display:flex;align-items:center}
@@ -3594,9 +3612,22 @@ body.locked .app{margin-left:0}
               </select></div>
           </div>
 
+          <!-- Gasto repartido entre varios clientes (solo gastos) -->
+          <div id="csRepChkWrap" style="display:none;margin:8px 0 0">
+            <label class="lq-rubro" style="display:inline-flex;margin:0"><input type="checkbox" id="csRepChk" onchange="csRepToggle()"> <span class="tx"><b>👥 Repartir entre varios clientes</b><small>Indicá qué porcentaje del gasto le corresponde a cada uno.</small></span></label>
+            <div class="cuota-box oculto" id="csRepBox" style="margin-top:10px">
+              <div id="csRepFilas"></div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px">
+                <button type="button" class="btn-ghost" onclick="csRepAgregar()">+ Agregar cliente</button>
+                <button type="button" class="btn-ghost" onclick="csRepIguales()">Repartir en partes iguales</button>
+                <span class="cuota-hint" id="csRepHint" style="margin:0"></span>
+              </div>
+            </div>
+          </div>
+
           <div class="cs-grupo" id="csGrupoCuanto"><span class="cs-grupo-t">Cuánto y cómo</span></div>
           <div class="f-row" style="align-items:end">
-            <div class="f-col" style="flex:0 0 140px" id="csMontoWrap"><label id="csMontoLbl">Monto</label><input type="text" inputmode="decimal" id="csMonto" oninput="fmtMiles(this);csPackHint();csChequearDesglose()" placeholder="450.000"></div>
+            <div class="f-col" style="flex:0 0 140px" id="csMontoWrap"><label id="csMontoLbl">Monto</label><input type="text" inputmode="decimal" id="csMonto" oninput="fmtMiles(this);csPackHint();csChequearDesglose();csRepCalc()" placeholder="450.000"></div>
             <div class="f-col" style="flex:0 0 95px" id="csMonedaWrap"><label>Moneda</label>
               <select id="csMoneda" onchange="csToggleDolarDia();csPackHint();csChequearDesglose();csToggleMixto()"><option value="ARS">$ ARS</option><option value="USD">u$s USD</option></select>
             </div>
@@ -3756,6 +3787,18 @@ body.locked .app{margin-left:0}
           <div class="stat-tiles" id="cuotasPendTilesSoc" style="margin-bottom:14px"></div>
           <div style="overflow-x:auto"><table class="tabla-caja" id="cuotasPendTablaSoc"></table></div>
           <div class="panel-empty" id="cuotasPendVaciaSoc" style="display:none">No hay cuotas pendientes. Cuando registres un ingreso en cuotas, las siguientes se proyectan acá.</div>
+        </div>
+      </div>
+
+      <!-- Gastos en cuotas: lo que falta PAGAR (lo ve también el perfil de gastos) -->
+      <div class="panel lista-amplia" style="margin-top:16px" id="panelCuotasGastoSoc">
+        <div class="panel-h"><h3>Gastos en cuotas · pendientes de pago</h3>
+          <button class="btn-primary" style="padding:6px 13px;font-size:12px;margin:0" onclick="descargarBalanceCuotas('socg')">⬇ Descargar</button>
+        </div>
+        <div style="padding:14px 16px">
+          <div class="stat-tiles" id="cuotasPendTilesSocG" style="margin-bottom:14px"></div>
+          <div style="overflow-x:auto"><table class="tabla-caja" id="cuotasPendTablaSocG"></table></div>
+          <div class="panel-empty" id="cuotasPendVaciaSocG" style="display:none">No hay gastos en cuotas pendientes. Al registrar un gasto con «Este gasto se paga en cuotas», las cuotas que faltan se proyectan acá.</div>
         </div>
       </div>
 
@@ -4082,7 +4125,7 @@ body.locked .app{margin-left:0}
         <select id="crmOrden" class="crm-orden" onchange="crmSetFiltro('orden', this.value)">
           <option value="proximo">⇅ Próximos a contactar</option>
           <option value="nombre">Nombre (A-Z)</option>
-          <option value="ultimo">Último contacto</option>
+          <option value="ultimo">Contacto más reciente</option>
         </select>
         <button class="crm-btn-nuevo" onclick="abrirNuevoCliente()">+ Nuevo cliente</button>
       </div>
@@ -4094,6 +4137,10 @@ body.locked .app{margin-left:0}
           <option value="Sociedad">Sociedad</option>
           <option value="Cooperativa">Cooperativa</option>
           <option value="Persona fisica">Persona física</option>
+        </select>
+        <select id="crmFiltroTipoSoc" onchange="crmSetFiltro('tipoSoc', this.value)" style="display:none">
+          <option value="">Sociedad: todas</option>
+          <option>SAS</option><option>SRL</option><option>SA</option><option>SCA</option><option>SCS</option><option>Otra</option>
         </select>
         <select id="crmFiltroEncargada" onchange="crmSetFiltro('encargada', this.value)">
           <option value="">Toda encargada</option>
@@ -4117,11 +4164,30 @@ body.locked .app{margin-left:0}
           <option value="">Situación: todas</option>
           <option value="vigente">Vigente</option>
           <option value="finalizado">Finalizado</option>
+          <option value="cerrado">Cerrado</option>
+        </select>
+        <select id="crmFiltroServ" onchange="crmSetFiltro('servPend', this.value)">
+          <option value="">Servicios: todos</option>
+          <option value="si">Con servicios pendientes</option>
+          <option value="no">Servicios completos</option>
         </select>
         <select id="crmFiltroDoc" onchange="crmSetFiltro('doc', this.value)">
           <option value="">Doc. pendiente: todos</option>
           <option value="si">Con pendiente</option>
           <option value="no">Sin pendiente</option>
+        </select>
+        <select id="crmFiltroEtiq" onchange="crmSetFiltro('etiqueta', this.value)">
+          <option value="">Etiquetas: todas</option>
+          <option value="INASE">INASE</option>
+          <option value="sin">Sin etiquetas</option>
+        </select>
+        <select id="crmFiltroContacto" onchange="crmSetFiltro('contacto', this.value)">
+          <option value="">Contacto: todos</option>
+          <option value="si">Ya contactados</option>
+          <option value="no">Aún no contactados</option>
+        </select>
+        <select id="crmFiltroGrupo" onchange="crmSetFiltro('grupo', this.value)">
+          <option value="">Grupo: todos</option>
         </select>
         <select id="crmFiltroEstado" onchange="crmSetFiltro('estado', this.value)">
           <option value="">Todos los clientes</option>
@@ -6734,8 +6800,20 @@ async function sbLeerArchivo(blob) {
   throw new Error('NO_SE_PUDO_LEER:' + (blob.name || 'el archivo') + ':' + (ultimo && ultimo.message || ''));
 }
 
+// El storage de Supabase rechaza nombres con acentos, ñ, º, comillas tipográficas, el
+// espacio angosto de las capturas de Mac, emojis, # % [ ] { }… ("Invalid key"). Por eso
+// a veces "se arreglaba cambiándole el nombre al archivo". Varios módulos ya limpiaban el
+// nombre; otros (reuniones, abonos, cannabis, sueldos) mandaban el original. Se limpia acá
+// para todos. El nombre visible del adjunto sigue siendo el original.
+function sbNombreArchivoSeguro(n){
+  let s = String(n || 'archivo').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  s = s.replace(/[^\w.\-]+/g, '_').replace(/_+/g, '_').replace(/^[_.]+/, '');
+  if (s.length > 180){ const ext = (s.match(/\.[A-Za-z0-9]{1,6}$/) || [''])[0]; s = s.slice(0, 180 - ext.length) + ext; }
+  return s || 'archivo';
+}
 async function sbUploadFile(bucket, nombre, blob) {
   if (appBloqueada()) throw new Error('sesión requerida');   // candado
+  nombre = sbNombreArchivoSeguro(nombre);
   blob = await sbLeerArchivo(blob);
   const path = `${bucket}/${nombre}`;
   const _url = `${SB_URL}/storage/v1/object/${encodeURIComponent(bucket)}/${encodeURIComponent(nombre)}`;
@@ -6848,8 +6926,11 @@ var SB_TIENE_GASTOS_PEND = false;
 var SB_TIENE_GASTOS_PAGOS = false;
 var SB_TIENE_CAJA_DEST = false;
 var SB_TIENE_GRUPO_ID  = false;   // caja_soc.grupo_id (text) — pagos mixtos
+var SB_TIENE_REPARTO   = false;   // caja_soc.reparto (jsonb) — gasto repartido entre clientes
 var SB_TIENE_JUD_COM_PARA = false;
 var SB_TIENE_APODO = false;
+var SB_TIENE_CLI_PACKS = false;   // clientes.packs (varios packs por cliente)
+var SB_TIENE_CLI_ETIQ = false, SB_TIENE_CLI_TIPOSOC = false, SB_TIENE_CLI_GRUPO = false;
 var SB_TIENE_ABO_CLI = false;
 var SB_TIENE_ABO_EXTRAS = false;
 var SB_TIENE_ABO_COM   = false;   // abonos_clientes.comision_para (text)
@@ -6882,11 +6963,17 @@ function clienteAFila(c) {
   if (SB_TIENE_VENCIMIENTOS) f.vencimientos = c.vencimientos || [];
   if (SB_TIENE_PROVINCIA) f.provincia = c.provincia || null;
   if (SB_TIENE_APODO) f.apodo = c.apodo || null;
+  if (SB_TIENE_CLI_PACKS) f.packs = (Array.isArray(c.packs) && c.packs.length) ? c.packs : null;
+  if (SB_TIENE_CLI_ETIQ) f.etiquetas = { si: c.etiquetas || [], no: c.etiquetasNo || [] };
+  if (SB_TIENE_CLI_TIPOSOC) f.tipo_soc = c.tipoSoc || null;
+  if (SB_TIENE_CLI_GRUPO) f.grupo = (c.grupo || '').trim() || null;
   return f;
 }
 function filaACliente(f) {
   return {
-    id: f.id, entidad: f.entidad || '', tipo: f.tipo || 'AC', estado: f.estado || '',
+    // Las fichas automáticas (esporádicas) se crean sin tipo. Antes se leían como 'AC'
+    // y todas las reuniones aparecían como asociación civil.
+    id: f.id, entidad: f.entidad || '', tipo: f.tipo || (/^esporadico/.test(f.estado || '') ? '' : 'AC'), estado: f.estado || '',
     cuit: f.cuit || '', registro: f.registro || '', encargada: f.encargada || '',
     referente: f.referente || '', telefono: f.telefono || '', mail: f.mail || '', driveLink: f.drive_link || '',
     provincia: f.provincia || '', apodo: f.apodo || '',
@@ -6895,8 +6982,13 @@ function filaACliente(f) {
     repro1780Fecha: f.repro_1780_fecha || '', repro1780Exp: f.repro_1780_exp || '',
     reproComplFecha: f.repro_compl_fecha || '', reproAmparo: !!f.repro_amparo,
     reproAmparoFecha: f.repro_amparo_fecha || '', reproAprobFecha: f.repro_aprob_fecha || '',
-    packTipo: f.pack_tipo || '', packSituacion: f.pack_situacion || 'vigente',
+    // Sin pack no hay situación: antes volvía como 'vigente' e inflaba el KPI de packs vigentes
+    packTipo: f.pack_tipo || '', packSituacion: f.pack_situacion || (f.pack_tipo ? 'vigente' : ''),
     packEstadoTxt: f.pack_estado_txt || '', packVence: f.pack_vence || '', packServicios: f.pack_servicios || [],
+    packs: Array.isArray(f.packs) ? f.packs : [],
+    etiquetas: (f.etiquetas && Array.isArray(f.etiquetas.si)) ? f.etiquetas.si : [],
+    etiquetasNo: (f.etiquetas && Array.isArray(f.etiquetas.no)) ? f.etiquetas.no : [],
+    tipoSoc: f.tipo_soc || '', grupo: f.grupo || '',
     docPendiente: !!f.doc_pendiente, docPendienteQue: f.doc_pendiente_que || '',
     reuniones: f.reuniones || [],
     vencimientos: Array.isArray(f.vencimientos) ? f.vencimientos : [],
@@ -7011,7 +7103,7 @@ async function __sbCargarTodoInterno() {
 
     // Reuniones (tabla reuniones; si todavía no existe, se queda con lo local)
     if (rReu){
-      reunionesDesdeNube(rReu);
+      reunionesDesdeNube(rReu, __t0);
       if (typeof renderReuniones === 'function' && document.getElementById('reunionesPanel')) renderReuniones();
     }
 
@@ -7063,10 +7155,17 @@ async function __sbCargarTodoInterno() {
       SB_TIENE_CAJA_DEST = true;
     if (sbTiene(rCajaSoc, 'grupo_id'))
       SB_TIENE_GRUPO_ID = true;
+    if (sbTiene(rCajaSoc, 'reparto'))
+      SB_TIENE_REPARTO = true;
     if (sbTiene(rCaja, 'comision_para'))
       SB_TIENE_JUD_COM_PARA = true;
     if (sbTiene(rClientes, 'apodo'))
       SB_TIENE_APODO = true;
+    if (sbTiene(rClientes, 'packs'))
+      SB_TIENE_CLI_PACKS = true;
+    if (sbTiene(rClientes, 'etiquetas')) SB_TIENE_CLI_ETIQ = true;
+    if (sbTiene(rClientes, 'tipo_soc')) SB_TIENE_CLI_TIPOSOC = true;
+    if (sbTiene(rClientes, 'grupo')) SB_TIENE_CLI_GRUPO = true;
     if (sbTiene(rAboCli, 'cliente_id'))
       SB_TIENE_ABO_CLI = true;
     if (sbTiene(rAboCli, 'incluye'))
@@ -8414,7 +8513,7 @@ function renderIngresosPendiente(cont, subtabs){
   // Detalle de cada cuota: de qué es y de quién
   const detalleCuota = c => {
     const simb = c.moneda==='USD' ? 'US$' : '$';
-    const caja = c.caja==='soc' ? 'Societaria' : 'Judicial';
+    const caja = c.caja==='soc' ? 'Societaria' : (c.caja==='socg' ? 'Societaria (gasto)' : 'Judicial');
     return `<div class="abo-row ing-det-row">
       <div class="ing-det-cli">${esc(c.cliente||'(sin cliente)')}</div>
       <div class="ing-det-con">${esc(c.concepto||'(sin concepto)')}</div>
@@ -9823,6 +9922,7 @@ function reuAgregarPago(id, datos){
   r.pagos.sort((a,b)=> String(a.fecha).localeCompare(String(b.fecha)));
   saveReuniones();
   if (typeof sbPushReunion === 'function') sbPushReunion(r);
+  if (typeof reuConfirmarPago === 'function') reuConfirmarPago(r.id, p.id, !!(p.comprobante && p.comprobante.path));
   return p;
 }
 function reuQuitarPago(id, pagoId){
@@ -9872,6 +9972,9 @@ function reuAbrirCalendar(id){
 
 // ── Panel de reuniones (estética de abonos) ──
 var REU_MES = null, REU_FILTRO = '', REU_EDIT = null, REU_PAGO_ID = null, REU_PAGO_ADJ = null, REU_ALTA_ADJ = null;
+// Subidas en curso y "generación" de ventana: un comprobante que termina de subir
+// después de cerrar la ventana no se pega a la reunión que se abra después.
+var __reuSubiendo = 0, __reuModalGen = 0;
 var REU_SUBTAB = 'lista';
 function reuMesActual(){ return REU_MES || hoyISO().slice(0,7); }
 function reuIrMes(delta){
@@ -10104,7 +10207,7 @@ function reuAbrirEdicion(id){
   reuPintarComprobAlta();
   document.getElementById('reuModal').style.display = 'flex';
 }
-function reuCerrarModal(){ document.getElementById('reuModal').style.display = 'none'; REU_EDIT = null; REU_ALTA_ADJ = null; reuSugCerrar(); }
+function reuCerrarModal(){ document.getElementById('reuModal').style.display = 'none'; REU_EDIT = null; REU_ALTA_ADJ = null; __reuModalGen++; reuSugCerrar(); }
 function reuPintarAsignados(){
   document.querySelectorAll('#reuAsignados .reu-chk').forEach(l => {
     const c = l.querySelector('input');
@@ -10129,6 +10232,7 @@ async function reuSubirComprobAlta(input){
   if (file.size > 3 * 1024 * 1024){ alert('El archivo supera los 3 MB. Comprimí la imagen antes de adjuntarla.'); return; }
   const st = document.getElementById('reuAltaStatus');
   if (st) st.textContent = 'Subiendo ' + file.name + '…';
+  const gen = __reuModalGen; __reuSubiendo++;
   try {
     let info = { path: null, url: null };
     if (typeof sbUploadFile === 'function' && typeof SB_ON !== 'undefined' && SB_ON){
@@ -10137,13 +10241,14 @@ async function reuSubirComprobAlta(input){
     } else {
       info.url = await new Promise((res, rej) => { const rd = new FileReader(); rd.onload = () => res(rd.result); rd.onerror = rej; rd.readAsDataURL(file); });
     }
+    if (gen !== __reuModalGen) return;          // la ventana se cerró: no va a otra reunión
     REU_ALTA_ADJ = { nombre: file.name, tipo: file.type, path: info.path, url: info.url };
     if (st) st.textContent = '';
     reuPintarComprobAlta();
   } catch(err){
     console.error(err);
-    if (st) st.textContent = 'No se pudo subir. Probá de nuevo.';
-  }
+    if (st && gen === __reuModalGen) st.textContent = sbMsgAdjunto(err) + ' Adjuntalo de nuevo.';
+  } finally { __reuSubiendo = Math.max(0, __reuSubiendo - 1); }
 }
 function reuToggleBonif(){
   const bon = document.getElementById('reuBonificada');
@@ -10153,6 +10258,7 @@ function reuToggleBonif(){
   m.style.opacity = bon.checked ? '.45' : '';
 }
 function reuGuardarDesdeModal(){
+  if (__reuSubiendo > 0){ aricToast('Esperá a que termine de subir el comprobante'); return; }
   const val = k => (document.getElementById(k) || {}).value || '';
   const cliente = val('reuCliente').trim();
   if (!cliente){ aricToast('Cargá el nombre del cliente'); return; }
@@ -10239,7 +10345,7 @@ function reuAbrirPago(id){
 }
 function reuCerrarPago(){
   document.getElementById('reuPagoModal').style.display = 'none';
-  REU_PAGO_ID = null; REU_PAGO_ADJ = null;
+  REU_PAGO_ID = null; REU_PAGO_ADJ = null; __reuModalGen++;
   renderReuniones();
 }
 function reuPintarPago(){
@@ -10283,27 +10389,30 @@ async function reuSubirComprob(input){
   if (file.size > 3 * 1024 * 1024){ alert('El archivo supera los 3 MB. Comprimí la imagen antes de adjuntarla.'); return; }
   const st = document.getElementById('reuComprobStatus');
   if (st) st.textContent = 'Subiendo ' + file.name + '…';
+  const gen = __reuModalGen, idReu = REU_PAGO_ID; __reuSubiendo++;
   try {
     let info = { path: null, url: null };
     if (typeof sbUploadFile === 'function' && typeof SB_ON !== 'undefined' && SB_ON){
-      const nombre = `reunion-${REU_PAGO_ID}-${Date.now()}-${file.name}`;
+      const nombre = `reunion-${idReu}-${Date.now()}-${file.name}`;
       const path = await sbUploadFile('abonos', nombre, file);
       info = { path, url: (typeof sbPubUrl === 'function') ? sbPubUrl(path) : null };
     } else {
       info.url = await new Promise((res, rej) => { const rd = new FileReader(); rd.onload = () => res(rd.result); rd.onerror = rej; rd.readAsDataURL(file); });
     }
+    if (gen !== __reuModalGen || REU_PAGO_ID !== idReu) return;   // se cambió de reunión
     REU_PAGO_ADJ = { nombre: file.name, tipo: file.type, path: info.path, url: info.url };
     if (st) st.textContent = '';
     reuPintarPago();
   } catch(err){
     console.error(err);
-    if (st) st.textContent = 'No se pudo subir. Probá de nuevo.';
-  }
+    if (st && gen === __reuModalGen) st.textContent = sbMsgAdjunto(err) + ' Adjuntalo de nuevo.';
+  } finally { __reuSubiendo = Math.max(0, __reuSubiendo - 1); }
 }
 function reuAgregarPagoDesdeModal(){
   const r = reuPorId(REU_PAGO_ID);
   if (!r) return;
   const val = k => (document.getElementById(k) || {}).value || '';
+  if (__reuSubiendo > 0){ aricToast('Esperá a que termine de subir el comprobante'); return; }
   const monto = numDe(val('reuPagoMonto'));
   if (!(monto > 0) && !REU_PAGO_ADJ){ aricToast('Cargá el monto o adjuntá el comprobante'); return; }
   reuAgregarPago(REU_PAGO_ID, { fecha: val('reuPagoFecha') || hoyISO(), monto: monto > 0 ? monto : null,
@@ -10313,7 +10422,7 @@ function reuAgregarPagoDesdeModal(){
   const set = (k, v) => { const e = document.getElementById(k); if (e) e.value = v; };
   set('reuPagoMonto', ''); set('reuPagoObs', ''); set('reuPagoTipo', 'complemento');
   reuPintarPago();
-  aricToast('Pago registrado · se replica en la caja del asignado');
+  aricToast('Guardando pago…');
 }
 function reuBorrarPago(id, pagoId){
   if (!confirm('¿Quitar este pago?')) return;
@@ -10403,17 +10512,86 @@ function filaAReunion(f){
            motivo: f.motivo || '', monto: f.monto ?? null, bonificada: !!f.bonificada,
            pagos, clienteId: f.cliente_id ?? null, creada: f.creada || '' };
 }
+// Cola por reunión. Antes cada cambio disparaba su upsert suelto: al agendar con pago
+// salían dos casi juntos (la reunión sin pagos y después con el pago) y, si el primero
+// se demoraba (renovación de sesión, reintento por 401), llegaba último y dejaba la fila
+// SIN el pago. Ahora los de una misma reunión salen en orden y cada uno manda el estado
+// vigente al momento de salir.
+const __reuCola = {};
+const __reuTocado = {};
+function __reuEncolar(id, tarea){
+  const k = String(id);
+  const p = (__reuCola[k] || Promise.resolve()).catch(() => {}).then(tarea);
+  __reuCola[k] = p;
+  return p;
+}
 function sbPushReunion(r){
-  if (typeof SB_ON === 'undefined' || !SB_ON) return;
-  sbUpsert('reuniones', reunionAFila(r)).catch(sbAvisarError);
+  if (typeof SB_ON === 'undefined' || !SB_ON) return Promise.resolve();
+  __reuTocado[String(r.id)] = Date.now();
+  const p = __reuEncolar(r.id, () => {
+    const act = reuPorId(r.id);
+    if (!act) return;                          // se borró mientras esperaba
+    return sbUpsert('reuniones', reunionAFila(act));
+  });
+  p.catch(sbAvisarError);
+  return p;
 }
 function sbDelReunion(id){
   if (typeof SB_ON === 'undefined' || !SB_ON) return;
-  sbDelete('reuniones', id).catch(sbAvisarError);
+  __reuTocado[String(id)] = Date.now();
+  __reuEncolar(id, () => sbDelete('reuniones', id)).catch(sbAvisarError);
 }
-function reunionesDesdeNube(filas){
+// Relee la fila en la base y dice si el pago (y su comprobante) quedaron guardados.
+// No alcanza con que el upsert no tire error: sbUpsert se va en silencio sin sesión.
+async function reuPagoEnBase(id, pagoId){
+  try { await __reuCola[String(id)]; } catch(e){ return { pago: false, comp: false }; }
+  const r = await sbFetch(`${SB_URL}/rest/v1/reuniones?id=eq.${encodeURIComponent(id)}&select=pagos`, {});
+  if (!r.ok) return { pago: false, comp: false };
+  const filas = await r.json().catch(() => []);
+  const f = Array.isArray(filas) ? filas[0] : null;
+  let pagos = [];
+  try { pagos = f ? (typeof f.pagos === 'string' ? JSON.parse(f.pagos || '[]') : (f.pagos || [])) : []; } catch(e){ pagos = []; }
+  const p = Array.isArray(pagos) ? pagos.find(x => String(x.id) === String(pagoId)) : null;
+  return { pago: !!p, comp: !!(p && p.comprobante && p.comprobante.path) };
+}
+// Confirma contra la base. Si no llegó, reintenta una vez; si sigue sin estar, lo saca
+// de la pantalla (no queda solo en el navegador aparentando estar guardado) y avisa.
+async function reuConfirmarPago(id, pagoId, conComp){
+  if (typeof SB_ON === 'undefined' || !SB_ON) return;
+  let st = await reuPagoEnBase(id, pagoId).catch(() => ({ pago: false, comp: false }));
+  if (!st.pago || (conComp && !st.comp)){
+    const r = reuPorId(id);
+    if (r) sbPushReunion(r);
+    st = await reuPagoEnBase(id, pagoId).catch(() => ({ pago: false, comp: false }));
+  }
+  const r = reuPorId(id);
+  const p = r && (r.pagos || []).find(x => String(x.id) === String(pagoId));
+  if (st.pago && (!conComp || st.comp)){
+    abonoCajaAviso(conComp ? 'Comprobante guardado' : 'Pago guardado', 'ok');
+    return true;
+  }
+  if (r && p){
+    if (!st.pago) r.pagos = r.pagos.filter(x => String(x.id) !== String(pagoId));
+    else p.comprobante = null;
+    saveReuniones();
+  }
+  try { if (typeof renderReuniones === 'function') renderReuniones(); } catch(e){}
+  try { if (String(REU_PAGO_ID) === String(id)) reuPintarPago(); } catch(e){}
+  abonoCajaAviso(st.pago ? 'No se guardó el comprobante. Adjuntalo de nuevo.'
+                         : 'No se guardó el pago' + (conComp ? ' ni el comprobante' : '') + '. Volvé a cargarlo.', 'mal');
+  return false;
+}
+// Una carga que salió antes de un cambio trae la reunión vieja: esa no pisa lo local.
+function reunionesDesdeNube(filas, t0){
   if (!Array.isArray(filas)) return;
-  REUNIONES = filas.map(filaAReunion);
+  const nube = filas.map(filaAReunion);
+  if (t0){
+    const loc = new Map((REUNIONES || []).map(r => [String(r.id), r]));
+    const tocado = id => (__reuTocado[id] || 0) >= t0;
+    const out = nube.filter(r => !tocado(String(r.id))).concat(
+      [...loc.values()].filter(r => tocado(String(r.id))));
+    REUNIONES = out;
+  } else REUNIONES = nube;
   saveReuniones();
 }
 // Sube al Supabase todo lo que hoy está solo en el navegador
@@ -14418,21 +14596,25 @@ function renderContactarInicio() {
 // ── Acciones rápidas sobre un pack desde el panel del inicio ──
 // Renovó: abre un modal para elegir CON QUÉ pack renovó y hasta cuándo.
 const PACK_TIPOS = ['PS', 'PF', 'PFCS', 'AM'];
-function packRenovado(id) {
+function packRenovado(id, packId) {
   const cli = clientePorId(id);
   if (!cli) return;
-  const actual = packVencimiento(cli, true);
+  const ps = packsDe(cli);
+  const pk = ps.find(p => String(p.id) === String(packId)) || ps[0] || { id: '', tipo: '' };
+  const actual = packVencimientoUno(pk);
   const sugIso = actual && actual >= hoyISO() ? sumarMesesISO(actual, 12) : sumarMesesISO(hoyISO(), 12);
   const ov = document.getElementById('packRenovarOverlay');
   document.getElementById('prTitulo').textContent = cli.entidad;
-  document.getElementById('prActual').textContent = (cli.packTipo ? 'Pack ' + cli.packTipo : 'sin pack') + (actual ? ' · vencía el ' + formatFechaCorta(actual) : '');
+  document.getElementById('prActual').textContent = (pk.tipo ? 'Pack ' + pk.tipo : 'sin pack') + (actual ? ' · vencía el ' + formatFechaCorta(actual) : '');
   const sel = document.getElementById('prTipo');
-  sel.innerHTML = PACK_TIPOS.map(p => `<option value="${p}"${cli.packTipo === p ? ' selected' : ''}>${p}</option>`).join('')
+  const opsTipo = PACK_TIPOS.concat(pk.tipo && !PACK_TIPOS.includes(pk.tipo) ? [pk.tipo] : []);
+  sel.innerHTML = opsTipo.map(p => `<option value="${esc(p)}"${pk.tipo === p ? ' selected' : ''}>${esc(p)}</option>`).join('')
     + '<option value="__otro">Otro (escribir)…</option>';
   document.getElementById('prOtroWrap').style.display = 'none';
   document.getElementById('prOtro').value = '';
   document.getElementById('prVence').value = sugIso;
   ov.dataset.cliId = String(id);
+  ov.dataset.packId = String(pk.id || '');
   ov.classList.add('open');
   setTimeout(() => sel.focus(), 40);
 }
@@ -14454,10 +14636,16 @@ function confirmarPackRenovar() {
   }
   const vence = document.getElementById('prVence').value;
   if (!vence) { document.getElementById('prVence').focus(); return; }
-  const anterior = cli.packTipo || '';
-  cli.packTipo = tipo;
-  cli.packVence = vence;
-  cli.packSituacion = 'vigente';
+  const ps = packsDe(cli).map(p => ({ ...p }));
+  let pk = ps.find(p => String(p.id) === String(ov.dataset.packId || ''));
+  if (!pk){ pk = { id: packNuevoId(), tipo: '', situacion: '', vence: '', estadoTxt: '', servicios: [] }; ps.push(pk); }
+  if (pk.id === 'p0') pk.id = packNuevoId();
+  const anterior = pk.tipo || '';
+  pk.tipo = tipo;
+  pk.vence = vence;
+  pk.situacion = 'vigente';
+  if (anterior !== tipo) pk.servicios = packServConPlantilla(pk.servicios, tipo);
+  packsGuardar(cli, ps);
   // Dejar constancia del cambio de pack en la bitácora
   if (anterior && anterior !== tipo && typeof agregarNotaBitacora === 'function') {
     agregarNotaBitacora(cli.id, hoyISO(), 'Renovó: pasó de ' + anterior + ' a ' + tipo + ' (hasta ' + formatFechaCorta(vence) + ')');
@@ -14470,11 +14658,16 @@ function confirmarPackRenovar() {
   refrescarFichaSi(cli.id);
 }
 // No renueva: el pack pasa a finalizado (queda en el panel hasta que salga por la ventana de 60 días)
-function packNoRenueva(id) {
+function packNoRenueva(id, packId) {
   const cli = clientePorId(id);
   if (!cli) return;
-  if (!confirm('¿Marcar el pack de ' + cli.entidad + ' como finalizado?\n\nDeja de figurar como vigente en el CRM.')) return;
-  cli.packSituacion = 'finalizado';
+  const ps = packsDe(cli).map(p => ({ ...p }));
+  const pk = ps.find(p => String(p.id) === String(packId)) || ps[0];
+  if (!pk) return;
+  if (!confirm('¿Marcar el pack ' + (pk.tipo || '') + ' de ' + cli.entidad + ' como finalizado?\n\nDeja de figurar como vigente en el CRM.')) return;
+  if (pk.id === 'p0') pk.id = packNuevoId();
+  pk.situacion = 'finalizado';
+  packsGuardar(cli, ps);
   saveClientesLocal();
   if (typeof sbPushCliente === 'function') sbPushCliente(cli);
   renderPacksVencerInicio();
@@ -14488,15 +14681,108 @@ function sumarMesesISO(iso, meses) {
   return d.toISOString().slice(0, 10);
 }
 
+// ══ PACKS: un cliente puede tener varios (ej. PF y AM), cada uno con su situación,
+// vencimiento y servicios. Viven en `c.packs`. Los campos viejos (packTipo, packSituacion,
+// packVence, packEstadoTxt, packServicios) quedan como ESPEJO del pack principal, para que
+// todo lo que ya los lee siga andando y para no perder nada si falta la columna `packs`.
+const PACK_PLANTILLAS = {
+  PF: ['CUIT', 'Pack de Actas Modelo', 'Contrato madre', 'Pack de Adhesión', 'Pack de Prevención',
+       'Informe Alta de Impuestos', 'Alta de impuestos', 'Guía - categorías de asociados',
+       'Guía - cuota social', 'Guía - predios de cultivo'],
+  PS: ['CUIT', 'Pack de Adhesión', 'Pack de Prevención', 'Informe alta de impuestos', 'Alta de impuestos']
+};
+const PACK_SIT_LBL = { vigente: 'Vigente', finalizado: 'Finalizado', cerrado: 'Cerrado' };
+// ══ ETIQUETAS, TIPO DE SOCIEDAD Y GRUPO ══
+// Etiquetas: se suman a todo lo demás (tipo, pack, estado). Un cliente puede no tener
+// ninguna, tener solo INASE o tener INASE además de otras cosas contratadas.
+// INASE se pone sola si el cliente figura en el padrón de INASE (mismo cruce por nombre
+// completo que INASE↔ARICCAME) y además se puede poner o sacar a mano. Si se saca a
+// mano, el cruce no la vuelve a poner: queda anotada en `etiquetasNo`.
+const CRM_ETIQUETAS = ['INASE'];
+const TIPO_SOC_OP = ['SAS', 'SRL', 'SA', 'SCA', 'SCS', 'Otra'];
+function crmEnPadronInase(c){
+  if (!c || typeof INA_CLI === 'undefined' || !Array.isArray(INA_CLI) || !INA_CLI.length || typeof inaClaveNom !== 'function') return false;
+  // Las claves del padrón se calculan una vez por versión del padrón, no por cliente
+  const firma = INA_CLI.length + '|' + INA_CLI.map(x => x.nombre + '/' + (x.alias || '')).join('|').length;
+  if (!crmEnPadronInase.__c || crmEnPadronInase.__c.ref !== INA_CLI || crmEnPadronInase.__c.firma !== firma){
+    const s = new Set(); INA_CLI.forEach(ic => inaClavesDe(ic).forEach(k => s.add(k)));
+    crmEnPadronInase.__c = { ref: INA_CLI, firma, set: s };
+  }
+  const set = crmEnPadronInase.__c.set;
+  return [c.entidad, c.apodo].map(inaClaveNom).some(k => k && set.has(k));
+}
+function etiquetasDe(c){
+  if (!c) return [];
+  const no = c.etiquetasNo || [];
+  const out = (c.etiquetas || []).filter(e => no.indexOf(e) < 0);
+  if (no.indexOf('INASE') < 0 && out.indexOf('INASE') < 0 && crmEnPadronInase(c)) out.push('INASE');
+  return out;
+}
+function etiquetaEsAuto(c, e){ return e === 'INASE' && (c.etiquetas || []).indexOf('INASE') < 0 && crmEnPadronInase(c); }
+function crmToggleEtiqueta(id, e){
+  const c = clientePorId(id); if (!c) return;
+  const tiene = etiquetasDe(c).indexOf(e) >= 0;
+  const si = (c.etiquetas || []).filter(x => x !== e), no = (c.etiquetasNo || []).filter(x => x !== e);
+  if (tiene) no.push(e); else si.push(e);
+  actualizarCliente(id, { etiquetas: si, etiquetasNo: no });
+  refrescarFicha(id); renderCRM();
+}
+// Otros clientes del mismo grupo (mismas personas detrás de varias entidades)
+function crmMismoGrupo(c){
+  const g = __normBusqueda(c && c.grupo || '').trim();
+  if (!g) return [];
+  return (CLIENTES || []).filter(x => x.id !== c.id && __normBusqueda(x.grupo || '').trim() === g);
+}
+function crmGruposExistentes(){
+  const m = new Map();
+  (CLIENTES || []).forEach(c => { const g = (c.grupo || '').trim(); if (g && !m.has(__normBusqueda(g))) m.set(__normBusqueda(g), g); });
+  return [...m.values()].sort((a, b) => a.localeCompare(b));
+}
+function packNuevoId(){ return 'pk' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36); }
+function packsDe(c){
+  if (!c) return [];
+  if (Array.isArray(c.packs) && c.packs.length) return c.packs;
+  if (c.packTipo || c.packVence || c.packEstadoTxt || (c.packServicios || []).length)
+    return [{ id: 'p0', tipo: c.packTipo || '', situacion: c.packSituacion || (c.packTipo ? 'vigente' : ''),
+              vence: c.packVence || '', estadoTxt: c.packEstadoTxt || '', servicios: c.packServicios || [] }];
+  return [];
+}
+function packPrincipal(ps){ return (ps || []).find(p => p.situacion === 'vigente') || (ps || [])[0] || null; }
+// Campos a guardar en el cliente: la lista y su espejo
+function packsCampos(ps){
+  ps = (ps || []).filter(p => p && (p.tipo || p.vence || p.estadoTxt || (p.servicios || []).length));
+  const p = packPrincipal(ps);
+  return { packs: ps, packTipo: p ? (p.tipo || '') : '', packSituacion: p ? (p.situacion || '') : '',
+           packVence: p ? (p.vence || '') : '', packEstadoTxt: p ? (p.estadoTxt || '') : '',
+           packServicios: p ? (p.servicios || []) : [] };
+}
+function packsGuardar(c, ps){ Object.assign(c, packsCampos(ps)); }
+// Suma a la lista los servicios de la plantilla del tipo que falten. No borra ni duplica.
+function packNormServ(s){ return __normBusqueda(String(s || '')).replace(/[^a-z0-9]+/g, ''); }
+function packServConPlantilla(servicios, tipo){
+  const base = (servicios || []).slice();
+  const ya = new Set(base.map(s => packNormServ(s.nombre)));
+  (PACK_PLANTILLAS[tipo] || []).forEach(n => { if (!ya.has(packNormServ(n))){ base.push({ nombre: n, estado: 'pendiente' }); ya.add(packNormServ(n)); } });
+  return base;
+}
+function packServPend(p){ return (p.servicios || []).filter(s => s.estado !== 'enviado' && s.estado !== 'cliente').length; }
+function clienteServPend(c){ return packsDe(c).reduce((a, p) => a + packServPend(p), 0); }
+
 // ── Packs a renovar: vencen en los próximos 30 días o vencieron en los últimos 60 ──
+// Con varios packs, el del cliente es el más próximo de los que correspondan.
 function packVencimiento(c, incluirFinalizados) {
   if (!c) return '';
-  if (!incluirFinalizados && c.packSituacion !== 'vigente') return '';
+  const vs = packsDe(c).filter(p => incluirFinalizados || p.situacion === 'vigente')
+    .map(packVencimientoUno).filter(Boolean).sort();
+  return vs[0] || '';
+}
+function packVencimientoUno(p) {
+  if (!p) return '';
   // 1) campo explícito de fecha (el que carga el usuario en la ficha)
-  if (c.packVence && /^\d{4}-\d{2}-\d{2}$/.test(c.packVence)) return c.packVence;
+  if (p.vence && /^\d{4}-\d{2}-\d{2}$/.test(p.vence)) return p.vence;
   // 2) fallback: parsear del texto de detalle
-  if (!c.packEstadoTxt) return '';
-  const txt = String(c.packEstadoTxt);
+  if (!p.estadoTxt) return '';
+  const txt = String(p.estadoTxt);
   // preferir la fecha que sigue a "finaliza/vence"; si no, la primera fecha del texto
   let m = txt.match(/(?:finaliza|vence)[^\d]{0,15}(\d{1,2})\/(\d{1,2})\/(\d{2,4})/i);
   if (!m) m = txt.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
@@ -14514,7 +14800,8 @@ function renderPacksVencerInicio() {
   const dias = v => Math.round((new Date(v + 'T00:00:00') - new Date(hoy + 'T00:00:00')) / 86400000);
   // Ventana: los que vencen en los próximos 30 días + los que vencieron en los últimos 60.
   // Así la lista se limpia sola: pasados los 60 días, el pack sale del panel.
-  const items = CLIENTES.map(c => ({ c, venc: packVencimiento(c, true) }))
+  const items = CLIENTES.flatMap(c => packsDe(c).filter(p => p.situacion !== 'cerrado')
+      .map(p => ({ c, p, venc: packVencimientoUno(p) })))
     .filter(x => { if (!x.venc) return false; const d = dias(x.venc); return d <= 30 && d >= -60; })
     .sort((a, b) => a.venc.localeCompare(b.venc));
   const porVencer = items.filter(x => dias(x.venc) >= 0).length;
@@ -14525,14 +14812,15 @@ function renderPacksVencerInicio() {
     : '';
   cont.innerHTML = items.length ? items.slice(0, 8).map(x => {
     const yaVencio = x.venc < hoy;
-    const fin = x.c.packSituacion === 'finalizado';
-    const sub = 'Pack ' + esc(x.c.packTipo || '—') + (x.c.encargada ? ' · ' + esc(x.c.encargada) : '') + (fin ? ' · finalizado' : '');
+    const fin = x.p.situacion === 'finalizado';
+    const sub = 'Pack ' + esc(x.p.tipo || '—') + (x.c.encargada ? ' · ' + esc(x.c.encargada) : '') + (fin ? ' · finalizado' : '');
+    const pkArg = "'" + String(x.p.id).replace(/[^\w]/g, '') + "'";
     return `<div class="venc-item ${yaVencio ? 'overdue' : ''}">
       <span class="venc-date" onclick="navTo('crm');setTimeout(()=>abrirClienteDetalle(${x.c.id}),80)" style="cursor:pointer">${formatFechaCorta(x.venc)}${pillDias(x.venc)}</span>
       <div class="venc-txt" onclick="navTo('crm');setTimeout(()=>abrirClienteDetalle(${x.c.id}),80)" style="cursor:pointer"><div class="t">${esc(x.c.entidad)}</div><div class="s">${sub}</div></div>
       <div class="pack-acc">
-        <button class="pack-btn ok" onclick="event.stopPropagation();packRenovado(${x.c.id})" title="El cliente renovó: cargar la fecha nueva">✓ Renovó</button>
-        <button class="pack-btn no" onclick="event.stopPropagation();packNoRenueva(${x.c.id})" title="El cliente no renueva: marcar el pack como finalizado">✕ No renueva</button>
+        <button class="pack-btn ok" onclick="event.stopPropagation();packRenovado(${x.c.id},${pkArg})" title="El cliente renovó: cargar la fecha nueva">✓ Renovó</button>
+        <button class="pack-btn no" onclick="event.stopPropagation();packNoRenueva(${x.c.id},${pkArg})" title="El cliente no renueva: marcar el pack como finalizado">✕ No renueva</button>
       </div>
     </div>`;
   }).join('') : '<div class="panel-empty">Ningún pack vence en los próximos 30 días.</div>';
@@ -15579,6 +15867,9 @@ function cuotasPendientesTodas(cajaFiltro) {
   const items = [];
   (PLANES||[]).forEach(plan => {
     if (cajaFiltro && plan.caja !== cajaFiltro) return;
+    // Los gastos en cuotas son plata a PAGAR: solo aparecen si se piden explícitamente
+    if (!cajaFiltro && plan.caja === 'socg') return;
+    if (plan.caja === 'socg' && !planGastoVisible(plan)) return;
     if ((plan.pagadas||[]).length >= plan.total) return;
     const pagosPlan = (CAJA_TODAS()).filter(p => String(p.planId) === String(plan.id)).sort((a,b) => (a.fecha||'').localeCompare(b.fecha||''));
     const ult = pagosPlan[pagosPlan.length - 1];
@@ -15586,7 +15877,7 @@ function cuotasPendientesTodas(cajaFiltro) {
     const ultNro = (ult && Number(ult.nroCuota)) ? Number(ult.nroCuota) : 0;
     // En societaria el monto de cada cuota pendiente es el RECALCULADO por el motor
     // de saldo (no el original de montos[]). En judicial se conserva montos[].
-    const stSoc = plan.caja === 'soc' ? estadoPlanSoc(plan.id) : null;
+    const stSoc = planEsSoc(plan) ? estadoPlanSoc(plan.id) : null;
     for (let i = 1; i <= plan.total; i++) {
       if ((plan.pagadas||[]).includes(i)) continue;
       const fecha = fechaCuotaProx(base, Math.max(1, i - ultNro));
@@ -15643,6 +15934,7 @@ function movAFila(m) {  /* incluye plan de cuotas */
     gastos_pagos: (typeof SB_TIENE_GASTOS_PAGOS !== 'undefined' && SB_TIENE_GASTOS_PAGOS) ? (m.gastosPagos || []) : undefined, comision_para: m.comisionPara || null, revisado: !!m.revisado,
     caja_dest: (typeof SB_TIENE_CAJA_DEST !== 'undefined' && SB_TIENE_CAJA_DEST) ? (m.cajaDest || 'soc') : undefined,
     grupo_id: (typeof SB_TIENE_GRUPO_ID !== 'undefined' && SB_TIENE_GRUPO_ID) ? (m.grupoId || null) : undefined,
+    reparto: (typeof SB_TIENE_REPARTO !== 'undefined' && SB_TIENE_REPARTO) ? (Array.isArray(m.reparto) && m.reparto.length ? m.reparto : null) : undefined,
     adjunto_path: (CAJASOC_ADJ[m.id] || {}).path || null };
 }
 function filaAMov(f) {
@@ -15651,7 +15943,8 @@ function filaAMov(f) {
     metodo: f.metodo || '', receptor: f.receptor || '', cargadoPor: f.cargado_por || '', clienteId: f.cliente_id || null, planId: f.plan_id || null, nroCuota: f.nro_cuota || null, dolarDia: f.dolar_dia != null ? Number(f.dolar_dia) : null, honorarios: f.honorarios != null ? Number(f.honorarios) : null, gastosIncl: f.gastos_incl != null ? Number(f.gastos_incl) : null, gastosMon: f.gastos_mon || '', fondoDe: f.fondo_de || '',
     gastosPend: !!f.gastos_pend, gastosFecha: f.gastos_fecha || '',
     gastosPagos: Array.isArray(f.gastos_pagos) ? f.gastos_pagos : [], comisionPara: f.comision_para || '', revisado: !!f.revisado,
-    cajaDest: f.caja_dest === 'wl' ? 'wl' : 'soc', grupoId: f.grupo_id || '' };
+    cajaDest: f.caja_dest === 'wl' ? 'wl' : 'soc', grupoId: f.grupo_id || '',
+    reparto: Array.isArray(f.reparto) ? f.reparto : null };
 }
 function toggleRevisadoSoc(id) {
   if (!puedeRevisar()) return;
@@ -15948,13 +16241,27 @@ function cajaSocAjustarTipo(){
 function csToggleCuotaVisibilidad() {
   const tipo = document.getElementById('csTipo').value;
   const esIngreso = tipo === 'ingreso';
-  // Las dos opciones (desglose y cuotas) solo tienen sentido en un ingreso
+  // Desglose: solo ingresos. Cuotas: ingresos y gastos (un gasto se paga en cuotas).
   const wrap = document.getElementById('csOpcionesWrap');
-  if (wrap) wrap.style.display = esIngreso ? 'grid' : 'none';
+  if (wrap) wrap.style.display = 'grid';
+  const wDes = document.getElementById('csDesgloseChkWrap');
+  if (wDes) wDes.style.display = esIngreso ? '' : 'none';
+  const tCuota = document.querySelector('#csCuotaChkWrap .tx');
+  if (tCuota) tCuota.innerHTML = esIngreso
+    ? '<b>💳 Es una cuota de un plan</b><small>Vincular el pago a un plan de cuotas, nuevo o existente.</small>'
+    : '<b>💳 Este gasto se paga en cuotas</b><small>Se carga el total y se va pagando mes a mes. Hoy se registra la cuota que se paga ahora.</small>';
+  const lTS = document.querySelector('#csWrapTotalServ label');
+  if (lTS) lTS.textContent = esIngreso ? 'Total del servicio' : 'Total del gasto';
+  const wRep = document.getElementById('csRepChkWrap');
+  if (wRep) wRep.style.display = esIngreso ? 'none' : '';
+  if (esIngreso) { const rc = document.getElementById('csRepChk'); if (rc && rc.checked) { rc.checked = false; csRepToggle(); } }
+  // Al cambiar de tipo, el plan elegido deja de valer: se arranca de cero. Solo si el
+  // tipo cambió de verdad (esto también corre al reaplicar permisos, con el form a medias).
+  const cambio = csToggleCuotaVisibilidad.__ult !== undefined && csToggleCuotaVisibilidad.__ult !== tipo;
+  csToggleCuotaVisibilidad.__ult = tipo;
+  if (cambio) { const chk = document.getElementById('csEsCuota'); if (chk) chk.checked = false; cjResetCuota('soc'); }
   if (!esIngreso) {
-    const chk = document.getElementById('csEsCuota'); if (chk) chk.checked = false;
     const chkG = document.getElementById('csTieneGastos'); if (chkG) chkG.checked = false;
-    cjResetCuota('soc');
     const box = document.getElementById('csDesgloseBox'); if (box) box.classList.add('oculto');
   }
 }
@@ -15965,8 +16272,8 @@ var __excesoSocConfirmado = false;
 // Retorna true si se puede seguir; false si hay que frenar (falta dato o pide confirmar exceso).
 function __validarCuotaSoc(tipo, monto) {
   const chk = document.getElementById('csEsCuota');
-  // Solo aplica a ingresos marcados como cuota
-  if (tipo !== 'ingreso' || !chk || !chk.checked) { __limpiarAvisoExceso(); return true; }
+  // Aplica a ingresos y gastos marcados como cuota
+  if (!chk || !chk.checked) { __limpiarAvisoExceso(); return true; }
 
   const monedaPago = document.getElementById('csMoneda').value;
   const selPlan = document.getElementById('csPlan').value;
@@ -16009,7 +16316,7 @@ function __mostrarAvisoExceso(monedaPlan, saldo, pago, exceso) {
   z.innerHTML = '<div class="cuota-aviso">'
     + '<b>El pago supera el saldo del plan.</b> Debe ' + sim + fmtNumStr(saldo)
     + ' y estás cargando ' + sim + fmtNumStr(pago) + '. '
-    + 'Si lo registrás, el plan queda saldado y quedan <b>' + sim + fmtNumStr(exceso) + '</b> a favor del cliente.'
+    + 'Si lo registrás, el plan queda saldado y quedan <b>' + sim + fmtNumStr(exceso) + '</b> a favor' + (csModoGasto() ? '' : ' del cliente') + '.'
     + '<div class="acc">'
     + '<button class="btn-si" onclick="__confirmarExcesoSoc()">Sí, queda a favor</button>'
     + '<button class="btn-no" onclick="__limpiarAvisoExceso()">No, me confundí</button>'
@@ -16111,10 +16418,17 @@ function registrarMovSoc() {
   // Devuelve false para frenar el registro (falta un dato o el usuario tiene que confirmar el exceso).
   if (!__validarCuotaSoc(tipo, monto)) return;
   if (cajaSocSoloGastos() && tipo === 'ingreso') { alert('Solo podés registrar gastos en esta caja.'); return; }
-  const m = { id: Date.now(), fecha, tipo, contraparte, concepto, monto,
+  // Reparto del gasto entre varios clientes (opcional)
+  let reparto = null;
+  if (tipo !== 'ingreso' && (document.getElementById('csRepChk') || {}).checked) {
+    reparto = csRepLeer();
+    if (!reparto) return;          // csRepLeer ya avisó qué falta
+  }
+  const m = { id: Date.now(), fecha, tipo, contraparte: contraparte || (reparto ? reparto.map(r => r.cliente).join(' / ') : ''), concepto, monto,
     moneda: document.getElementById('csMoneda').value, metodo: document.getElementById('csMetodo').value,
     receptor: document.getElementById('csReceptor').value.trim(),
     cargadoPor: (typeof usuarioActual === 'function') ? (usuarioActual() || '') : '' };
+  if (reparto) m.reparto = reparto;
   // A qué caja impacta: 'soc' (societaria, por defecto) o 'wl' (WE Legal packs)
   m.cajaDest = csDestinoActual();
   // Valor del dólar del día: se guarda siempre que esté cargado. Sirve para la
@@ -16165,6 +16479,19 @@ function registrarMovSoc() {
       if (plan && (plan.pagadas||[]).length === 1) etiquetaServ = plan.concepto + ' (plan ' + plan.total + ' cuotas)';
     }
   }
+  // ── Gasto en cuotas: mismo motor de planes que los ingresos societarios ──
+  if (tipo !== 'ingreso') {
+    const infoCuotaG = cjProcesarCuota('soc', { cliente: contraparte, clienteId: null, concepto, monto, moneda: m.moneda, esGasto: true });
+    if (infoCuotaG) {
+      m.planId = infoCuotaG.planId; m.nroCuota = infoCuotaG.nroCuota;
+      // Las cuotas siguientes heredan el reparto entre clientes de la anterior
+      if (!m.reparto) {
+        const prev = (CAJASOC || []).filter(x => String(x.planId) === String(m.planId) && Array.isArray(x.reparto) && x.reparto.length)
+          .sort((a, b) => (Number(b.nroCuota) || 0) - (Number(a.nroCuota) || 0))[0];
+        if (prev) m.reparto = prev.reparto.map(r => ({ ...r }));
+      }
+    }
+  }
   // ── Pago mixto: se agrega el movimiento hermano con la otra moneda ──
   // Comparten `grupoId`, fecha, concepto, cliente y comisión. Cada uno queda con su
   // propia moneda, así todo lo que ya existe los lee sin cambios.
@@ -16213,6 +16540,7 @@ function registrarMovSoc() {
   const sv = document.getElementById('csVincGastos'); if (sv) sv.value = '';
   try { csVincCambio(); csVincPintar(); } catch(e){}
   const db = document.getElementById('csDesgloseBox'); if (db) db.classList.add('oculto');
+  { const rc = document.getElementById('csRepChk'); if (rc && rc.checked) { rc.checked = false; csRepToggle(); } }
   cjResetCuota('soc');
   const b = document.getElementById('csAdjBtn'); if (b) b.textContent = '📎 Adjuntar foto / PDF';
   document.getElementById('csMes').value = fecha.slice(0, 7);
@@ -16338,6 +16666,9 @@ function eliminarMovSoc(id) {
   CAJASOC = CAJASOC.filter(m => hermanos.indexOf(m.id) < 0);
   hermanos.forEach(hid => { delete CAJASOC_ADJ[hid]; });
   saveCajaSoc(); saveCajaSocAdj(); hermanos.forEach(hid => sbDelMovSoc(hid));
+  // Gasto que era una cuota de un gasto en cuotas: se desmarca del plan (y el plan se
+  // borra si no le queda ninguna cuota pagada), igual que con las cuotas de ingresos.
+  if (mov && mov.tipo !== 'ingreso' && mov.planId) desvincularCuotaDePlan(mov.planId, mov.nroCuota);
   if (mov && mov.tipo === 'ingreso') {
     const cid = mov.clienteId != null ? mov.clienteId : __clienteIdPorNombre(mov.contraparte);
     // Si era una cuota: desmarcarla del plan (y borrar el plan si queda vacío)
@@ -17501,7 +17832,7 @@ function renderCajaSoc() {
     return `<tr>
       <td style="white-space:nowrap">${formatFechaCorta(m.fecha)}</td>
       <td style="font-weight:600">${esc(m.contraparte || '—')}${comChip}</td>
-      <td>${esc(m.concepto || '—')}${packChip}${esMix ? ' <span class="chip-mixto">Pago mixto</span>' : ''}${m.planId ? ' ' + etiquetaCuota(m.planId, m.nroCuota) : ''}${m.gastosIncl > 0 ? `<div class="desglose-linea">${csSimb(m.moneda) + fmtNumStr(m.gastosMon ? (m.monto||0) : (m.honorarios || 0))} honorarios · ${csSimb(socGastosMon(m)) + fmtNumStr(m.gastosIncl)} gastos${socGastosPendiente(m) ? ` <span class="chip-pend">debe ${csSimb(socGastosMon(m))}${fmtNumStr(socGastosSaldo(m))}</span>` : (m.gastosFecha && m.gastosFecha !== m.fecha ? ' <span class="chip-com">cobrados el ' + fmtFechaCortaCRM(m.gastosFecha) + '</span>' : '')}</div>` : ''}${packLinea}${comLinea}</td>
+      <td>${esc(m.concepto || '—')}${csRepLinea(m)}${packChip}${esMix ? ' <span class="chip-mixto">Pago mixto</span>' : ''}${m.planId ? ' ' + etiquetaCuota(m.planId, m.nroCuota) : ''}${m.gastosIncl > 0 ? `<div class="desglose-linea">${csSimb(m.moneda) + fmtNumStr(m.gastosMon ? (m.monto||0) : (m.honorarios || 0))} honorarios · ${csSimb(socGastosMon(m)) + fmtNumStr(m.gastosIncl)} gastos${socGastosPendiente(m) ? ` <span class="chip-pend">debe ${csSimb(socGastosMon(m))}${fmtNumStr(socGastosSaldo(m))}</span>` : (m.gastosFecha && m.gastosFecha !== m.fecha ? ' <span class="chip-com">cobrados el ' + fmtFechaCortaCRM(m.gastosFecha) + '</span>' : '')}</div>` : ''}${packLinea}${comLinea}</td>
       <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;color:${gasto ? '#b3372a' : '#1e7a48'}">${(() => {
         // Vista dolarizada: el monto principal SIEMPRE en dólares. Debajo, en chico,
         // el importe original en pesos y la cotización con la que se convirtió.
@@ -17586,6 +17917,7 @@ function renderCajaSoc() {
   }
   try { renderComisionesDetalle(); } catch(e) {}
   renderCuotasPendientes('Soc');
+  try { renderCuotasPendientes('SocG'); } catch(e){}
 }
 
 // ── Selector de pack prearmado en el formulario societario ──
@@ -18114,16 +18446,112 @@ function __cuotaIds(caja) {
     cliente: caja === 'soc' ? 'csContra' : 'cjCliente', concepto: caja === 'soc' ? 'csConcepto' : 'cjConcepto',
     monto: caja === 'soc' ? 'csMonto' : 'cjMonto', moneda: caja === 'soc' ? 'csMoneda' : 'cjMoneda' };
 }
+// ══ Gasto repartido entre varios clientes ══
+// Cada fila: cliente (con sugerencias del CRM) y porcentaje. Por defecto, partes iguales;
+// se puede corregir cada porcentaje y no deja registrar si la suma no da 100 %.
+function csRepToggle(){
+  const on = !!(document.getElementById('csRepChk') || {}).checked;
+  const box = document.getElementById('csRepBox'); if (!box) return;
+  box.classList.toggle('oculto', !on);
+  const f = document.getElementById('csRepFilas');
+  if (on && f && !f.children.length){
+    const ct = (document.getElementById('csContra') || {}).value || '';
+    csRepAgregar(ct.trim(), true); csRepAgregar('', true); csRepIguales();
+  }
+  if (!on && f) f.innerHTML = '';
+  csRepCalc();
+}
+function csRepAgregar(nombre, sinIgualar){
+  const f = document.getElementById('csRepFilas'); if (!f) return;
+  const dl = document.getElementById('csRepDL') || (() => {
+    const d = document.createElement('datalist'); d.id = 'csRepDL';
+    d.innerHTML = (CLIENTES || []).map(c => `<option value="${esc(c.entidad || '')}">`).join('');
+    document.body.appendChild(d); return d; })();
+  const row = document.createElement('div');
+  row.className = 'f-row cs-rep-fila'; row.style.cssText = 'align-items:end;margin:0 0 6px';
+  row.innerHTML = `<div class="f-col" style="flex:1;min-width:180px"><label>Cliente</label><input data-rep-cli list="csRepDL" value="${esc(nombre || '')}" placeholder="Nombre del cliente"></div>
+    <div class="f-col" style="flex:0 0 90px"><label>%</label><input data-rep-pct type="text" inputmode="decimal" oninput="csRepCalc()"></div>
+    <div class="f-col" style="flex:0 0 130px"><label>Le toca</label><div data-rep-monto class="cs-rep-monto">—</div></div>
+    <button type="button" class="tarea-del" style="margin-bottom:8px" onclick="this.closest('.cs-rep-fila').remove();csRepIguales()" title="Quitar">✕</button>`;
+  f.appendChild(row);
+  if (!sinIgualar) csRepIguales();
+}
+function csRepIguales(){
+  const fs = [...document.querySelectorAll('#csRepFilas .cs-rep-fila')];
+  if (!fs.length) { csRepCalc(); return; }
+  const base = Math.floor(10000 / fs.length) / 100;            // 2 decimales
+  fs.forEach((r, i) => { r.querySelector('[data-rep-pct]').value = i === fs.length - 1 ? fmtNumStr(Math.round((100 - base * (fs.length - 1)) * 100) / 100) : fmtNumStr(base); });
+  csRepCalc();
+}
+function csRepCalc(){
+  const monto = numDe((document.getElementById('csMonto') || {}).value);
+  const sim = ((document.getElementById('csMoneda') || {}).value === 'USD') ? 'u$s ' : '$ ';
+  let suma = 0;
+  document.querySelectorAll('#csRepFilas .cs-rep-fila').forEach(r => {
+    const p = numDe(r.querySelector('[data-rep-pct]').value) || 0; suma += p;
+    r.querySelector('[data-rep-monto]').textContent = monto > 0 ? sim + fmtNumStr(Math.round(monto * p) / 100) : '—';
+  });
+  const h = document.getElementById('csRepHint');
+  if (h){ const ok = Math.abs(suma - 100) < 0.011;
+    h.innerHTML = 'Suma: <b style="color:' + (ok ? 'var(--crm-verde,#0a7a3d)' : 'var(--mal,#b3372a)') + '">' + fmtNumStr(Math.round(suma * 100) / 100) + ' %</b>' + (ok ? '' : ' · tiene que dar 100 %'); }
+}
+// Devuelve [{cliente, clienteId, pct}] o null (y avisa) si algo no cierra
+function csRepLeer(){
+  const fs = [...document.querySelectorAll('#csRepFilas .cs-rep-fila')];
+  const out = fs.map(r => ({ cliente: r.querySelector('[data-rep-cli]').value.trim(), pct: numDe(r.querySelector('[data-rep-pct]').value) || 0 }));
+  if (out.length < 2){ alert('Para repartir el gasto cargá al menos dos clientes (o destildá «Repartir entre varios clientes»).'); return null; }
+  if (out.some(r => !r.cliente)){ alert('Hay una fila del reparto sin cliente.'); return null; }
+  if (out.some(r => !(r.pct > 0))){ alert('Cada cliente del reparto tiene que tener un porcentaje mayor a cero.'); return null; }
+  const suma = out.reduce((a, r) => a + r.pct, 0);
+  if (Math.abs(suma - 100) >= 0.011){ alert('Los porcentajes del reparto suman ' + fmtNumStr(Math.round(suma * 100) / 100) + ' %. Tienen que dar 100 %.'); return null; }
+  return out.map(r => {
+    // Vínculo con la ficha solo por nombre exacto (sin tolerancia: no adivinar otro cliente)
+    const cli = (CLIENTES || []).find(c => __normNombre(c.entidad || '') === __normNombre(r.cliente));
+    return { cliente: cli ? cli.entidad : r.cliente, clienteId: cli ? cli.id : null, pct: r.pct };
+  });
+}
+// Línea que muestra el reparto debajo del concepto, con el monto de cada uno
+function csRepLinea(m){
+  if (!Array.isArray(m.reparto) || !m.reparto.length) return '';
+  const sim = m.moneda === 'USD' ? 'u$s ' : '$ ';
+  return '<div class="desglose-linea">Reparto: ' + m.reparto.map(r =>
+    esc(r.cliente) + ' <b>' + fmtNumStr(r.pct) + ' %</b> (' + sim + fmtNumStr(Math.round((Number(m.monto) || 0) * r.pct) / 100) + ')').join(' · ') + '</div>';
+}
+// ¿El gasto le corresponde (en parte) a este cliente?
+function repartoDe(m, cliId, nomNorm){
+  if (!Array.isArray(m.reparto)) return null;
+  return m.reparto.find(r => (r.clienteId != null && String(r.clienteId) === String(cliId)) || (nomNorm && __normNombre(r.cliente) === nomNorm)) || null;
+}
+// ¿El formulario societario está cargando un gasto?
+function csModoGasto(){ const t = (document.getElementById('csTipo') || {}).value || ''; return t === 'gasto' || t === 'gasto_esc'; }
+// El perfil "solo gastos" ve los planes de gasto que cargó; el resto, todos.
+function planGastoVisible(p){
+  if (!p || p.caja !== 'socg') return false;
+  if (typeof cajaSocSoloGastos !== 'function' || !cajaSocSoloGastos()) return true;
+  const yo = (typeof usuarioActual === 'function') ? usuarioActual() : '';
+  return (CAJASOC || []).some(m => String(m.planId) === String(p.id) && m.cargadoPor === yo);
+}
+function planEsSoc(p){ return !!p && (p.caja === 'soc' || p.caja === 'socg'); }
 function cjToggleCuota(caja) {
   const id = __cuotaIds(caja);
   const on = document.getElementById(id.es).checked;
   document.getElementById(id.box).classList.toggle('oculto', !on);
+  // Un gasto suele ir en la misma moneda en que se paga: el plan arranca en esa
+  if (on && caja === 'soc' && csModoGasto()) { const mp = document.getElementById('csMonPlan'), mo = document.getElementById('csMoneda'); if (mp && mo) mp.value = mo.value; }
   if (on) { cjRefrescarPlanes(caja); cjPlanChange(caja); }
 }
 function cjRefrescarPlanes(caja) {
   const id = __cuotaIds(caja);
   const cli = (document.getElementById(id.cliente).value || '').trim().toLowerCase();
   const sel = document.getElementById(id.plan);
+  if (caja === 'soc' && csModoGasto()) {
+    // Gastos: se listan todos los planes de gasto abiertos (los del cliente escrito, primero)
+    const act = (PLANES||[]).filter(p => p.caja === 'socg' && planGastoVisible(p) && (p.pagadas||[]).length < p.total)
+      .sort((a, b) => (((b.cliente||'').toLowerCase() === cli) - ((a.cliente||'').toLowerCase() === cli)));
+    sel.innerHTML = '<option value="__nuevo">➕ Gasto nuevo en cuotas</option>' +
+      act.map(p => `<option value="${p.id}">${esc(p.cliente || '—')} · ${esc(p.concepto)} · pagó ${(p.pagadas||[]).length}/${p.total}</option>`).join('');
+    return;
+  }
   const act = (PLANES||[]).filter(p => p.caja === caja && (p.cliente||'').toLowerCase() === cli && (p.pagadas||[]).length < p.total);
   sel.innerHTML = '<option value="__nuevo">➕ Plan nuevo para este cliente</option>' +
     act.map(p => `<option value="${p.id}">${esc(p.concepto)} · pagó ${(p.pagadas||[]).length}/${p.total}</option>`).join('');
@@ -18132,6 +18560,12 @@ function cjPlanChange(caja) {
   const id = __cuotaIds(caja);
   const sel = document.getElementById(id.plan).value;
   const nuevo = sel === '__nuevo';
+  if (caja === 'soc' && !nuevo && csModoGasto()) {
+    const pl = planPorId(sel), ct = document.getElementById('csContra');
+    if (pl && ct && !ct.value.trim()) ct.value = pl.cliente || '';
+    const cc = document.getElementById('csConcepto');
+    if (pl && cc && !cc.value.trim()) cc.value = pl.concepto || '';
+  }
   // Cantidad de cuotas: solo se define al crear el plan
   const wt = document.getElementById(id.wrapTotal);
   if (wt) wt.classList.toggle('oculto', !nuevo);
@@ -18200,9 +18634,13 @@ function cjRenderCuotaSoc(nuevo, v, sel) {
     if (total > 0) {
       const detalle = reparto.map((m,i) => `${i+1}ª ${sim(mon)}${fmtNumStr(m)}`).join(' · ');
       h.innerHTML = `Plan de <b>${sim(mon)}${fmtNumStr(total)}</b> en ${n} cuotas: ${detalle}.<br>`
-        + `Abajo cargá <b>lo que entró hoy</b>, en la moneda que haya pagado. Si entra distinto a lo previsto, las cuotas que falten se recalculan solas.`;
+        + (csModoGasto()
+          ? `En Monto cargá <b>lo que se paga hoy</b> (la 1ª cuota). La 2ª cae el mes que viene. Si se paga distinto a lo previsto, las cuotas que falten se recalculan solas.`
+          : `Abajo cargá <b>lo que entró hoy</b>, en la moneda que haya pagado. Si entra distinto a lo previsto, las cuotas que falten se recalculan solas.`);
     } else {
-      h.innerHTML = 'Cargá el total del servicio y la moneda del plan. Lo que entró hoy va en el campo Monto de arriba, en la moneda en que el cliente pagó.';
+      h.innerHTML = csModoGasto()
+        ? 'Cargá el total del gasto y la moneda. En Monto va lo que se paga hoy.'
+        : 'Cargá el total del servicio y la moneda del plan. Lo que entró hoy va en el campo Monto de arriba, en la moneda en que el cliente pagó.';
     }
     return;
   }
@@ -18224,11 +18662,11 @@ function cjRenderCuotaSoc(nuevo, v, sel) {
     if (prox) sel.value = prox.nro;
     // Hint con saldo
     if (st.cerrado) {
-      h.innerHTML = `Este plan ya está <b>saldado</b>${st.excedido ? ` (con ${sim(mon)}${fmtNumStr(-st.saldo)} a favor del cliente)` : ''}. No quedan cuotas por cobrar.`;
+      h.innerHTML = `Este plan ya está <b>saldado</b>${st.excedido ? ` (con ${sim(mon)}${fmtNumStr(-st.saldo)} a favor${csModoGasto() ? '' : ' del cliente'})` : ''}. No quedan cuotas ${csModoGasto() ? 'por pagar' : 'por cobrar'}.`;
     } else {
       const recalc = st.cuotas.filter(c => c.recalculada).length;
       h.innerHTML = `Saldo del plan: <b>${sim(mon)}${fmtNumStr(st.saldo)}</b> de ${sim(mon)}${fmtNumStr(plan.montos.reduce((a,b)=>a+(+b||0),0))}.<br>`
-        + `Cargá abajo lo que entró hoy${recalc ? '; las cuotas que faltan ya están recalculadas' : ''}.`;
+        + `Cargá ${csModoGasto() ? 'en Monto lo que se paga hoy' : 'abajo lo que entró hoy'}${recalc ? '; las cuotas que faltan ya están recalculadas' : ''}.`;
     }
   }
 }
@@ -18295,7 +18733,9 @@ function cjProcesarCuota(caja, datosPago) {
       }
       montos[nro-1] = monto;
     }
-    plan = { id: Date.now() + Math.floor(Math.random()*1000), caja, cliente: datosPago.cliente, clienteId: datosPago.clienteId || null,
+    // Los gastos en cuotas usan el mismo motor que los ingresos societarios, pero el plan
+    // va aparte ('socg') para que nunca se mezcle con lo que hay que COBRAR.
+    plan = { id: Date.now() + Math.floor(Math.random()*1000), caja: (esSoc && datosPago.esGasto) ? 'socg' : caja, cliente: datosPago.cliente, clienteId: datosPago.clienteId || null,
       concepto: datosPago.concepto || 'Plan de pago', moneda: monedaPlan, total, montos, pagadas: [] };
     PLANES.push(plan);
   } else {
@@ -18326,10 +18766,10 @@ function calendarURLCuota(plan, nro, fechaISO) {
   const d0 = fechaISO.replace(/-/g,'');
   const d1 = new Date(fechaISO + 'T12:00:00'); d1.setDate(d1.getDate()+1);
   const d1s = d1.toISOString().slice(0,10).replace(/-/g,'');
-  const txt = `Cobrar cuota ${nro}/${plan.total} — ${plan.concepto} — ${plan.cliente}`;
+  const txt = `${plan.caja === 'socg' ? 'Pagar' : 'Cobrar'} cuota ${nro}/${plan.total} — ${plan.concepto} — ${plan.cliente}`;
   let montoEst = (plan.montos||[])[nro-1] || 0;
-  if (plan.caja === 'soc') { const st = estadoPlanSoc(plan.id); if (st) { const c = (st.cuotas||[]).find(x => x.nro === nro); if (c) montoEst = c.actual; } }
-  const det = `Cuota ${nro} de ${plan.total} del plan "${plan.concepto}".\nCliente: ${plan.cliente}\nCaja: ${plan.caja==='soc'?'Societaria':'Judicial'}\nMonto estimado: ${(plan.moneda==='USD'?'u$s ':'$ ')+fmtNumStr(montoEst)}`;
+  if (planEsSoc(plan)) { const st = estadoPlanSoc(plan.id); if (st) { const c = (st.cuotas||[]).find(x => x.nro === nro); if (c) montoEst = c.actual; } }
+  const det = `Cuota ${nro} de ${plan.total} del plan "${plan.concepto}".\nCliente: ${plan.cliente}\nCaja: ${plan.caja==='soc'?'Societaria':(plan.caja==='socg'?'Societaria (gasto)':'Judicial')}\nMonto estimado: ${(plan.moneda==='USD'?'u$s ':'$ ')+fmtNumStr(montoEst)}`;
   return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(txt)
     + '&dates=' + d0 + '/' + d1s + '&details=' + encodeURIComponent(det) + '&ctz=America/Argentina/Buenos_Aires';
 }
@@ -18339,7 +18779,8 @@ function renderCuotasPendientes(suf) {
   suf = suf || '';
   const tabla = document.getElementById('cuotasPendTabla' + suf);
   if (!tabla) return;
-  const caja = suf === 'Soc' ? 'soc' : 'jud';
+  const caja = suf === 'Soc' ? 'soc' : (suf === 'SocG' ? 'socg' : 'jud');
+  const esPagar = caja === 'socg';
   const items = cuotasPendientesTodas(caja);
   const vacia = document.getElementById('cuotasPendVacia' + suf);
   const tiles = document.getElementById('cuotasPendTiles' + suf);
@@ -18354,10 +18795,10 @@ function renderCuotasPendientes(suf) {
   items.forEach(x => { if (x.moneda === 'USD' && x.fecha.slice(0,7) === ym) esteMesUsd += x.monto; });
   const dosMonedas = (v1, v2) => [v1 ? '$ ' + fmtNumStr(v1) : '', v2 ? 'u$s ' + fmtNumStr(v2) : ''].filter(Boolean).join(' · ') || '—';
   if (tiles) tiles.innerHTML = `
-    <div class="cuotas-pend-tile"><div class="num">${dosMonedas(totArs, totUsd)}</div><div class="lbl">Total por cobrar</div></div>
+    <div class="cuotas-pend-tile"><div class="num">${dosMonedas(totArs, totUsd)}</div><div class="lbl">${esPagar ? 'Total por pagar' : 'Total por cobrar'}</div></div>
     <div class="cuotas-pend-tile"><div class="num">${items.length}</div><div class="lbl">Cuotas pendientes</div></div>
-    <div class="cuotas-pend-tile"><div class="num">${dosMonedas(esteMesArs, esteMesUsd)}</div><div class="lbl">A cobrar este mes</div></div>`;
-  const cab = '<thead><tr><th>Cobrar el</th><th>Cliente</th><th>Concepto</th><th>Cuota</th><th style="text-align:right">Monto</th><th></th></tr></thead>';
+    <div class="cuotas-pend-tile"><div class="num">${dosMonedas(esteMesArs, esteMesUsd)}</div><div class="lbl">${esPagar ? 'A pagar este mes' : 'A cobrar este mes'}</div></div>`;
+  const cab = '<thead><tr><th>' + (esPagar ? 'Pagar el' : 'Cobrar el') + '</th><th>Cliente</th><th>Concepto</th><th>Cuota</th><th style="text-align:right">Monto</th><th></th></tr></thead>';
   let filas = '', mesAct = '';
   items.forEach(x => {
     const y = x.fecha.slice(0, 7);
@@ -18377,7 +18818,7 @@ function renderCuotasPendientes(suf) {
 function descargarBalanceCuotas(caja) {
   const items = cuotasPendientesTodas(caja);
   if (!items.length) { alert('No hay cuotas pendientes para exportar.'); return; }
-  const nombreCaja = caja === 'soc' ? 'Societaria' : 'Judicial';
+  const nombreCaja = caja === 'soc' ? 'Societaria' : (caja === 'socg' ? 'Societaria · gastos en cuotas' : 'Judicial');
   let totArs = 0, totUsd = 0;
   items.forEach(x => { if (x.moneda === 'USD') totUsd += x.monto; else totArs += x.monto; });
   let filas = '', mesAct = '';
@@ -18388,9 +18829,9 @@ function descargarBalanceCuotas(caja) {
     filas += `<tr><td>${formatFechaCorta(x.fecha)}</td><td>${esc(x.cliente)}</td><td>${esc(x.concepto)}</td><td>${x.nro}/${x.total}</td><td class="der">${sim}${fmtNumStr(x.monto)}</td></tr>`;
   });
   const totTxt = '$ ' + fmtNumStr(totArs) + (totUsd ? ' · u$s ' + fmtNumStr(totUsd) : '');
-  const doc = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Cuotas pendientes</title><style>body{font-family:system-ui,sans-serif;color:#1a241d;background:#f6f5ef;padding:30px}.hoja{max-width:800px;margin:0 auto;background:#fff;border:1px solid #dcd9cc;border-radius:12px;padding:34px}h1{font-size:24px;margin:0 0 2px}h1 em{color:#1b3a6b;font-style:italic}.sub{color:#5c6157;font-size:12px;border-bottom:3px double #1a241d;padding-bottom:12px;margin-bottom:18px}.tot{background:#fdf6e0;border:1.5px solid #d9b83f;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:14px}.tot b{font-size:19px;color:#3d2f00}table{width:100%;border-collapse:collapse;font-size:12px}th{text-transform:uppercase;font-size:10px;letter-spacing:.05em;color:#5c6157;text-align:left;border-bottom:1.5px solid #1a241d;padding:7px 8px}td{padding:7px 8px;border-bottom:1px solid #eceada}td.der{text-align:right;font-weight:600}.mh td{background:#f4f0e6;font-weight:700;color:#1b3a6b;text-transform:uppercase;font-size:10px;letter-spacing:.05em}</style></head><body><div class="hoja"><h1>Cuotas <em>pendientes de cobro</em></h1><div class="sub">WE Legal · Caja ${nombreCaja} · generado el ${formatFechaCorta(hoyISO())}</div><div class="tot">Total por cobrar: <b>${totTxt}</b> · ${items.length} cuotas en ${new Set(items.map(i=>i.fecha.slice(0,7))).size} meses</div><table><thead><tr><th>Cobrar el</th><th>Cliente</th><th>Concepto</th><th>Cuota</th><th style="text-align:right">Monto</th></tr></thead><tbody>${filas}</tbody></table></div></body></html>`;
+  const doc = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Cuotas pendientes</title><style>body{font-family:system-ui,sans-serif;color:#1a241d;background:#f6f5ef;padding:30px}.hoja{max-width:800px;margin:0 auto;background:#fff;border:1px solid #dcd9cc;border-radius:12px;padding:34px}h1{font-size:24px;margin:0 0 2px}h1 em{color:#1b3a6b;font-style:italic}.sub{color:#5c6157;font-size:12px;border-bottom:3px double #1a241d;padding-bottom:12px;margin-bottom:18px}.tot{background:#fdf6e0;border:1.5px solid #d9b83f;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:14px}.tot b{font-size:19px;color:#3d2f00}table{width:100%;border-collapse:collapse;font-size:12px}th{text-transform:uppercase;font-size:10px;letter-spacing:.05em;color:#5c6157;text-align:left;border-bottom:1.5px solid #1a241d;padding:7px 8px}td{padding:7px 8px;border-bottom:1px solid #eceada}td.der{text-align:right;font-weight:600}.mh td{background:#f4f0e6;font-weight:700;color:#1b3a6b;text-transform:uppercase;font-size:10px;letter-spacing:.05em}</style></head><body><div class="hoja"><h1>Cuotas <em>pendientes de ${caja === 'socg' ? 'pago' : 'cobro'}</em></h1><div class="sub">WE Legal · Caja ${nombreCaja} · generado el ${formatFechaCorta(hoyISO())}</div><div class="tot">Total por ${caja === 'socg' ? 'pagar' : 'cobrar'}: <b>${totTxt}</b> · ${items.length} cuotas en ${new Set(items.map(i=>i.fecha.slice(0,7))).size} meses</div><table><thead><tr><th>Cobrar el</th><th>Cliente</th><th>Concepto</th><th>Cuota</th><th style="text-align:right">Monto</th></tr></thead><tbody>${filas}</tbody></table></div></body></html>`;
   const blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'cuotas-pendientes-' + (caja==='soc'?'societaria':'judicial') + '-' + hoyISO() + '.html'; a.click();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'cuotas-pendientes-' + (caja==='soc'?'societaria':(caja==='socg'?'gastos-societaria':'judicial')) + '-' + hoyISO() + '.html'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 3000);
 }
 
@@ -22848,7 +23289,8 @@ function clienteVacio() {
     reproTienen: 'no_aplica', reproFechaSol: '', repro3132Fecha: '', repro3132Exp: '',
     repro1780Fecha: '', repro1780Exp: '', reproComplFecha: '',
     reproAmparo: false, reproAmparoFecha: '', reproAprobFecha: '',
-    packTipo: '', packSituacion: 'vigente', packEstadoTxt: '', packVence: '', packServicios: [],
+    packTipo: '', packSituacion: '', packEstadoTxt: '', packVence: '', packServicios: [], packs: [],
+    etiquetas: [], etiquetasNo: [], tipoSoc: '', grupo: '',
     docPendiente: false, docPendienteQue: '',
     vencimientos: [],
     reuniones: [],
@@ -23090,13 +23532,15 @@ function crmAsegurarFicha(nombre, concepto, fecha, origen){
   const cli = clienteVacio();
   cli.id = Date.now() + Math.floor(Math.random() * 1000);
   cli.entidad = crmNombreProlijo(limpio);
-  cli.tipo = '';                       // sin clasificar: no sabemos qué es
+  // Las que vienen de una reunión son personas: quien no es cliente consulta a título personal
+  cli.tipo = origen === 'reu' ? 'Persona fisica' : '';   // el resto, sin clasificar
   cli.registro = '';
   cli.estado = CRM_ESPORADICO + (CRM_ORIGEN_LBL[origen] ? '_' + origen : '');
   cli.packSituacion = '';
   cli.servicios = concepto ? [{ concepto, fecha: fecha || hoyISO() }] : [];
   cli.observaciones = (origen === 'abo'
       ? 'Ficha creada automáticamente al dar de alta un abono mensual'
+      : origen === 'reu' ? 'Ficha creada automáticamente al agendar una reunión'
       : 'Ficha creada automáticamente al registrar un cobro en la ' + (CRM_ORIGEN_LBL[origen] || 'caja'))
     + (fecha ? ' (' + fmtFechaCortaCRM(fecha) + ')' : '') + '.';
   if (typeof encAsignar === 'function') encAsignar(cli);   // sigue el orden rotativo
@@ -23361,7 +23805,7 @@ function pagosDeCliente(id) {
 // ══════════════════════════════════════════════════════════════════
 //  MÓDULO CRM — vista (listado paginado + filtros)  · Etapa 1
 // ══════════════════════════════════════════════════════════════════
-var __crmFiltros = { texto: '', tipo: '', encargada: '', repro: '', pack: '', situacion: '', doc: '', reunion: '', vencePack: '', estado: '', orden: 'proximo' };
+var __crmFiltros = { texto: '', tipo: '', tipoSoc: '', etiqueta: '', grupo: '', contacto: '', encargada: '', repro: '', pack: '', situacion: '', servPend: '', doc: '', reunion: '', vencePack: '', estado: '', orden: 'proximo' };
 
 const TIPO_LABEL = { 'AC': 'Asoc. Civil', 'Sociedad': 'Sociedad', 'Cooperativa': 'Cooperativa', 'Persona fisica': 'Persona física' };
 const TIPO_CLS = { 'AC': 'ac', 'Sociedad': 'sas', 'Cooperativa': 'coop', 'Persona fisica': 'pf' };
@@ -23391,9 +23835,8 @@ function tieneReunionPendiente(c) {
 }
 // ¿El pack vence dentro del mes calendario actual?
 function packVenceEsteMes(c) {
-  const venc = packVencimiento(c);
-  if (!venc) return false;
-  return venc.slice(0, 7) === hoyISO().slice(0, 7);
+  const mes = hoyISO().slice(0, 7);
+  return packsDe(c).some(p => p.situacion === 'vigente' && packVencimientoUno(p).slice(0, 7) === mes);
 }
 
 // Aplica filtros + orden a la lista de clientes
@@ -23407,14 +23850,24 @@ function clientesFiltrados() {
     if (t) arr = arr.filter(c =>
       __normBusqueda(c.entidad).includes(t) ||
       __normBusqueda(c.referente || '').includes(t) ||
-      __normBusqueda(c.apodo || '').includes(t)      // apodo interno
+      __normBusqueda(c.apodo || '').includes(t) ||   // apodo interno
+      __normBusqueda(c.grupo || '').includes(t)      // grupo
     );
   }
   if (f.tipo) arr = arr.filter(c => (c.tipo || '') === f.tipo);
+  if (f.tipo === 'Sociedad' && f.tipoSoc) arr = arr.filter(c => (c.tipoSoc || '') === f.tipoSoc);
+  if (f.etiqueta === 'sin') arr = arr.filter(c => !etiquetasDe(c).length);
+  else if (f.etiqueta) arr = arr.filter(c => etiquetasDe(c).indexOf(f.etiqueta) >= 0);
+  if (f.grupo === '__con') arr = arr.filter(c => (c.grupo || '').trim());
+  else if (f.grupo) arr = arr.filter(c => __normBusqueda(c.grupo || '').trim() === __normBusqueda(f.grupo).trim());
+  if (f.contacto === 'si') arr = arr.filter(c => !!calcularUltimoContacto(c));
+  if (f.contacto === 'no') arr = arr.filter(c => !calcularUltimoContacto(c));
   if (f.encargada) arr = arr.filter(c => (c.encargada || '') === f.encargada);
   if (f.repro) arr = arr.filter(c => (c.reproTienen || 'no_aplica') === f.repro);
-  if (f.pack) arr = arr.filter(c => (c.packTipo || '') === f.pack);
-  if (f.situacion) arr = arr.filter(c => (c.packSituacion || '') === f.situacion);
+  if (f.pack) arr = arr.filter(c => packsDe(c).some(p => (p.tipo || '') === f.pack));
+  if (f.situacion) arr = arr.filter(c => packsDe(c).some(p => (p.situacion || '') === f.situacion));
+  if (f.servPend === 'si') arr = arr.filter(c => clienteServPend(c) > 0);
+  if (f.servPend === 'no') arr = arr.filter(c => packsDe(c).length && clienteServPend(c) === 0);
   if (f.estado === CRM_ESPORADICO) arr = arr.filter(c => crmEsEsporadico(c));
   else if (f.estado === 'no_esporadico') arr = arr.filter(c => !crmEsEsporadico(c));
   else if (/^esporadico_/.test(f.estado)) arr = arr.filter(c => (c.estado || '') === f.estado);
@@ -23427,7 +23880,8 @@ function clientesFiltrados() {
   if (f.orden === 'nombre') {
     arr.sort((a, b) => (a.entidad || '').localeCompare(b.entidad || ''));
   } else if (f.orden === 'ultimo') {
-    arr.sort((a, b) => (b.ultimoContacto || '').localeCompare(a.ultimoContacto || ''));
+    // Desde la bitácora (el campo guardado podía quedar desactualizado); sin contacto al final
+    arr.sort((a, b) => calcularUltimoContacto(b).localeCompare(calcularUltimoContacto(a)));
   } else { // 'proximo': vencidos y más cercanos arriba; sin fecha al fondo
     arr.sort((a, b) => {
       const pa = a.proximoContacto || '', pb = b.proximoContacto || '';
@@ -23478,16 +23932,21 @@ function renderCRM() {
 
     // Chips: pack, situación, doc pendiente
     let chips = '';
-    if (c.packTipo) chips += `<span class="cchip pack">Pack ${esc(c.packTipo)}</span>`;
-    if (c.packSituacion === 'vigente') {
-      const vp = packVencimiento(c);
-      const vencido = vp && vp < hoy;
-      // Si la fecha ya pasó no tiene sentido decir "Vigente": el pack está vencido y hay que resolverlo
-      chips += vencido
-        ? `<span class="cchip pack-venc">● Vencido · ${fmtFechaCortaCRM(vp)}</span>`
-        : `<span class="cchip pack">● Vigente${vp ? ' · hasta ' + fmtFechaCortaCRM(vp) : ''}</span>`;
-    }
-    else if (c.packSituacion === 'finalizado') chips += `<span class="cchip pack-fin">● Finalizado</span>`;
+    packsDe(c).forEach(p => {
+      if (p.tipo) chips += `<span class="cchip pack">Pack ${esc(p.tipo)}</span>`;
+      if (p.situacion === 'vigente') {
+        const vp = packVencimientoUno(p);
+        const vencido = vp && vp < hoy;
+        // Si la fecha ya pasó no tiene sentido decir "Vigente": el pack está vencido y hay que resolverlo
+        chips += vencido
+          ? `<span class="cchip pack-venc">● Vencido · ${fmtFechaCortaCRM(vp)}</span>`
+          : `<span class="cchip pack">● Vigente${vp ? ' · hasta ' + fmtFechaCortaCRM(vp) : ''}</span>`;
+      }
+      else if (p.situacion === 'finalizado' || p.situacion === 'cerrado') chips += `<span class="cchip pack-fin">● ${PACK_SIT_LBL[p.situacion]}</span>`;
+    });
+    etiquetasDe(c).forEach(e => { chips += `<span class="cchip etq">${esc(e)}</span>`; });
+    if (c.grupo) chips += `<span class="cchip grupo" title="Grupo">⛓ ${esc(c.grupo)}</span>`;
+    { const sp = clienteServPend(c); if (sp) chips += `<span class="cchip serv-pend">⏳ ${sp} servicio${sp !== 1 ? 's' : ''} pendiente${sp !== 1 ? 's' : ''}</span>`; }
     if (c.docPendiente) chips += `<span class="cchip doc-si">⚠ Doc. pendiente${c.docPendienteQue ? ': ' + esc(c.docPendienteQue.slice(0, 24)) : ''}</span>`;
 
     // Trámite en curso (el más próximo a vencer) — píldora champán, sin alarma
@@ -23547,6 +24006,14 @@ function poblarFiltrosCRM() {
     encSel.value = __crmFiltros.encargada;
     encSel.dataset.pobladoCount = String((CLIENTES || []).length);
   }
+  // Grupos: se rearma siempre (cambian al editar una ficha sin cambiar la cantidad)
+  const grSel = document.getElementById('crmFiltroGrupo');
+  if (grSel) {
+    const gs = crmGruposExistentes();
+    const html = '<option value="">Grupo: todos</option><option value="__con">Con grupo</option>' + gs.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('');
+    if (grSel.dataset.html !== html){ grSel.innerHTML = html; grSel.dataset.html = html; }
+    grSel.value = __crmFiltros.grupo || '';
+  }
 }
 
 // Handlers de filtros
@@ -23556,7 +24023,7 @@ function crmToggleChip(campo) {
   renderCRM();
 }
 function crmLimpiarFiltros() {
-  __crmFiltros = { texto: '', tipo: '', encargada: '', repro: '', pack: '', situacion: '', doc: '', reunion: '', vencePack: '', estado: '', orden: __crmFiltros.orden };
+  __crmFiltros = { texto: '', tipo: '', tipoSoc: '', etiqueta: '', grupo: '', contacto: '', encargada: '', repro: '', pack: '', situacion: '', servPend: '', doc: '', reunion: '', vencePack: '', estado: '', orden: __crmFiltros.orden };
   const b = document.getElementById('crmBuscar'); if (b) b.value = '';
   __paginas['crm'] = 0;
   renderCRM();
@@ -23569,10 +24036,12 @@ function sincronizarControlesCRM() {
   // reflejar en los selects (por si se limpió), y recién ahí marcar los activos
   const set = (id, v) => { const el = document.getElementById(id); if (el && el.value !== v) el.value = v; };
   set('crmFiltroTipo', f.tipo); set('crmFiltroEncargada', f.encargada); set('crmFiltroRepro', f.repro);
-  set('crmFiltroPack', f.pack); set('crmFiltroSituacion', f.situacion); set('crmFiltroDoc', f.doc);
+  set('crmFiltroPack', f.pack); set('crmFiltroSituacion', f.situacion); set('crmFiltroServ', f.servPend || ''); set('crmFiltroDoc', f.doc);
   set('crmFiltroEstado', f.estado); set('crmOrden', f.orden);
+  set('crmFiltroTipoSoc', f.tipoSoc || ''); set('crmFiltroEtiq', f.etiqueta || ''); set('crmFiltroContacto', f.contacto || ''); set('crmFiltroGrupo', f.grupo || '');
+  { const ts = document.getElementById('crmFiltroTipoSoc'); if (ts) ts.style.display = f.tipo === 'Sociedad' ? '' : 'none'; }
   const marcar = (id) => { const el = document.getElementById(id); if (el) el.classList.toggle('activo', !!el.value); };
-  ['crmFiltroTipo','crmFiltroEncargada','crmFiltroRepro','crmFiltroPack','crmFiltroSituacion','crmFiltroDoc','crmFiltroEstado'].forEach(marcar);
+  ['crmFiltroTipo','crmFiltroTipoSoc','crmFiltroEncargada','crmFiltroRepro','crmFiltroPack','crmFiltroSituacion','crmFiltroServ','crmFiltroDoc','crmFiltroEtiq','crmFiltroContacto','crmFiltroGrupo','crmFiltroEstado'].forEach(marcar);
 }
 // Panel de métricas de cartera (sobre TODOS los clientes, no los filtrados)
 function renderCrmMetricas() {
@@ -23580,7 +24049,7 @@ function renderCrmMetricas() {
   if (!cont) return;
   const todos = CLIENTES || [];
   const total = todos.length;
-  const vigentes = todos.filter(c => c.packSituacion === 'vigente').length;
+  const vigentes = todos.filter(c => packsDe(c).some(p => p.situacion === 'vigente')).length;
   const reproAprob = todos.filter(c => (c.reproTienen || '') === 'aprobado').length;
   const docPend = todos.filter(c => c.docPendiente).length;
   const venceMes = todos.filter(packVenceEsteMes).length;
@@ -23611,6 +24080,7 @@ function crmAplicarChip(campo) {
 }
 function crmSetFiltro(campo, valor) {
   __crmFiltros[campo] = valor;
+  if (campo === 'tipo' && valor !== 'Sociedad') __crmFiltros.tipoSoc = '';
   __paginas['crm'] = 0; // volver a la primera página al filtrar
   renderCRM();
 }
@@ -23631,13 +24101,14 @@ function abrirNuevoCliente(prefill) {
   // Prefill opcional (ej: desde caja con el nombre ya escrito)
   ov.querySelector('#nc_entidad').value = (prefill && prefill.entidad) || '';
   ['tipo','estado','cuit','registro','encargada','referente','telefono','mail','driveLink','provincia',
-   'apodo','reproTienen','reproFechaSol','reproAprobFecha','packTipo','packSituacion','packEstadoTxt','packVence',
+   'apodo','tipoSoc','reproTienen','reproFechaSol','reproAprobFecha','packTipo','packSituacion','packEstadoTxt','packVence',
    'docPendiente_sel','docPendienteQue','proximoContacto','proximoNota','bitaNota','observaciones'].forEach(k => {
     const el = ov.querySelector('#nc_' + k); if (el) el.value = '';
   });
   { const dc = ov.querySelector('#nc_docPendiente'); if (dc) dc.checked = false;
     const dw = ov.querySelector('#nc_docQueWrap'); if (dw) dw.style.display = 'none';
-    const sr = ov.querySelector('#ncServRows'); if (sr) sr.innerHTML = ''; }
+    const sr = ov.querySelector('#ncServRows'); if (sr) sr.innerHTML = '';
+    const tw = ov.querySelector('#nc_tipoSocWrap'); if (tw) tw.style.display = 'none'; }
   ov.classList.add('on');
   setTimeout(() => ov.querySelector('#nc_entidad').focus(), 60);
 }
@@ -23654,7 +24125,7 @@ function guardarNuevoCliente() {
 
   const gc = id => { const el = ov.querySelector('#nc_' + id); return el ? el.checked : false; };
   const datos = {
-    entidad, tipo: g('tipo'), estado: g('estado'), cuit: g('cuit'), registro: g('registro'),
+    entidad, tipo: g('tipo'), tipoSoc: g('tipo') === 'Sociedad' ? g('tipoSoc') : '', estado: g('estado'), cuit: g('cuit'), registro: g('registro'),
     encargada: g('encargada'), referente: g('referente'), apodo: g('apodo'), telefono: g('telefono'),
     mail: g('mail'), driveLink: g('driveLink'), provincia: g('provincia'),
     reproTienen: g('reproTienen'), reproFechaSol: g('reproFechaSol'), reproAprobFecha: g('reproAprobFecha'),
@@ -23673,6 +24144,10 @@ function guardarNuevoCliente() {
     estado: f.querySelector('[data-serv-estado]').value
   })).filter(s => s.nombre);
 
+  // El pack del alta va como el primero de la lista (después se pueden sumar más desde la ficha)
+  { const hayPack = datos.packTipo || datos.packVence || datos.packEstadoTxt || datos.packServicios.length;
+    Object.assign(datos, packsCampos(hayPack ? [{ id: packNuevoId(), tipo: datos.packTipo, situacion: datos.packSituacion,
+      vence: datos.packVence, estadoTxt: datos.packEstadoTxt, servicios: datos.packServicios }] : [])); }
   const cli = agregarCliente(datos);
   // Si no se eligió encargada a mano, la asigna la rotación
   if (cli && !(cli.encargada || '').trim() && typeof encAsignar === 'function'){
@@ -23699,7 +24174,8 @@ function htmlFormNuevoCliente() {
         <div class="crm-fsec-h">Identidad</div>
         <div class="crm-fgrid">
           <div class="crm-fld full"><label>Entidad / Nombre</label><input id="nc_entidad" placeholder="Ej: Asociación Civil Cosecha Perfecta"></div>
-          <div class="crm-fld"><label>Tipo</label><select id="nc_tipo"><option value="AC">Asociación Civil</option><option value="Sociedad">Sociedad</option><option value="Cooperativa">Cooperativa</option><option value="Persona fisica">Persona física</option></select></div>
+          <div class="crm-fld"><label>Tipo</label><select id="nc_tipo" onchange="document.getElementById('nc_tipoSocWrap').style.display=this.value==='Sociedad'?'':'none'"><option value="AC">Asociación Civil</option><option value="Sociedad">Sociedad</option><option value="Cooperativa">Cooperativa</option><option value="Persona fisica">Persona física</option></select></div>
+          <div class="crm-fld" id="nc_tipoSocWrap" style="display:none"><label>Tipo de sociedad</label><select id="nc_tipoSoc"><option value=""></option><option>SAS</option><option>SRL</option><option>SA</option><option>SCA</option><option>SCS</option><option>Otra</option></select></div>
           <div class="crm-fld"><label>Estado</label><select id="nc_estado"><option value="">Sin marca (normal)</option><option value="esporadico">Cliente esporádico</option><option value="no_contactar">No contactar</option><option value="ex_cliente">Ex cliente</option></select></div>
           <div class="crm-fld"><label>CUIT</label><input id="nc_cuit" placeholder="30-00000000-0"></div>
           <div class="crm-fld"><label>Registro</label><select id="nc_registro"><option value="IGJ">IGJ</option><option value="DPPJ">DPPJ</option><option value="INAES">INAES</option><option value="Otro">Otro</option></select></div>
@@ -23723,8 +24199,8 @@ function htmlFormNuevoCliente() {
       <div class="crm-fsec">
         <div class="crm-fsec-h">Pack contratado</div>
         <div class="crm-fgrid">
-          <div class="crm-fld"><label>Tipo de pack</label><select id="nc_packTipo"><option value="">—</option><option>PS</option><option>PF</option><option>PFCS</option><option>AM</option></select></div>
-          <div class="crm-fld"><label>Situación</label><select id="nc_packSituacion"><option value="vigente">Vigente</option><option value="finalizado">Finalizado</option></select></div>
+          <div class="crm-fld"><label>Tipo de pack</label><select id="nc_packTipo" onchange="packAgregarFilasPlantilla(document.getElementById('ncServRows'), this.value)"><option value="">—</option><option>PS</option><option>PF</option><option>PFCS</option><option>AM</option></select></div>
+          <div class="crm-fld"><label>Situación</label><select id="nc_packSituacion"><option value="vigente">Vigente</option><option value="finalizado">Finalizado</option><option value="cerrado">Cerrado</option></select></div>
           <div class="crm-fld"><label>Vigente hasta</label><input id="nc_packVence" placeholder="DD/MM/AAAA"></div>
           <div class="crm-fld full"><label>Estado del pack (detalle)</label><input id="nc_packEstadoTxt" placeholder="Ej: Grupo cerrado 12/02/2025"></div>
         </div>
@@ -23870,7 +24346,9 @@ function guardarSeccion(id, sec) {
   const cambios = {};
 
   if (sec === 'identidad') {
-    ['entidad', 'tipo', 'estado', 'cuit', 'registro', 'encargada', 'referente', 'apodo', 'telefono', 'mail', 'driveLink', 'provincia'].forEach(k => { const v = g(k); if (v !== undefined) cambios[k] = v.trim(); });
+    ['entidad', 'tipo', 'estado', 'cuit', 'registro', 'encargada', 'referente', 'apodo', 'telefono', 'mail', 'driveLink', 'provincia', 'grupo'].forEach(k => { const v = g(k); if (v !== undefined) cambios[k] = v.trim(); });
+    // El tipo de sociedad solo tiene sentido si es sociedad
+    { const ts = g('tipoSoc'); if (ts !== undefined) cambios.tipoSoc = cambios.tipo === 'Sociedad' ? ts : ''; }
   } else if (sec === 'repro') {
     ['reproTienen', 'reproFechaSol', 'repro3132Fecha', 'repro3132Exp', 'repro1780Fecha', 'repro1780Exp', 'reproComplFecha', 'reproAmparoFecha', 'reproAprobFecha'].forEach(k => { const v = g(k); if (v !== undefined) cambios[k] = v.trim(); });
     // "¿Inició amparo?" es un <select> con valores "true"/"false". Se leía con
@@ -23879,15 +24357,8 @@ function guardarSeccion(id, sec) {
     const amp = g('reproAmparo');
     if (amp !== undefined) cambios.reproAmparo = (amp === 'true' || amp === 'si' || amp === true);
   } else if (sec === 'pack') {
-    ['packTipo', 'packSituacion', 'packEstadoTxt'].forEach(k => { const v = g(k); if (v !== undefined) cambios[k] = v.trim(); });
-    const pvRaw = g('packVence');
-    if (pvRaw !== undefined) cambios.packVence = fechaAISO(pvRaw.trim()) || '';
-    // servicios: leer filas
-    const filas = [...ov.querySelectorAll('[data-serv-row]')];
-    cambios.packServicios = filas.map(f => ({
-      nombre: f.querySelector('[data-serv-nombre]').value.trim(),
-      estado: f.querySelector('[data-serv-estado]').value
-    })).filter(s => s.nombre);
+    // Varios packs: cada bloque del editor es uno (ver packEdLeer)
+    Object.assign(cambios, packsCampos(packEdLeer(ov.querySelector('#packsEd') || ov)));
   } else if (sec === 'doc') {
     const dp = g('docPendiente');
     cambios.docPendiente = dp === 'si';
@@ -24452,7 +24923,7 @@ function htmlFichaCliente(c) {
     <div class="crm-modal-cab">
       <button class="crm-modal-x" onclick="cerrarClienteDetalle()">✕</button>
       <h2>${esc(c.entidad)}</h2>
-      <div class="sub">${esc(TIPO_OP[c.tipo] || c.tipo || '')}${c.registro ? ' · ' + esc(c.registro) : ''}${c.cuit ? ' · CUIT ' + esc(c.cuit) : ''}${c.encargada ? ' · ' + esc(c.encargada) : ''}${c.estado === 'no_contactar' ? ' · ⚠ NO CONTACTAR' : (c.estado === 'ex_cliente' ? ' · Ex cliente' : '')}</div>
+      <div class="sub">${esc(TIPO_OP[c.tipo] || c.tipo || '')}${c.tipo === 'Sociedad' && c.tipoSoc ? ' ' + esc(c.tipoSoc) : ''}${c.registro ? ' · ' + esc(c.registro) : ''}${c.cuit ? ' · CUIT ' + esc(c.cuit) : ''}${c.encargada ? ' · ' + esc(c.encargada) : ''}${c.estado === 'no_contactar' ? ' · ⚠ NO CONTACTAR' : (c.estado === 'ex_cliente' ? ' · Ex cliente' : '')}</div>
     </div>
     <div class="crm-modal-body">
       ${alertas}
@@ -24527,7 +24998,8 @@ function accIdentidad(c, editar) {
   if (editar) {
     body = `<div class="crm-fgrid">
       <div class="crm-fld full"><label>Entidad</label><input id="f_entidad" value="${esc(c.entidad || '')}"></div>
-      <div class="crm-fld"><label>Tipo</label><select id="f_tipo">${Object.entries(TIPO_OP).map(([k, v]) => `<option value="${k}"${c.tipo === k ? ' selected' : ''}>${v}</option>`).join('')}</select></div>
+      <div class="crm-fld"><label>Tipo</label><select id="f_tipo" onchange="var w=document.getElementById('f_tipoSocWrap');if(w)w.style.display=this.value==='Sociedad'?'':'none'">${c.tipo ? '' : '<option value="" selected>Sin clasificar</option>'}${Object.entries(TIPO_OP).map(([k, v]) => `<option value="${k}"${c.tipo === k ? ' selected' : ''}>${v}</option>`).join('')}</select></div>
+      <div class="crm-fld" id="f_tipoSocWrap"${c.tipo === 'Sociedad' ? '' : ' style="display:none"'}><label>Tipo de sociedad</label><select id="f_tipoSoc"><option value=""></option>${TIPO_SOC_OP.map(t => `<option${c.tipoSoc === t ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
       <div class="crm-fld"><label>Estado</label><select id="f_estado">
         <option value=""${!c.estado ? ' selected' : ''}>Cliente del estudio</option>
         <option value="esporadico"${c.estado === 'esporadico' ? ' selected' : ''}>◆ Cliente esporádico</option>
@@ -24537,7 +25009,7 @@ function accIdentidad(c, editar) {
         <option value="ex_cliente"${c.estado === 'ex_cliente' ? ' selected' : ''}>Ex cliente</option>
       </select></div>
       <div class="crm-fld"><label>CUIT</label><input id="f_cuit" value="${esc(c.cuit || '')}"></div>
-      <div class="crm-fld"><label>Registro</label><select id="f_registro">${REGISTRO_OP.map(r => `<option${c.registro === r ? ' selected' : ''}>${r}</option>`).join('')}</select></div>
+      <div class="crm-fld"><label>Registro</label><select id="f_registro">${c.registro ? '' : '<option value="" selected></option>'}${REGISTRO_OP.map(r => `<option${c.registro === r ? ' selected' : ''}>${r}</option>`).join('')}</select></div>
       <div class="crm-fld"><label>Encargada</label><select id="f_encargada">${opcionesEncargada(c.encargada || '')}</select></div>
       <div class="crm-fld"><label>Referente</label><input id="f_referente" value="${esc(c.referente || '')}"></div>
       <div class="crm-fld"><label>Apodo interno</label><input id="f_apodo" value="${esc(c.apodo || '')}" placeholder="Ej: Semishop"></div>
@@ -24545,6 +25017,7 @@ function accIdentidad(c, editar) {
       <div class="crm-fld"><label>Mail</label><input id="f_mail" value="${esc(c.mail || '')}"></div>
       <div class="crm-fld"><label>Provincia</label><input id="f_provincia" value="${esc(c.provincia || '')}" placeholder="Ej: Buenos Aires"></div>
       <div class="crm-fld"><label>Link Drive</label><input id="f_driveLink" value="${esc(c.driveLink || '')}"></div>
+      <div class="crm-fld"><label>Grupo</label><input id="f_grupo" list="crmGruposDL" value="${esc(c.grupo || '')}" placeholder="Ej: Noriega (mismo titular)"><datalist id="crmGruposDL">${crmGruposExistentes().map(g => `<option value="${esc(g)}">`).join('')}</datalist></div>
       </div>
       <div class="crm-sec-btns"><button class="crm-btn-cancelar" onclick="toggleEditSeccion(${id},'identidad')">Cancelar</button><button class="crm-btn-guardar" onclick="guardarSeccion(${id},'identidad')">Guardar sección</button></div>`;
   } else {
@@ -24558,6 +25031,11 @@ function accIdentidad(c, editar) {
       <div class="crm-dato"><span>Carpeta Drive</span><b>${c.driveLink ? `<a href="${esc(normalizarLink(c.driveLink))}" target="_blank" rel="noopener">📁 Abrir carpeta</a>` : '—'}</b></div>
       <div class="crm-dato"><span>CUIT</span><b>${val(c.cuit)}</b></div>
       <div class="crm-dato"><span>Registro</span><b>${val(c.registro)}</b></div>
+      ${c.grupo ? `<div class="crm-dato" style="grid-column:1/-1"><span>Grupo · ${esc(c.grupo)}</span><b>${crmMismoGrupo(c).length ? crmMismoGrupo(c).map(x => `<a href="#" onclick="event.preventDefault();abrirClienteDetalle(${x.id})">${esc(x.entidad)}</a>`).join(' · ') : '<span style="color:var(--tinta-suave);font-weight:400">Ningún otro cliente en este grupo</span>'}</b></div>` : ''}
+      <div class="crm-dato" style="grid-column:1/-1"><span>Etiquetas</span><b class="crm-etq-fila">${CRM_ETIQUETAS.map(e => {
+        const on = etiquetasDe(c).indexOf(e) >= 0, auto = on && etiquetaEsAuto(c, e);
+        return `<button type="button" class="crm-etq${on ? ' on' : ''}" onclick="crmToggleEtiqueta(${id},'${e}')" title="${on ? 'Quitar' : 'Poner'} la etiqueta ${e}">${on ? '✓ ' : '+ '}${e}${auto ? ' <small>del padrón</small>' : ''}</button>`;
+      }).join('')}</b></div>
     </div>`;
   }
   return `<div class="${accCls(id,'identidad',true)}">${accHead(id, 'identidad', 'IDENTIDAD Y CONTACTO', resumen, true)}<div class="acc-body">${body}</div></div>`;
@@ -24598,33 +25076,106 @@ function accRepro(c, editar) {
 
 function accPack(c, editar) {
   const id = c.id;
-  const servs = c.packServicios || [];
-  const pend = servs.filter(s => s.estado !== 'enviado' && s.estado !== 'cliente').length;
-  const resumen = (c.packTipo || 's/pack') + (c.packSituacion ? ' · ' + (c.packSituacion === 'vigente' ? 'Vigente' : 'Finalizado') : '') + (pend ? ' · ' + pend + ' pend.' : '');
+  const ps = packsDe(c);
+  const pend = clienteServPend(c);
+  const resumen = (ps.length ? ps.map(p => (p.tipo || 's/tipo') + (p.situacion ? ' · ' + (PACK_SIT_LBL[p.situacion] || p.situacion) : '')).join(' + ') : 's/pack')
+    + (pend ? ' · ' + pend + ' pend.' : '');
   let body;
   if (editar) {
-    body = `<div class="crm-fgrid">
-        <div class="crm-fld"><label>Tipo de pack</label><select id="f_packTipo"><option value=""></option>${['PS', 'PF', 'PFCS', 'AM'].map(p => `<option${c.packTipo === p ? ' selected' : ''}>${p}</option>`).join('')}</select></div>
-        <div class="crm-fld"><label>Situación</label><select id="f_packSituacion"><option value="vigente"${c.packSituacion === 'vigente' ? ' selected' : ''}>Vigente</option><option value="finalizado"${c.packSituacion === 'finalizado' ? ' selected' : ''}>Finalizado</option></select></div>
-        <div class="crm-fld"><label>Vigente hasta</label><input id="f_packVence" value="${c.packVence ? fmtFechaCortaCRM(c.packVence) : ''}" placeholder="DD/MM/AAAA"></div>
-        <div class="crm-fld full"><label>Estado del pack (detalle)</label><input id="f_packEstadoTxt" value="${esc(c.packEstadoTxt || '')}" placeholder="Ej: Grupo cerrado 12/02/2025"></div>
-      </div>
-      <div class="crm-serv-label">Servicios — marcá el estado de cada uno</div>
-      <div id="servRows">${servs.map(s => `<div class="crm-item-edit" data-serv-row>${servRowHTML(s)}</div>`).join('')}</div>
-      <button class="crm-add-fila" onclick="addServRow()">+ Agregar servicio</button>
+    body = `<div id="packsEd">${ps.map(packEdBloqueHTML).join('')}</div>
+      <button class="crm-add-fila" onclick="packEdAgregar()">${ps.length ? '+ Agregar otro pack' : '+ Agregar pack'}</button>
       <div class="crm-sec-btns"><button class="crm-btn-cancelar" onclick="toggleEditSeccion(${id},'pack')">Cancelar</button><button class="crm-btn-guardar" onclick="guardarSeccion(${id},'pack')">Guardar sección</button></div>`;
+  } else if (!ps.length) {
+    body = '<div class="crm-vacio">Sin pack contratado.</div>';
   } else {
-    body = `<div class="crm-datos" style="margin-bottom:10px">
-        <div class="crm-dato"><span>Tipo de pack</span><b>${val(c.packTipo)}</b></div>
-        <div class="crm-dato"><span>Situación</span><b>${c.packSituacion === 'vigente' ? '<span style="color:var(--crm-verde)">● Vigente</span>' : (c.packSituacion === 'finalizado' ? '<span style="color:var(--tinta-suave)">● Finalizado</span>' : '—')}</b></div>
-        <div class="crm-dato"><span>Vigente hasta</span><b>${c.packVence ? fmtFechaCortaCRM(c.packVence) : '—'}</b></div>
-        ${c.packEstadoTxt ? `<div class="crm-dato full" style="grid-column:1/-1"><span>Estado (detalle)</span><b>${esc(c.packEstadoTxt)}</b></div>` : ''}
-      </div>
-      ${servs.length ? `<div class="crm-lista-items">${servs.map(s => `<div class="crm-item-linea ${s.estado === 'enviado' ? 'ok' : (s.estado === 'cliente' ? 'cli' : 'pend')}"><span>${s.estado === 'enviado' ? '✅' : (s.estado === 'cliente' ? '🤝' : '⏳')}</span>${esc(s.nombre)}${s.estado === 'cliente' ? ' <span class="crm-item-fecha">lo hace el cliente</span>' : ''}</div>`).join('')}</div>` : '<div class="crm-vacio">Sin servicios cargados.</div>'}`;
+    body = ps.map(p => {
+      const sit = p.situacion === 'vigente' ? '<span style="color:var(--crm-verde)">● Vigente</span>'
+        : (PACK_SIT_LBL[p.situacion] ? '<span style="color:var(--tinta-suave)">● ' + PACK_SIT_LBL[p.situacion] + '</span>' : '—');
+      const servs = p.servicios || [];
+      return `<div class="crm-pack-blq">
+        ${ps.length > 1 ? `<div class="crm-pack-blq-h">Pack ${val(p.tipo)}</div>` : ''}
+        <div class="crm-datos" style="margin-bottom:10px">
+          <div class="crm-dato"><span>Tipo de pack</span><b>${val(p.tipo)}</b></div>
+          <div class="crm-dato"><span>Situación</span><b>${sit}</b></div>
+          <div class="crm-dato"><span>Vigente hasta</span><b>${p.vence ? fmtFechaCortaCRM(p.vence) : '—'}</b></div>
+          ${p.estadoTxt ? `<div class="crm-dato full" style="grid-column:1/-1"><span>Estado (detalle)</span><b>${esc(p.estadoTxt)}</b></div>` : ''}
+        </div>
+        ${servs.length ? `<div class="crm-lista-items">${servs.map(s => `<div class="crm-item-linea ${s.estado === 'enviado' ? 'ok' : (s.estado === 'cliente' ? 'cli' : 'pend')}"><span>${s.estado === 'enviado' ? '✅' : (s.estado === 'cliente' ? '🤝' : '⏳')}</span>${esc(s.nombre)}${s.estado === 'cliente' ? ' <span class="crm-item-fecha">lo hace el cliente</span>' : ''}</div>`).join('')}</div>` : '<div class="crm-vacio">Sin servicios cargados.</div>'}
+      </div>`;
+    }).join('');
   }
   return `<div class="${accCls(id,'pack',false)}">${accHead(id, 'pack', 'PACK CONTRATADO', resumen, true)}<div class="acc-body">${body}</div></div>`;
 }
-
+// Editor: un bloque por pack, cada uno con sus datos y sus servicios
+function packEdBloqueHTML(p) {
+  const tipos = PACK_TIPOS.concat(p.tipo && !PACK_TIPOS.includes(p.tipo) ? [p.tipo] : []);
+  const sit = p.situacion || 'vigente';
+  return `<div class="crm-pack-ed" data-pack-id="${esc(String(p.id || ''))}">
+    <div class="crm-pack-ed-h"><span>Pack</span><button type="button" class="crm-pack-quitar" onclick="packEdQuitar(this)">Quitar este pack</button></div>
+    <div class="crm-fgrid">
+      <div class="crm-fld"><label>Tipo de pack</label><select data-pk-tipo onchange="packEdTipo(this)"><option value=""></option>${tipos.map(t => `<option${p.tipo === t ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
+      <div class="crm-fld"><label>Situación</label><select data-pk-sit>${Object.entries(PACK_SIT_LBL).map(([k, v]) => `<option value="${k}"${sit === k ? ' selected' : ''}>${v}</option>`).join('')}</select></div>
+      <div class="crm-fld"><label>Vigente hasta</label><input data-pk-vence value="${p.vence ? fmtFechaCortaCRM(p.vence) : ''}" placeholder="DD/MM/AAAA"></div>
+      <div class="crm-fld full"><label>Estado del pack (detalle)</label><input data-pk-txt value="${esc(p.estadoTxt || '')}" placeholder="Ej: Grupo cerrado 12/02/2025"></div>
+    </div>
+    <div class="crm-serv-label">Servicios — marcá el estado de cada uno</div>
+    <div data-pk-serv>${(p.servicios || []).map(s => `<div class="crm-item-edit" data-serv-row>${servRowHTML(s)}</div>`).join('')}</div>
+    <button type="button" class="crm-add-fila" onclick="packEdAddServ(this)">+ Agregar servicio</button>
+  </div>`;
+}
+function packEdAgregar() {
+  const cont = document.getElementById('packsEd'); if (!cont) return;
+  cont.insertAdjacentHTML('beforeend', packEdBloqueHTML({ id: packNuevoId(), tipo: '', situacion: 'vigente', servicios: [] }));
+}
+function packEdQuitar(btn) {
+  const b = btn.closest('.crm-pack-ed'); if (!b) return;
+  const t = (b.querySelector('[data-pk-tipo]') || {}).value || '';
+  if (!confirm('¿Quitar ' + (t ? 'el pack ' + t : 'este pack') + ' y sus servicios?\n(Se aplica al tocar «Guardar sección».)')) return;
+  b.remove();
+}
+function packEdAddServ(btn) {
+  const cont = btn.closest('.crm-pack-ed').querySelector('[data-pk-serv]');
+  const div = document.createElement('div');
+  div.className = 'crm-item-edit'; div.setAttribute('data-serv-row', '');
+  div.innerHTML = servRowHTML({ nombre: '', estado: 'pendiente' });
+  cont.appendChild(div);
+}
+// Al elegir PF o PS se suman los servicios de la plantilla que falten (quedan editables)
+function packAgregarFilasPlantilla(cont, tipo) {
+  if (!cont || !PACK_PLANTILLAS[tipo]) return 0;
+  const ya = new Set([...cont.querySelectorAll('[data-serv-nombre]')].map(i => packNormServ(i.value)));
+  let n = 0;
+  PACK_PLANTILLAS[tipo].forEach(nom => {
+    if (ya.has(packNormServ(nom))) return;
+    const div = document.createElement('div');
+    div.className = 'crm-item-edit'; div.setAttribute('data-serv-row', '');
+    div.innerHTML = servRowHTML({ nombre: nom, estado: 'pendiente' });
+    cont.appendChild(div); ya.add(packNormServ(nom)); n++;
+  });
+  return n;
+}
+function packEdTipo(sel) {
+  const n = packAgregarFilasPlantilla(sel.closest('.crm-pack-ed').querySelector('[data-pk-serv]'), sel.value);
+  if (n && typeof aricToast === 'function') aricToast('Se cargaron ' + n + ' servicios del pack ' + sel.value);
+}
+function packEdLeer(scope) {
+  return [...scope.querySelectorAll('.crm-pack-ed')].map(b => {
+    const q = s => b.querySelector(s);
+    let pid = b.getAttribute('data-pack-id') || '';
+    if (!pid || pid === 'p0') pid = packNuevoId();
+    return {
+      id: pid,
+      tipo: (q('[data-pk-tipo]').value || '').trim(),
+      situacion: q('[data-pk-sit]').value || 'vigente',
+      vence: fechaAISO((q('[data-pk-vence]').value || '').trim()) || '',
+      estadoTxt: (q('[data-pk-txt]').value || '').trim(),
+      servicios: [...b.querySelectorAll('[data-serv-row]')].map(f => ({
+        nombre: f.querySelector('[data-serv-nombre]').value.trim(),
+        estado: f.querySelector('[data-serv-estado]').value
+      })).filter(s => s.nombre)
+    };
+  });
+}
 function accDoc(c, editar) {
   const id = c.id;
   const resumen = c.docPendiente ? '<span style="color:var(--crm-rojo)">Sí</span>' : 'No';
@@ -24677,6 +25228,15 @@ function accPagos(c) {
       ${pagos.map(p => `<tr><td>${fD(p.fecha)}</td><td>${esc(p.concepto || p.detalle || '\u2014')}</td><td class="r">${fmtMonto(p)}</td></tr>`).join('')}
       <tr class="crm-pago-total"><td colspan="2">Total</td><td class="r">${totArs ? '$ ' + fmtN(totArs) : ''}${totArs && totUsd ? ' · ' : ''}${totUsd ? 'u$s ' + fmtN(totUsd) : ''}${!totArs && !totUsd ? '$ 0' : ''}</td></tr></tbody></table>`
     : '<div class="crm-vacio">Todavía no hay pagos atribuidos a este cliente. Se suman solos desde Caja.</div>';
+
+  // Gastos repartidos entre varios clientes: la parte que le toca a este
+  { const nomN = __normNombre(c.entidad || '');
+    const gs = (typeof CAJASOC !== 'undefined' ? CAJASOC : []).map(m => ({ m, r: repartoDe(m, c.id, nomN) })).filter(x => x.r)
+      .sort((a, b) => (b.m.fecha || '').localeCompare(a.m.fecha || ''));
+    if (gs.length) body += `<div class="crm-serv-label">Gastos compartidos · parte de este cliente</div>
+      <table class="crm-tabla"><thead><tr><th>Fecha</th><th>Concepto</th><th class="r">Le toca</th></tr></thead><tbody>
+      ${gs.map(x => `<tr><td>${fD(x.m.fecha)}</td><td>${esc(x.m.concepto || '—')}${x.m.planId ? ' · cuota ' + esc(String(x.m.nroCuota || '')) : ''} <span class="crm-item-fecha">${fmtNumStr(x.r.pct)} % de ${x.m.moneda === 'USD' ? 'u$s ' : '$ '}${fmtNumStr(x.m.monto)}</span></td><td class="r">${x.m.moneda === 'USD' ? 'u$s ' : '$ '}${fmtNumStr(Math.round((Number(x.m.monto) || 0) * x.r.pct) / 100)}</td></tr>`).join('')}
+      </tbody></table>`; }
 
   // Abono mensual vinculado: estado del mes, monto y qué incluye
   const abo = (typeof abonoDeCliente === 'function') ? abonoDeCliente(c.id) : null;
