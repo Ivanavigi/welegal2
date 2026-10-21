@@ -1719,7 +1719,8 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 /* Caja societaria: tiles con pesos y dólares en líneas propias */
 #csTiles{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
 #csTiles .tile{padding:18px 20px 16px;display:flex;flex-direction:column;gap:2px}
-#csTiles{grid-template-columns:repeat(4,1fr);gap:11px;margin:16px 0 20px}
+#csTiles{grid-template-columns:repeat(5,1fr);gap:11px;margin:16px 0 20px}
+#csTiles .tile-neto{border-left:3px solid #1b3a6b}
 @media (max-width:1180px){#csTiles{grid-template-columns:repeat(auto-fit,minmax(185px,1fr))}}
 #csTiles .tile{padding:11px 13px}
 #csTiles .cs-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--tinta);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1774,6 +1775,29 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .abo-mm-chip.on{background:var(--sello);border-color:var(--sello);box-shadow:0 1px 4px rgba(27,58,107,.28)}
 .abo-mm-chip.on .mm-m,.abo-mm-chip.on .mm-y{color:#fff}
 .abo-mm-hint{margin-top:8px;font-size:12px;color:var(--tinta-suave)}
+/* Varios comprobantes: chips al registrar y ventana con la lista */
+.adj-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0;flex-basis:100%}
+.adj-chips:empty{display:none}
+/* La columna del comprobante no puede crecer más que la fila: con varios chips, bajan de renglón */
+.f-col:has(> .adj-chips){max-width:100%;min-width:0}
+.adj-chips{max-width:100%}
+.adj-chip{max-width:min(260px,100%)}
+.adj-chip{display:inline-flex;align-items:center;gap:4px;max-width:260px;background:var(--papel);border:1px solid var(--filo);border-radius:20px;padding:3px 4px 3px 10px;font-size:12px}
+.adj-chip-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.adj-chip button{border:none;background:transparent;color:var(--mal,#b3372a);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:50%;flex:0 0 auto}
+.adj-chip button:hover{background:var(--mal-bg,#f9e3df)}
+.mini-btn.adj-ver{white-space:nowrap}
+.adj-modal{max-width:520px;width:100%}
+.adj-modal .crm-modal-cab h2{padding-right:40px;overflow-wrap:anywhere}
+.adj-lista{display:flex;flex-direction:column;gap:6px}
+.adj-item{display:grid;grid-template-columns:minmax(0,1fr) auto 30px;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--filo);border-radius:9px;background:var(--carta)}
+.adj-item-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.adj-item-x{border:none;background:transparent;color:var(--mal,#b3372a);cursor:pointer;font-size:13px;padding:4px;border-radius:6px}
+.adj-item-x:hover{background:var(--mal-bg,#f9e3df)}
+.adj-sep{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--tinta-suave);margin:8px 0 2px}
+.adj-vacio{font-size:12.5px;color:var(--tinta-suave);padding:10px 0}
+.adj-modal-pie{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--filo)}
+.adj-modal-hint{font-size:11.5px;color:var(--tinta-suave)}
 /* Caja societaria: reparto de un gasto entre clientes */
 .cs-rep-monto{font-variant-numeric:tabular-nums;font-weight:600;padding:9px 0;font-size:13px}
 /* CRM: etiquetas y grupo */
@@ -3412,6 +3436,7 @@ body.locked .app{margin-left:0}
             <div class="f-col" style="flex:0 0 auto">
               <label>Comprobante</label>
               <button class="btn-ghost" onclick="document.getElementById('cajaAdjInput').click()" id="cjAdjBtn">📎 Adjuntar foto / PDF</button>
+              <div class="adj-chips" id="cjAdjChips"></div>
             </div>
             <label class="check-row" style="margin:0 0 8px"><input type="checkbox" id="cjComOri"> Comisión de Ori</label>
           </div>
@@ -3471,19 +3496,9 @@ body.locked .app{margin-left:0}
         </div>
       </div>
 
-      <div class="grid-caja-4" style="margin-top:16px">
-        <div class="panel">
-          <div class="panel-h"><h3>Qué generó más ingresos</h3><span class="mini">ranking por concepto / servicio</span></div>
-          <div id="cajaRanking"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-h"><h3>Clientes que más abonaron</h3><span class="mini">ranking por cliente</span></div>
-          <div id="cajaRankingClientes"></div>
-        </div>
-      </div>
       <!-- Reuniones de Kevin: se cargan y cobran en el módulo Reuniones -->
       <div class="panel lista-amplia" style="margin-top:16px" id="panelReuJud">
-        <div class="panel-h"><h3>🤝 Reuniones</h3><span class="mini" id="reuJudMini"></span></div>
+        <div class="panel-h"><h3>🤝 Ingresos por reuniones</h3><span class="mini" id="reuJudMini"></span></div>
         <div style="padding:14px 16px">
           <div class="cuota-hint" style="margin:0 0 12px">Las reuniones se cargan y se cobran desde el módulo <b>Reuniones</b>. Acá se refleja la parte que le corresponde a esta caja, que <b>ya está sumada</b> en los ingresos de arriba. Si hay más de un asignado, lo cobrado se divide en partes iguales.</div>
           <div style="overflow-x:auto"><table class="tabla-caja" id="reuJudTabla"></table></div>
@@ -3500,7 +3515,7 @@ body.locked .app{margin-left:0}
     </div>
   </div>
 </div>
-<input type="file" id="cajaAdjInput" accept="image/*,.pdf" style="display:none" onchange="cajaAdjuntoElegido(this)">
+<input type="file" id="cajaAdjInput" accept="image/*,.pdf" multiple style="display:none" onchange="cajaAdjuntoElegido(this)">
 
 <!-- ═══════════ PÁGINA CAJA SOCIETARIA ═══════════ -->
 <div id="paginaCajaSoc" class="page-shell" style="display:none">
@@ -3531,13 +3546,6 @@ body.locked .app{margin-left:0}
         <div class="f-row" style="margin-top:14px;align-items:end">
           <div class="f-col" style="flex:0 0 165px"><label>Mes</label><input type="month" id="csMes" onchange="renderCajaSoc()"></div>
           <div class="f-col" style="flex:0 0 175px"><label>Valor actual del dólar ($)</label><input type="text" inputmode="decimal" id="csDolar" oninput="fmtMiles(this);guardarDolarSoc();renderCajaSoc()" placeholder="Ej: 1.480"></div>
-          <div class="f-col" style="flex:0 0 auto"><label>Cómo ver los montos</label>
-            <div class="vista-moneda" id="csVistaMoneda">
-              <button type="button" class="on" data-vm="orig" onclick="csVistaMonedaSet('orig')">Como se cargó<small>pesos y dólares por separado</small></button>
-              <button type="button" data-vm="pes" onclick="csVistaMonedaSet('pes')">$ Pesificado<small>los USD al dólar de arriba</small></button>
-              <button type="button" data-vm="usd" onclick="csVistaMonedaSet('usd')">u$s Dolarizado<small>cada pago al dólar de su día</small></button>
-            </div>
-          </div>
           <input type="checkbox" id="csPesificar" style="display:none">
           <input type="checkbox" id="csDolarizar" style="display:none">
           <button class="btn-primary" style="margin-left:auto;margin-bottom:2px" onclick="descargarReporteCajaSoc()">⬇ Descargar balance del mes</button>
@@ -3647,6 +3655,7 @@ body.locked .app{margin-left:0}
             <label class="cs-mixto-chk" id="csMixtoChkWrap" title="El cliente dejó una parte en pesos y otra en dólares">
               <input type="checkbox" id="csMixto" onchange="csToggleMixto()"> <span>Pagó en pesos y dólares</span></label>
             <button class="btn-ghost" style="margin-bottom:2px" id="csAdjBtn" onclick="document.getElementById('csAdjInput').click()">📎 Adjuntar foto / PDF</button>
+            <div class="adj-chips" id="csAdjChips"></div>
           </div>
 
           <div class="cs-grupo" id="csGrupoOpciones"><span class="cs-grupo-t">Opciones</span></div>
@@ -3722,7 +3731,7 @@ body.locked .app{margin-left:0}
 
       <!-- Reuniones de Brenda: se cargan y cobran en el módulo Reuniones -->
       <div class="panel lista-amplia" style="margin-top:16px" id="panelReuSoc">
-        <div class="panel-h"><h3>🤝 Reuniones</h3><span class="mini" id="reuSocMini"></span></div>
+        <div class="panel-h"><h3>🤝 Ingresos por reuniones</h3><span class="mini" id="reuSocMini"></span></div>
         <div style="padding:14px 16px">
           <div class="cuota-hint" style="margin:0 0 12px">Las reuniones se cargan y se cobran desde el módulo <b>Reuniones</b>. Acá se refleja la parte que le corresponde a esta caja, que <b>ya está sumada</b> en los ingresos de arriba. Si hay más de un asignado, lo cobrado se divide en partes iguales.</div>
           <div style="overflow-x:auto"><table class="tabla-caja" id="reuSocTabla"></table></div>
@@ -3732,7 +3741,7 @@ body.locked .app{margin-left:0}
 
       <!-- Abonos de actas: se cobran en la solapa Abonos; acá solo se reflejan -->
       <div class="panel lista-amplia" style="margin-top:16px" id="panelActas">
-        <div class="panel-h"><h3>📑 Abonos actas</h3><span class="mini" id="csMiniActas"></span></div>
+        <div class="panel-h"><h3>📑 Ingresos por abonos de actas</h3><span class="mini" id="csMiniActas"></span></div>
         <div style="padding:14px 16px">
           <div class="cuota-hint" style="margin:0 0 12px">Réplica de los abonos que le corresponden a societario. El pago se registra siempre desde <b>Abonos mensuales</b> y el estado se actualiza acá solo. Al balance de la caja <b>suma únicamente lo ya cobrado</b>: lo pendiente se muestra pero no se cuenta.</div>
           <div id="csActasAtrasos"></div>
@@ -3802,22 +3811,12 @@ body.locked .app{margin-left:0}
         </div>
       </div>
 
-      <div class="grid-caja-4" style="margin-top:16px">
-        <div class="panel">
-          <div class="panel-h"><h3>Servicios más vendidos</h3><span class="mini">ranking por concepto — solo ingresos</span></div>
-          <div id="csRankingServ"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-h"><h3>Clientes que más pagaron</h3><span class="mini">ranking por cliente — solo ingresos</span></div>
-          <div id="csRankingCli"></div>
-        </div>
-      </div>
       </div>
       <datalist id="csReceptoresList"></datalist>
     </div>
   </div>
 </div>
-<input type="file" id="csAdjInput" accept="image/*,.pdf" style="display:none" onchange="cajaSocAdjElegido(this)">
+<input type="file" id="csAdjInput" accept="image/*,.pdf" multiple style="display:none" onchange="cajaSocAdjElegido(this)">
 <input type="file" id="fdAdjInput" accept="image/*,.pdf" style="display:none" onchange="fondoAdjElegido(this)">
 
 <!-- ═══════════ PÁGINA CAJA WE LEGAL ═══════════ -->
@@ -3875,7 +3874,7 @@ body.locked .app{margin-left:0}
 
       <!-- Reuniones de Ivana: se cargan y cobran en el módulo Reuniones -->
       <div class="panel lista-amplia" style="margin-top:16px" id="panelReuWl">
-        <div class="panel-h"><h3>🤝 Reuniones</h3><span class="mini" id="reuWlMini"></span></div>
+        <div class="panel-h"><h3>🤝 Ingresos por reuniones</h3><span class="mini" id="reuWlMini"></span></div>
         <div style="padding:14px 16px">
           <div class="cuota-hint" style="margin:0 0 12px">Las reuniones se cargan y se cobran desde el módulo <b>Reuniones</b>. Acá se refleja la parte que le corresponde a esta caja, que <b>ya está sumada</b> en los ingresos de arriba. Si hay más de un asignado, lo cobrado se divide en partes iguales.</div>
           <div style="overflow-x:auto"><table class="tabla-caja" id="reuWlTabla"></table></div>
@@ -6894,7 +6893,8 @@ function pagoAFila(p) {
     monto: p.monto ?? 0, moneda: p.moneda ?? 'ARS', metodo: p.metodo ?? null, receptor: p.receptor ?? null,
     comision_ori: !!p.comisionOri,
     comision_para: (typeof SB_TIENE_JUD_COM_PARA !== 'undefined' && SB_TIENE_JUD_COM_PARA) ? (p.comisionPara || null) : undefined,
-    revisado: !!p.revisado, cliente_id: p.clienteId ?? null, plan_id: p.planId ?? null, nro_cuota: p.nroCuota ?? null, adjunto_path: (CAJA_ADJ[p.id] && CAJA_ADJ[p.id].path) || null };
+    revisado: !!p.revisado, cliente_id: p.clienteId ?? null, plan_id: p.planId ?? null, nro_cuota: p.nroCuota ?? null, adjunto_path: (CAJA_ADJ[p.id] && CAJA_ADJ[p.id].path) || null,
+    adjuntos: (typeof SB_TIENE_CAJA_ADJS !== 'undefined' && SB_TIENE_CAJA_ADJS) ? adjParaBase(CAJA_ADJ[p.id]) : undefined };
 }
 function filaAPago(f) {
   return { id: f.id, fecha: f.fecha, cliente: f.cliente, concepto: f.concepto, monto: Number(f.monto),
@@ -6927,6 +6927,8 @@ var SB_TIENE_GASTOS_PAGOS = false;
 var SB_TIENE_CAJA_DEST = false;
 var SB_TIENE_GRUPO_ID  = false;   // caja_soc.grupo_id (text) — pagos mixtos
 var SB_TIENE_REPARTO   = false;   // caja_soc.reparto (jsonb) — gasto repartido entre clientes
+var SB_TIENE_CAJA_ADJS = false;   // caja.adjuntos (jsonb) — varios comprobantes por pago
+var SB_TIENE_SOC_ADJS  = false;   // caja_soc.adjuntos (jsonb) — varios comprobantes por movimiento
 var SB_TIENE_JUD_COM_PARA = false;
 var SB_TIENE_APODO = false;
 var SB_TIENE_CLI_PACKS = false;   // clientes.packs (varios packs por cliente)
@@ -7157,6 +7159,8 @@ async function __sbCargarTodoInterno() {
       SB_TIENE_GRUPO_ID = true;
     if (sbTiene(rCajaSoc, 'reparto'))
       SB_TIENE_REPARTO = true;
+    if (sbTiene(rCaja, 'adjuntos')) SB_TIENE_CAJA_ADJS = true;
+    if (sbTiene(rCajaSoc, 'adjuntos')) SB_TIENE_SOC_ADJS = true;
     if (sbTiene(rCaja, 'comision_para'))
       SB_TIENE_JUD_COM_PARA = true;
     if (sbTiene(rClientes, 'apodo'))
@@ -7190,9 +7194,12 @@ async function __sbCargarTodoInterno() {
     } catch(e){}
     if (rCajaSoc) {
       CAJASOC = rCajaSoc.map(filaAMov); saveCajaSoc();
+      const nomSoc = p => String(p).split('/').pop().replace(/^soc-\d+-(\d{13,}-)?/, '');
       rCajaSoc.forEach(f => {
+        // Con la lista en la base, manda la base (así se ven los que sumó otra persona)
+        if (Array.isArray(f.adjuntos) && f.adjuntos.some(x => x && x.path)) { CAJASOC_ADJ[f.id] = adjDeFila(f, nomSoc); return; }
         if (f.adjunto_path && !CAJASOC_ADJ[f.id]) {
-          CAJASOC_ADJ[f.id] = { nombre: String(f.adjunto_path).split('/').pop().replace(/^soc-\d+-/, ''), path: f.adjunto_path, url: sbPubUrl(f.adjunto_path) };
+          CAJASOC_ADJ[f.id] = { nombre: nomSoc(f.adjunto_path), path: f.adjunto_path, url: sbPubUrl(f.adjunto_path) };
         }
       });
       saveCajaSocAdj();
@@ -7223,7 +7230,7 @@ async function __sbCargarTodoInterno() {
     if (rCaja) {
     CAJA = rCaja.map(filaAPago).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
     CAJA_ADJ = {};
-    rCaja.forEach(f => { if (f.adjunto_path) CAJA_ADJ[f.id] = { nombre: f.adjunto_path.split('/').slice(1).join('/'), path: f.adjunto_path, url: sbPubUrl(f.adjunto_path) }; });
+    rCaja.forEach(f => { const a = adjDeFila(f, p => String(p).split('/').slice(1).join('/').replace(/^pago-\d+-(\d{13,}-)?/, '')); if (a) CAJA_ADJ[f.id] = a; });
     if (typeof saveCajaLocal === 'function') saveCajaLocal(); }
 
     // Config compartida (dólar, uma, feriados, ferias)
@@ -7431,7 +7438,7 @@ async function sbGuardarPdfFallo(id, file) {
 }
 async function sbGuardarComprobante(id, file) {
   const nombre = (file.name || ('comp-' + id)).replace(/[^\w.\-]/g, '_');
-  const path = await sbUploadFile('comprobantes-caja', `pago-${id}-${nombre}`, file);
+  const path = await sbUploadFile('comprobantes-caja', `pago-${id}-${Date.now()}${Math.floor(Math.random() * 1000)}-${nombre}`, file);
   return { path, url: sbPubUrl(path) };
 }
 
@@ -8362,7 +8369,6 @@ function renderIngresos(){
     <button class="${INGRESOS_VISTA==='sueldos'?'on':''}" onclick="ingVista('sueldos')">Sueldos</button>
     <button class="${INGRESOS_VISTA==='netocaja'?'on':''}" onclick="ingVista('netocaja')">Neto por caja</button>
     <button class="${INGRESOS_VISTA==='pendiente'?'on':''}" onclick="ingVista('pendiente')">Pendiente de cobro</button>
-    <button class="${INGRESOS_VISTA==='ranking'?'on':''}" onclick="ingVista('ranking')">Ranking</button>
     <button class="${INGRESOS_VISTA==='evolucion'?'on':''}" onclick="ingVista('evolucion')">Evolución</button>
   </div>`;
   if(INGRESOS_VISTA==='evolucion'){ renderIngresosEvolucion(cont, subtabs); return; }
@@ -8370,7 +8376,7 @@ function renderIngresos(){
   if(INGRESOS_VISTA==='sueldos'){ renderIngresosSueldos(cont, subtabs); return; }
   if(INGRESOS_VISTA==='netocaja'){ renderNetoPorCaja(cont, subtabs); return; }
   if(INGRESOS_VISTA==='pendiente'){ renderIngresosPendiente(cont, subtabs); return; }
-  if(INGRESOS_VISTA==='ranking'){ renderIngresosRanking(cont, subtabs); return; }
+  if(INGRESOS_VISTA==='ranking'){ INGRESOS_VISTA='mes'; }   // la solapa Ranking se sacó a pedido
 
   const ym = ingMesActual();
   const d = ingresosDelMes(ym);
@@ -10479,7 +10485,7 @@ function renderReuCaja(caja, ym, ids){
 }
 function reuPanelHTML(id){
   return `      <div class="panel lista-amplia" style="margin-top:16px" id="panelReu${id}">
-        <div class="panel-h"><h3>🤝 Reuniones</h3><span class="mini" id="reu${id}Mini"></span></div>
+        <div class="panel-h"><h3>🤝 Ingresos por reuniones</h3><span class="mini" id="reu${id}Mini"></span></div>
         <div style="padding:14px 16px">
           <div class="cuota-hint" style="margin:0 0 12px">Las reuniones se cargan y se cobran desde el módulo <b>Reuniones</b>. Acá se refleja la parte que le corresponde a esta caja, que <b>ya está sumada</b> en los ingresos de arriba. Si hay más de un asignado, lo cobrado se divide en partes iguales.</div>
           <div style="overflow-x:auto"><table class="tabla-caja" id="reu${id}Tabla"></table></div>
@@ -15935,7 +15941,8 @@ function movAFila(m) {  /* incluye plan de cuotas */
     caja_dest: (typeof SB_TIENE_CAJA_DEST !== 'undefined' && SB_TIENE_CAJA_DEST) ? (m.cajaDest || 'soc') : undefined,
     grupo_id: (typeof SB_TIENE_GRUPO_ID !== 'undefined' && SB_TIENE_GRUPO_ID) ? (m.grupoId || null) : undefined,
     reparto: (typeof SB_TIENE_REPARTO !== 'undefined' && SB_TIENE_REPARTO) ? (Array.isArray(m.reparto) && m.reparto.length ? m.reparto : null) : undefined,
-    adjunto_path: (CAJASOC_ADJ[m.id] || {}).path || null };
+    adjunto_path: (CAJASOC_ADJ[m.id] || {}).path || null,
+    adjuntos: (typeof SB_TIENE_SOC_ADJS !== 'undefined' && SB_TIENE_SOC_ADJS) ? adjParaBase(CAJASOC_ADJ[m.id]) : undefined };
 }
 function filaAMov(f) {
   return { id: f.id, fecha: f.fecha, tipo: f.tipo, contraparte: f.contraparte || '',
@@ -15959,7 +15966,7 @@ function sbPushMovSoc(m) { if (SB_ON) sbUpsert('caja_soc', movAFila(m)).catch(sb
 function sbDelMovSoc(id) { if (SB_ON) sbDelete('caja_soc', id).catch(sbAvisarError); }
 async function sbGuardarComprobanteSoc(id, file) {
   const nombre = (file.name || ('comp-' + id)).replace(/[^\w.\-]/g, '_');
-  const path = await sbUploadFile('comprobantes-caja', `soc-${id}-${nombre}`, file);
+  const path = await sbUploadFile('comprobantes-caja', `soc-${id}-${Date.now()}${Math.floor(Math.random() * 1000)}-${nombre}`, file);
   return { path, url: sbPubUrl(path) };
 }
 function labelReceptorSoc() {
@@ -15977,50 +15984,180 @@ function renderCajaSocDatalists() {
   dl.innerHTML = recs.map(r => `<option value="${esc(r)}">`).join('');
 }
 function cajaSocAdjElegido(input) {
-  const file = input.files && input.files[0];
+  const files = adjValidar(input.files);
   input.value = '';
-  if (!file) { __adjTargetSoc = null; return; }
-  if (file.size > 3 * 1024 * 1024) {
-    alert('El archivo supera los 3 MB. Comprimí la imagen antes de adjuntarla.');
-    __adjTargetSoc = null; return;
-  }
+  if (!files.length) { __adjTargetSoc = null; return; }
+  const file = files[0];
   if (__adjModoGastos) {
+    // El comprobante de un cobro de gastos sigue siendo uno solo
     __adjStagedGastos = { nombre: file.name, tipo: file.type, file };
     const b = document.getElementById('csAdjBtn');
     if (b) b.textContent = '📎 ' + (file.name.length > 22 ? file.name.slice(0, 22) + '…' : file.name) + ' · gastos';
     return;
   }
   if (__adjTargetSoc != null) {
+    // Movimiento ya cargado: se SUMAN a los comprobantes que tenía
     const idMov = __adjTargetSoc; __adjTargetSoc = null;
-    sbGuardarComprobanteSoc(idMov, file).then(info => {
-      CAJASOC_ADJ[idMov] = { nombre: file.name, tipo: file.type, path: info.path, url: info.url };
-      saveCajaSocAdj();
-      const m = CAJASOC.find(x => x.id === idMov); if (m) sbPushMovSoc(m);
-      renderCajaSoc();
-    }).catch(e => { sbAvisarError(e); alert('No se pudo subir el comprobante a la nube.'); });
+    adjSubirYSumar('soc', idMov, files.map(f => ({ nombre: f.name, tipo: f.type, file: f })));
   } else {
-    __adjStagedSoc = { nombre: file.name, tipo: file.type, file };
-    const b = document.getElementById('csAdjBtn');
-    if (b) b.textContent = '📎 ' + (file.name.length > 24 ? file.name.slice(0, 24) + '…' : file.name);
+    adjStagedAgregar('soc', files);
   }
 }
 function adjuntarASoc(id) { __adjTargetSoc = id; document.getElementById('csAdjInput').click(); }
 function socComprobantesGastos(m){
   return socGastosPagos(m).map((p, i) => p.adj ? Object.assign({ __i: i+1, __fecha: p.fecha }, p.adj) : null).filter(Boolean);
 }
-function verComprobanteSoc(id) {
-  const m = (CAJASOC || []).find(x => x.id === id);
-  const hon = CAJASOC_ADJ[id];
-  const gastos = m ? socComprobantesGastos(m) : [];
-  // Si hay uno solo, se abre directo
-  if (hon && !gastos.length) return __abrirAdj(hon);
-  if (!hon && gastos.length === 1) return __abrirAdj(gastos[0]);
-  if (!hon && !gastos.length) return;
-  // Varios: se elige cuál ver
-  const opciones = [];
-  if (hon) opciones.push({ txt: 'Comprobante de honorarios', adj: hon });
-  gastos.forEach(g => opciones.push({ txt: 'Comprobante de gastos' + (gastos.length > 1 ? ' · pago ' + g.__i + (g.__fecha ? ' (' + fmtFechaCortaCRM(g.__fecha) + ')' : '') : ''), adj: g }));
-  socMostrarComprobantes(opciones);
+function verComprobanteSoc(id) { adjVer('soc', id); }
+// ══ VARIOS COMPROBANTES POR MOVIMIENTO (caja judicial y societaria) ══
+// CAJA_ADJ[id] y CAJASOC_ADJ[id] siguen guardando el comprobante PRINCIPAL (el primero):
+// todo lo que ya los leía (balances, KPI, búsqueda) sigue igual. Los demás van en `.mas`.
+// En la base: `adjunto_path` sigue con el principal y la columna `adjuntos` con la lista.
+function adjLista(a){
+  if (!a) return [];
+  const p = Object.assign({}, a); const mas = Array.isArray(p.mas) ? p.mas : []; delete p.mas;
+  return ((p.path || p.url || p.data) ? [p] : []).concat(mas.filter(Boolean));
+}
+function adjDesdeLista(l){
+  l = (l || []).filter(x => x && (x.path || x.url || x.data)).map(x => { const c = Object.assign({}, x); delete c.mas; return c; });
+  if (!l.length) return null;
+  const p = Object.assign({}, l[0]); if (l.length > 1) p.mas = l.slice(1);
+  return p;
+}
+function adjParaBase(a){
+  const l = adjLista(a).filter(x => x.path);
+  return l.length ? l.map(x => ({ nombre: x.nombre || '', tipo: x.tipo || '', path: x.path })) : null;
+}
+function adjDeFila(f, nombreDePath){
+  if (Array.isArray(f.adjuntos) && f.adjuntos.some(x => x && x.path))
+    return adjDesdeLista(f.adjuntos.filter(x => x && x.path).map(x => ({ nombre: x.nombre || nombreDePath(x.path), tipo: x.tipo || '', path: x.path, url: sbPubUrl(x.path) })));
+  if (f.adjunto_path) return { nombre: nombreDePath(f.adjunto_path), path: f.adjunto_path, url: sbPubUrl(f.adjunto_path) };
+  return null;
+}
+function adjMapa(caja){ return caja === 'soc' ? CAJASOC_ADJ : CAJA_ADJ; }
+function adjGuardarMapa(caja){ if (caja === 'soc') saveCajaSocAdj(); else saveCajaLocalAdj(); }
+function adjMov(caja, id){ return caja === 'soc' ? (CAJASOC || []).find(x => String(x.id) === String(id)) : (CAJA || []).find(x => String(x.id) === String(id)); }
+function adjPushMov(caja, id){ const m = adjMov(caja, id); if (!m) return; if (caja === 'soc') sbPushMovSoc(m); else sbPushPago(m); }
+function adjRender(caja){ try { if (caja === 'soc') { renderCajaSoc(); if (typeof renderWeLegal === 'function') renderWeLegal(); } else renderCaja(); } catch(e){} }
+
+// Archivos elegidos antes de registrar el movimiento (pueden ser varios, en varias tandas)
+function adjStaged(caja){
+  if (caja === 'soc'){ if (!Array.isArray(__adjStagedSoc)) __adjStagedSoc = __adjStagedSoc ? [__adjStagedSoc] : []; return __adjStagedSoc; }
+  if (!Array.isArray(__adjStaged)) __adjStaged = __adjStaged ? [__adjStaged] : [];
+  return __adjStaged;
+}
+// Filtra los archivos de más de 3 MB y avisa una sola vez
+function adjValidar(files){
+  const ok = [], grandes = [];
+  [...(files || [])].forEach(f => { if (f.size > 3 * 1024 * 1024) grandes.push(f.name); else ok.push(f); });
+  if (grandes.length) alert('Estos archivos superan los 3 MB y no se adjuntaron:\n• ' + grandes.join('\n• ') + '\n\nComprimilos y volvé a adjuntarlos.');
+  return ok;
+}
+function adjStagedAgregar(caja, files){
+  const l = adjStaged(caja);
+  files.forEach(f => l.push({ nombre: f.name, tipo: f.type, file: f }));
+  adjStagedPintar(caja);
+}
+function adjStagedQuitar(caja, i){ adjStaged(caja).splice(i, 1); adjStagedPintar(caja); }
+// Muestra los archivos elegidos como chips debajo del botón, cada uno con su ✕
+function adjStagedPintar(caja){
+  const cont = document.getElementById(caja === 'soc' ? 'csAdjChips' : 'cjAdjChips');
+  const btn = document.getElementById(caja === 'soc' ? 'csAdjBtn' : 'cjAdjBtn');
+  if (caja === 'soc' && typeof __adjModoGastos !== 'undefined' && __adjModoGastos){ if (cont) cont.innerHTML = ''; return; }
+  const l = adjStaged(caja);
+  if (btn) btn.textContent = l.length ? '📎 Agregar otro comprobante' : '📎 Adjuntar foto / PDF';
+  if (cont) cont.innerHTML = l.map((s, i) => `<span class="adj-chip" title="${esc(s.nombre)}"><span class="adj-chip-n">📄 ${esc(s.nombre)}</span><button type="button" onclick="adjStagedQuitar('${caja}',${i})" title="Quitar">✕</button></span>`).join('');
+}
+// Sube una lista de archivos a un movimiento y los SUMA a los que ya tenía
+async function adjSubirYSumar(caja, id, staged){
+  const subir = caja === 'soc' ? sbGuardarComprobanteSoc : sbGuardarComprobante;
+  const ok = [], fallas = [];
+  for (const st of staged){
+    try { const info = await subir(id, st.file); ok.push({ nombre: st.nombre, tipo: st.tipo, path: info.path, url: info.url }); }
+    catch(e){ console.error(e); fallas.push(st.nombre + ' — ' + ((typeof sbMsgAdjunto === 'function') ? sbMsgAdjunto(e) : (e && e.message || e))); }
+  }
+  if (ok.length){
+    const MAP = adjMapa(caja);
+    const nuevo = adjDesdeLista(adjLista(MAP[id]).concat(ok));
+    if (nuevo) MAP[id] = nuevo;
+    adjGuardarMapa(caja); adjPushMov(caja, id); adjRender(caja);
+    adjVerRefrescar(caja, id);
+    if (!fallas.length && typeof aricToast === 'function') aricToast(ok.length > 1 ? ok.length + ' comprobantes adjuntados' : 'Comprobante adjuntado');
+  }
+  if (fallas.length) alert('No se pudieron subir estos comprobantes:\n• ' + fallas.join('\n• ') + '\n\nAdjuntalos de nuevo.');
+  return { ok, fallas };
+}
+// Ventana con la lista de comprobantes de un movimiento: abrir, quitar y agregar
+function adjVer(caja, id){
+  let ov = document.getElementById('adjVerOv');
+  if (!ov){
+    ov = document.createElement('div'); ov.id = 'adjVerOv'; ov.className = 'crm-modal-ov';
+    ov.onclick = e => { if (e.target === ov) adjVerCerrar(); };
+    document.body.appendChild(ov);
+  }
+  ov.dataset.caja = caja; ov.dataset.id = String(id);
+  adjVerPintar();
+  ov.classList.add('on');
+}
+function adjVerCerrar(){ const ov = document.getElementById('adjVerOv'); if (ov) ov.classList.remove('on'); }
+function adjVerRefrescar(caja, id){
+  const ov = document.getElementById('adjVerOv');
+  if (ov && ov.classList.contains('on') && ov.dataset.caja === caja && ov.dataset.id === String(id)) adjVerPintar();
+}
+function adjVerPintar(){
+  const ov = document.getElementById('adjVerOv'); if (!ov) return;
+  const caja = ov.dataset.caja, id = ov.dataset.id;
+  const m = adjMov(caja, id);
+  const lista = adjLista(adjMapa(caja)[id]);
+  const gastos = (caja === 'soc' && m && typeof socComprobantesGastos === 'function') ? socComprobantesGastos(m) : [];
+  const quien = m ? (m.cliente || m.contraparte || m.concepto || '') : '';
+  const fila = (a, i, propio) => `<div class="adj-item">
+      <span class="adj-item-n" title="${esc(a.nombre || 'comprobante')}">📄 ${esc(a.nombre || 'Comprobante ' + (i + 1))}</span>
+      <button type="button" class="mini-btn" onclick="adjVerAbrir(${propio ? i : -1 - i})">Abrir</button>
+      ${propio ? `<button type="button" class="adj-item-x" onclick="adjQuitar(${i})" title="Quitar este comprobante">✕</button>` : '<span></span>'}
+    </div>`;
+  ov.__gastos = gastos;
+  ov.innerHTML = `<div class="crm-modal adj-modal">
+    <div class="crm-modal-cab"><h2>Comprobantes${quien ? ' · ' + esc(quien) : ''}</h2>
+      ${m ? `<div class="sub">${formatFechaCorta(m.fecha)} · ${m.moneda === 'USD' ? 'u$s ' : '$ '}${fmtNumStr(m.monto)}${m.concepto ? ' · ' + esc(m.concepto) : ''}</div>` : ''}
+      <button class="crm-modal-x" onclick="adjVerCerrar()" title="Cerrar">✕</button></div>
+    <div class="crm-modal-body">
+      <div class="adj-lista">
+        ${lista.length ? lista.map((a, i) => fila(a, i, true)).join('') : '<div class="adj-vacio">Sin comprobantes todavía.</div>'}
+        ${gastos.length ? `<div class="adj-sep">Comprobantes de los gastos</div>` + gastos.map((g, i) => fila(Object.assign({}, g, { nombre: (g.nombre || 'Comprobante') + ' · pago ' + g.__i }), i, false)).join('') : ''}
+      </div>
+      <div class="adj-modal-pie"><button type="button" class="btn-ghost" onclick="adjVerAgregar()">＋ Agregar comprobantes</button>
+        <span class="adj-modal-hint">Podés elegir varios archivos a la vez.</span></div>
+    </div></div>`;
+}
+function adjVerAbrir(i){
+  const ov = document.getElementById('adjVerOv'); if (!ov) return;
+  if (i < 0){ const g = (ov.__gastos || [])[-1 - i]; if (g) __abrirAdj(g); return; }
+  const a = adjLista(adjMapa(ov.dataset.caja)[ov.dataset.id])[i];
+  if (a) __abrirAdj(a);
+}
+function adjVerAgregar(){
+  const ov = document.getElementById('adjVerOv'); if (!ov) return;
+  const id = Number(ov.dataset.id);
+  if (ov.dataset.caja === 'soc') adjuntarASoc(id); else adjuntarA(id);
+}
+function adjQuitar(i){
+  const ov = document.getElementById('adjVerOv'); if (!ov) return;
+  const caja = ov.dataset.caja, id = ov.dataset.id;
+  const MAP = adjMapa(caja);
+  const l = adjLista(MAP[id]); const a = l[i]; if (!a) return;
+  if (!confirm('¿Quitar «' + (a.nombre || 'este comprobante') + '» de este movimiento?')) return;
+  l.splice(i, 1);
+  const nuevo = adjDesdeLista(l);
+  if (nuevo) MAP[id] = nuevo; else delete MAP[id];
+  adjGuardarMapa(caja); adjPushMov(caja, id); adjRender(caja); adjVerPintar();
+}
+// Botón de la tabla: uno solo, con la cantidad, para que la fila no cambie de forma
+function adjBoton(caja, id, extraN){
+  const l = adjLista(adjMapa(caja)[id]);
+  const n = l.length + (extraN || 0);
+  if (!n) return '';
+  const fn = caja === 'soc' ? 'verComprobanteSoc' : 'verComprobante';
+  return `<button class="mini-btn adj-ver" onclick="${fn}(${id})" title="${esc(l.map(a => a.nombre || 'comprobante').join(' · '))}">📄 Ver${n > 1 ? ' (' + n + ')' : ''}</button>`;
 }
 function __abrirAdj(adj){
   if (!adj) return;
@@ -16401,7 +16538,7 @@ function registrarMovSoc() {
     ['csContra','csConcepto','csMonto','csReceptor','csDolarDia','csGastos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     const sv = document.getElementById('csVincGastos'); if (sv) sv.value = '';
     __adjTargetSoc = null; __adjModoGastos = false;
-    const ab = document.getElementById('csAdjBtn'); if (ab) ab.textContent = '📎 Adjuntar foto / PDF';
+    adjStagedPintar('soc');
     try { csVincCambio(); csVincPintar(); } catch(e){}
     renderCajaSoc();
     try { if (typeof renderInicio === 'function') renderInicio(); } catch(e){}
@@ -16524,13 +16661,9 @@ function registrarMovSoc() {
       }
     }, 100);
   }
-  if (__adjStagedSoc) {
-    const st = __adjStagedSoc; __adjStagedSoc = null;
-    sbGuardarComprobanteSoc(m.id, st.file).then(info => {
-      CAJASOC_ADJ[m.id] = { nombre: st.nombre, tipo: st.tipo, path: info.path, url: info.url };
-      saveCajaSocAdj(); sbPushMovSoc(m); renderCajaSoc();
-    }).catch(e => sbAvisarError(e));
-  }
+  { const st = adjStaged('soc').slice(); __adjStagedSoc = [];
+    if (st.length) adjSubirYSumar('soc', m.id, st);
+    adjStagedPintar('soc'); }
   ['csContra','csConcepto','csMonto','csReceptor','csDolarDia','csGastos','csMixtoMonto'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const mx = document.getElementById('csMixto'); if (mx) { mx.checked = false; try { csToggleMixto(); } catch(e){} }
   const cp = document.getElementById('csComisionPara'); if (cp) cp.value = '';
@@ -16542,7 +16675,7 @@ function registrarMovSoc() {
   const db = document.getElementById('csDesgloseBox'); if (db) db.classList.add('oculto');
   { const rc = document.getElementById('csRepChk'); if (rc && rc.checked) { rc.checked = false; csRepToggle(); } }
   cjResetCuota('soc');
-  const b = document.getElementById('csAdjBtn'); if (b) b.textContent = '📎 Adjuntar foto / PDF';
+  adjStagedPintar('soc');
   document.getElementById('csMes').value = fecha.slice(0, 7);
   // Si el movimiento fue a WE Legal, avisar y refrescar ese módulo también
   if (m.cajaDest === 'wl'){
@@ -17415,6 +17548,9 @@ function csVincCambio(){
   __adjTargetSoc = null;
   __adjModoGastos = !!m;
   __adjStagedGastos = null;
+  // Los comprobantes de honorarios elegidos antes no corresponden al cobro de gastos
+  if (m) __adjStagedSoc = [];
+  adjStagedPintar('soc');
   const ab = document.getElementById('csAdjBtn');
   if (ab) ab.textContent = m ? '📎 Comprobante de los gastos' : '📎 Adjuntar foto / PDF';
   const fv = document.getElementById('csVincFecha');
@@ -17784,33 +17920,29 @@ function renderCajaSoc() {
   const notaCotiz = U && (U.conFallback || U.sinCotiz)
     ? `<div class="cs-nota-pack">${U.conFallback ? U.conFallback + ' mov. sin dólar del día: se usó el del encabezado. ' : ''}${U.sinCotiz ? U.sinCotiz + ' mov. quedaron afuera (sin cotización).' : ''}</div>`
     : '';
-  document.getElementById('csTiles').innerHTML = dolarizar ? `
-    <div class="tile tile-destacada"><div class="num" style="color:#1e7a48">u$s ${u2(U.in)}</div><div class="lbl">Ingresos dolarizados</div><div class="sub">cada pago con el dólar de su día${notaPack}${notaCotiz}</div></div>
-    <div class="tile"><div class="num" style="color:#b3372a">u$s ${u2(U.go)}</div><div class="lbl">G. ordinarios dolarizados</div><div class="sub">${gastosOrd.length} mov.</div></div>
-    <div class="tile"><div class="num" style="color:#b3372a">u$s ${u2(U.ge)}</div><div class="lbl">G. escribanía dolarizados</div><div class="sub">${gastosEsc.length} mov.</div></div>
-    <div class="tile" style="border-left:3px solid #1b3a6b"><div class="num" style="color:${U.balance >= 0 ? '#1e7a48' : '#b3372a'}">u$s ${u2(U.balance)}</div><div class="lbl">Balance en dólares</div><div class="sub">ingresos menos gastos</div></div>` : pesif ? `
-    <div class="tile tile-destacada"><div class="num" style="color:#1e7a48">$ ${fmtNumStr(inPes)}</div><div class="lbl">Ingresos pesificados</div><div class="sub">$ ${fmtNumStr(t.inArs)} + u$s ${fmtNumStr(t.inUsd)} × ${fmtNumStr(dolar)}${notaPack}</div></div>
-    ${gincPes > 0 ? `<div class="tile" style="border-left:3px solid #c9862b"><div class="num" style="color:#8a6d1f">$ ${fmtNumStr(gincPes)}</div><div class="lbl">De eso, gastos</div><div class="sub">honorarios: $ ${fmtNumStr(honPes)} · ${t.nDesglose} pago${t.nDesglose !== 1 ? 's' : ''} con gastos</div></div>` : ''}
-    <div class="tile"><div class="num" style="color:#b3372a">$ ${fmtNumStr(goPes)}</div><div class="lbl">G. ordinarios pesificados</div><div class="sub">$ ${fmtNumStr(t.goArs)} + u$s ${fmtNumStr(t.goUsd)} × ${fmtNumStr(dolar)}</div></div>
-    <div class="tile"><div class="num" style="color:#b3372a">$ ${fmtNumStr(gePes)}</div><div class="lbl">G. escribanía pesificados</div><div class="sub">$ ${fmtNumStr(t.geArs)} + u$s ${fmtNumStr(t.geUsd)} × ${fmtNumStr(dolar)}</div></div>
-    ${t.actasN ? `<div class="tile tile-actas"><div class="num">$ ${fmtNumStr(t.actasArs + t.actasUsd * dolar)}</div><div class="lbl">Abonos de actas (pesificados)</div><div class="sub">${t.actasN} abono${t.actasN!==1?'s':''} · ya incluidos arriba</div></div>` : ''}` : `
-    <div class="tile"><div class="cs-lbl">Ingresos</div>
-      <div class="cs-monto"><span class="cs-cur">$</span><span class="cs-val" style="color:#1e7a48">${fmtNumStr(t.inArs)}</span></div>
-      <div class="cs-monto usd"><span class="cs-cur">u$s</span><span class="cs-val" style="color:#1e7a48">${fmtNumStr(t.inUsd)}</span></div>
-      <div class="cs-sub">${ingresos.length} mov.${t.actasN ? ' + ' + t.actasN + ' de actas' : ''}${notaPack}</div></div>
-    ${false ? `<div class="tile" style="border-left:3px solid #c9862b"><div class="cs-lbl">De eso, gastos</div>
-      <div class="cs-monto"><span class="cs-cur">$</span><span class="cs-val" style="color:#8a6d1f">${fmtNumStr(t.gincArs||0)}</span></div>
-      <div class="cs-monto usd"><span class="cs-cur">u$s</span><span class="cs-val" style="color:#8a6d1f">${fmtNumStr(t.gincUsd||0)}</span></div>
-      <div class="cs-sub">honorarios: ${t.honArs ? '$ ' + fmtNumStr(t.honArs) : ''}${t.honArs && t.honUsd ? ' · ' : ''}${t.honUsd ? 'u$s ' + fmtNumStr(t.honUsd) : ''}</div></div>` : ''}
+  // Tarjetas: siempre como se cargó (pesos y dólares por separado, sin convertir).
+  // Neto = bruto − gastos ordinarios − gastos de escribanía (igual que el balance
+  // descargable). Los sueldos se muestran aparte y NO se restan del neto.
+  const sueSoc = (typeof netoCajaDatos === 'function') ? netoCajaDatos('soc', mes) : { sueldos: [], sueldosTot: 0 };
+  const netoArs = t.inArs - t.goArs - t.geArs, netoUsd = t.inUsd - t.goUsd - t.geUsd;
+  const csMonto = (cur, v, color) => `<div class="cs-monto${cur === 'u$s' ? ' usd' : ''}"><span class="cs-cur">${cur}</span><span class="cs-val" style="color:${color}">${v < 0 ? '−' + fmtNumStr(-v) : fmtNumStr(v)}</span></div>`;
+  const colNeto = v => v < 0 ? '#b3372a' : '#1b3a6b';
+  document.getElementById('csTiles').innerHTML = `
+    <div class="tile"><div class="cs-lbl">Ingresos bruto</div>
+      ${csMonto('$', t.inArs, '#1e7a48')}${csMonto('u$s', t.inUsd, '#1e7a48')}
+      <div class="cs-sub">${ingresos.length} mov.${t.actasN ? ' + ' + t.actasN + ' de actas' : ''}${t.reuN ? ' + ' + t.reuN + ' reuni' + (t.reuN !== 1 ? 'ones' : 'ón') : ''}${notaPack}</div></div>
+    <div class="tile tile-neto"><div class="cs-lbl">Ingresos neto</div>
+      ${csMonto('$', netoArs, colNeto(netoArs))}${csMonto('u$s', netoUsd, colNeto(netoUsd))}
+      <div class="cs-sub">bruto − gastos ordinarios − escribanía</div></div>
     <div class="tile"><div class="cs-lbl">Gastos ordinarios</div>
-      <div class="cs-monto"><span class="cs-cur">$</span><span class="cs-val" style="color:#b3372a">${fmtNumStr(t.goArs)}</span></div>
-      <div class="cs-monto usd"><span class="cs-cur">u$s</span><span class="cs-val" style="color:#b3372a">${fmtNumStr(t.goUsd)}</span></div>
+      ${csMonto('$', t.goArs, '#b3372a')}${csMonto('u$s', t.goUsd, '#b3372a')}
       <div class="cs-sub">${gastosOrd.length} mov.</div></div>
     <div class="tile"><div class="cs-lbl">Gastos escribanía</div>
-      <div class="cs-monto"><span class="cs-cur">$</span><span class="cs-val" style="color:#b3372a">${fmtNumStr(t.geArs)}</span></div>
-      <div class="cs-monto usd"><span class="cs-cur">u$s</span><span class="cs-val" style="color:#b3372a">${fmtNumStr(t.geUsd)}</span></div>
+      ${csMonto('$', t.geArs, '#b3372a')}${csMonto('u$s', t.geUsd, '#b3372a')}
       <div class="cs-sub">${gastosEsc.length} mov.</div></div>
-    ${tileActas}`;
+    <div class="tile"><div class="cs-lbl">Gastos sueldos</div>
+      ${csMonto('$', sueSoc.sueldosTot || 0, '#b3372a')}
+      <div class="cs-sub">${sueSoc.sueldos.length ? sueSoc.sueldos.map(s => esc(s.nombre) + (s.pct < 1 ? ' ' + Math.round(s.pct * 100) + '%' : '')).join(' · ') : 'sin sueldos cargados'} · base + comisiones · no se resta del neto</div></div>`;
   // Pago mixto: los dos movimientos hermanados se muestran como UNA fila. La fila la
   // dibuja el de id más bajo y el otro aporta su importe debajo.
   const csHermanos = m => (m.grupoId ? CAJASOC.filter(x => x.grupoId === m.grupoId).sort((a,b)=>a.id-b.id) : [m]);
@@ -17859,12 +17991,8 @@ function renderCajaSoc() {
       }).join('') : ''}</td>
       <td style="font-size:11.5px">${met}${m.receptor ? ' → ' + esc(m.receptor) : ''}</td>
       <td>${(() => {
-        const hon = CAJASOC_ADJ[m.id];
         const gas = socComprobantesGastos(m);
-        const total = (hon ? 1 : 0) + gas.length;
-        if (!total) return `<button class="mini-btn" onclick="adjuntarASoc(${m.id})">＋ Adjuntar</button>`;
-        const txt = total > 1 ? '📄 Ver (' + total + ')' : '📄 Ver';
-        return `<button class="mini-btn" onclick="verComprobanteSoc(${m.id})" title="${total > 1 ? 'Honorarios y gastos' : esc((hon||gas[0]).nombre)}">${txt}</button>`;
+        return adjBoton('soc', m.id, gas.length) || `<button class="mini-btn" onclick="adjuntarASoc(${m.id})">＋ Adjuntar</button>`;
       })()}</td>
       <td style="text-align:center"><input type="checkbox" ${m.revisado ? 'checked' : ''} ${puedeRevisar() ? `onchange="toggleRevisadoSoc(${m.id})"` : 'disabled title="Solo Ivana puede marcar como revisado"'} title="Revisado" style="accent-color:var(--sello)"></td>
       <td style="white-space:nowrap"><button class="cs-edit-b" onclick="csEditarMov(${m.id})" title="Editar este movimiento">✎</button><button class="tarea-del" onclick="eliminarMovSoc(${m.id})" title="Eliminar">✕</button></td>
@@ -17896,10 +18024,6 @@ function renderCajaSoc() {
   const rServ = __socRank(ingresos, 'concepto', '(sin concepto)', dolar);
   const rCli = __socRank(ingresos, 'contraparte', '(sin cliente)', dolar);
   const maxS = rServ.length ? rServ[0].clave : 1, maxC = rCli.length ? rCli[0].clave : 1;
-  const eServ = document.getElementById('csRankingServ');
-  if (eServ) eServ.innerHTML = rServ.length ? rServ.slice(0, 8).map((r, i) => filaRankS(r, i, maxS)).join('') : '<div class="panel-empty">Sin ingresos este mes.</div>';
-  const eCli = document.getElementById('csRankingCli');
-  if (eCli) eCli.innerHTML = rCli.length ? rCli.slice(0, 8).map((r, i) => filaRankS(r, i, maxC)).join('') : '<div class="panel-empty">Sin ingresos este mes.</div>';
   // ── Panel de comisiones del mes (societario) ──
   const comCont = document.getElementById('csComisiones');
   if (comCont) {
@@ -18074,9 +18198,7 @@ function wlPintarPropios(w, mes){
       <td class="monto" style="color:${esGasto ? '#b3372a' : 'inherit'}">${esGasto ? '−' : ''}${s}${fmtNumStr(Math.round(m.monto))}</td>
       <td style="font-size:11.5px">${esc(m.metodo || '—')}${m.receptor ? ' → ' + esc(m.receptor) : ''}</td>
       <td>${(() => {
-        const a = (typeof CAJASOC_ADJ !== 'undefined' && CAJASOC_ADJ[m.id]) ? CAJASOC_ADJ[m.id] : null;
-        const hon = a && a.hon ? a.hon : (a && a.nombre ? a : null);
-        return hon ? `<button class="mini-btn" onclick="verComprobanteSoc(${m.id})">📄 Ver</button>` : '—';
+        return adjBoton('soc', m.id) || '—';
       })()}</td>
       <td style="text-align:center"><input type="checkbox" ${m.revisado ? 'checked' : ''} ${puedeRevisar() ? `onchange="toggleRevisadoSoc(${m.id})"` : 'disabled title="Solo Ivana puede marcar como revisado"'} title="Revisado" style="accent-color:var(--sello)"></td>
       <td><button class="tarea-del" onclick="wlEliminarPropio(${m.id})" title="Eliminar">✕</button></td>
@@ -18167,15 +18289,16 @@ async function descargarReporteCajaSoc() {
   const rServ = __socRank(ingresos, 'concepto', '(sin concepto)', dolar).slice(0, 8);
   const rCli = __socRank(ingresos, 'contraparte', '(sin cliente)', dolar).slice(0, 8);
   const filaRk = (r, i) => `<tr><td style="width:26px;text-align:center;font-weight:700;color:#1b3a6b">${i + 1}</td><td>${esc(r.nombre)}</td><td class="der">${r.ars ? '$ ' + fmtNumStr(r.ars) : ''}${r.ars && r.usd ? ' · ' : ''}${r.usd ? 'u$s ' + fmtNumStr(r.usd) : ''}</td></tr>`;
-  const comps = movs.filter(m => CAJASOC_ADJ[m.id] && (CAJASOC_ADJ[m.id].url || CAJASOC_ADJ[m.id].path || CAJASOC_ADJ[m.id].data));
+  // Todos los comprobantes de cada movimiento, no solo el principal
+  const comps = movs.flatMap(m => adjLista(CAJASOC_ADJ[m.id]).map((adj, k, l) => ({ m, adj, clave: m.id + '#' + k, k, n: l.length })));
   // Comprobantes incrustados: el balance descargado no depende de enlaces que vencen.
-  const EMBSOC = await sbEmbeberAdjuntos(comps.map(m => [m.id, CAJASOC_ADJ[m.id]]));
-  const anexo = comps.length ? `<h2>Comprobantes adjuntos</h2><div class="comps">` + comps.map(m => {
-    const adj = CAJASOC_ADJ[m.id];
-    const esImg = (adj.tipo || '').startsWith('image');
-    const src = EMBSOC[m.id] || adj.data || adj.url || '';
+  const EMBSOC = await sbEmbeberAdjuntos(comps.map(c => [c.clave, c.adj]));
+  const anexo = comps.length ? `<h2>Comprobantes adjuntos</h2><div class="comps">` + comps.map(c => {
+    const m = c.m, adj = c.adj;
+    const esImg = (adj.tipo || '').startsWith('image') || /\.(jpe?g|png|webp|gif)$/i.test(adj.nombre || '');
+    const src = EMBSOC[c.clave] || adj.data || adj.url || '';
     const tipoLbl = m.tipo === 'gasto' ? 'Gasto ordinario' : m.tipo === 'gasto_esc' ? 'Gasto escribanía' : 'Ingreso';
-    return `<figure>${esImg && src ? `<img src="${src}" alt="">` : ''}<figcaption><b>${esc(m.contraparte || m.concepto)}</b> · ${formatFechaCorta(m.fecha)}<br>${tipoLbl} — ${m.moneda === 'USD' ? 'u$s ' : '$ '}${fmtNumStr(m.monto)}<br>${src ? `<a href="${src}" download="${esc(adj.nombre || 'comprobante')}">⬇ ${esc(adj.nombre || 'Ver comprobante')}</a>` : ''}</figcaption></figure>`;
+    return `<figure>${esImg && src ? `<img src="${src}" alt="">` : ''}<figcaption><b>${esc(m.contraparte || m.concepto)}</b> · ${formatFechaCorta(m.fecha)}${c.n > 1 ? ' · comprobante ' + (c.k + 1) + ' de ' + c.n : ''}<br>${tipoLbl} — ${m.moneda === 'USD' ? 'u$s ' : '$ '}${fmtNumStr(m.monto)}<br>${src ? `<a href="${src}" download="${esc(adj.nombre || 'comprobante')}">⬇ ${esc(adj.nombre || 'Ver comprobante')}</a>` : ''}</figcaption></figure>`;
   }).join('') + '</div>' : '';
   const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -18234,10 +18357,6 @@ td.der{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-
   ${COM_SOC_PERSONAS.map(p => `<div class="ficha${comPorPers[p.id].total > 0 ? ' hi' : ''}"><span>Comisión ${esc(p.nombre)}</span><b>$ ${fmtNumStr(comPorPers[p.id].total)}</b><i>${comPorPers[p.id].n} venta${comPorPers[p.id].n !== 1 ? 's' : ''} con comisión</i></div>`).join('')}
   <div class="ficha" style="border-color:#c9a961;background:#fdf9ee"><span>Total comisiones</span><b>$ ${fmtNumStr(comTotalMes)}</b><i>${mesLargo(mes)}</i></div>
 </div>
-<h2>Servicios más vendidos</h2>
-<table><thead><tr><th style="width:26px">#</th><th>Concepto / servicio</th><th style="text-align:right">Total</th></tr></thead><tbody>${rServ.map(filaRk).join('') || '<tr><td colspan="3">Sin ingresos.</td></tr>'}</tbody></table>
-<h2>Clientes que más pagaron</h2>
-<table><thead><tr><th style="width:26px">#</th><th>Cliente</th><th style="text-align:right">Total</th></tr></thead><tbody>${rCli.map(filaRk).join('') || '<tr><td colspan="3">Sin ingresos.</td></tr>'}</tbody></table>
 <h2>▲ Ingresos</h2>
 <table><thead><tr><th>Fecha</th><th>Cliente / proveedor</th><th>Concepto</th><th style="text-align:right">Monto</th><th>Método</th></tr></thead><tbody>${ingresos.map(filaR).join('') || '<tr><td colspan="5">Sin ingresos.</td></tr>'}</tbody></table>
 <h2>▼ Gastos ordinarios</h2>
@@ -18405,38 +18524,20 @@ function comKevReuMes(ym){
   try { return (reuDeCaja('judicial', ym).total || 0) * 0.10; } catch(e){ return 0; }
 }
 function cajaAdjuntoElegido(input) {
-  const file = input.files && input.files[0];
+  const files = adjValidar(input.files);
   input.value = '';
-  if (!file) { __adjTarget = null; return; }
-  if (file.size > 3 * 1024 * 1024) {
-    alert('El archivo supera los 3 MB. Comprimí la imagen antes de adjuntarla: el navegador tiene un límite de almacenamiento local.');
-    __adjTarget = null; return;
-  }
+  if (!files.length) { __adjTarget = null; return; }
   if (__adjTarget != null) {
-    // Pago ya existente: subir directo al Storage y actualizar la fila
+    // Pago ya existente: se SUMAN a los comprobantes que tenía
     const idPago = __adjTarget; __adjTarget = null;
-    sbGuardarComprobante(idPago, file).then(info => {
-      CAJA_ADJ[idPago] = { nombre: file.name, tipo: file.type, path: info.path, url: info.url };
-      saveCajaLocalAdj();
-      const p = CAJA.find(x => x.id === idPago); if (p) sbPushPago(p);
-      renderCaja();
-    }).catch(e => { sbAvisarError(e); alert('No se pudo subir el comprobante a la nube.'); });
+    adjSubirYSumar('jud', idPago, files.map(f => ({ nombre: f.name, tipo: f.type, file: f })));
   } else {
-    // Pago nuevo aún sin registrar: se guarda el archivo en memoria y se sube al registrar
-    __adjStaged = { nombre: file.name, tipo: file.type, file };
-    const b = document.getElementById('cjAdjBtn');
-    if (b) b.textContent = '📎 ' + (file.name.length > 24 ? file.name.slice(0, 24) + '…' : file.name);
+    // Pago nuevo aún sin registrar: quedan en memoria y se suben al registrar
+    adjStagedAgregar('jud', files);
   }
 }
 function adjuntarA(id) { __adjTarget = id; document.getElementById('cajaAdjInput').click(); }
-function verComprobante(id) {
-  const adj = CAJA_ADJ[id];
-  if (!adj) return;
-  if (adj.path || adj.url) { sbAbrirArchivo(adj, { nombre: adj.nombre }); return; }
-  const a = document.createElement('a');
-  a.href = adj.data; a.download = adj.nombre || 'comprobante';
-  a.click();
-}
+function verComprobante(id) { adjVer('jud', id); }
 // ═══════════ UI DE CUOTAS (compartida judicial 'cj' / societaria 'cs') ═══════════
 function __cuotaIds(caja) {
   const p = caja === 'soc' ? 'cs' : 'cj';
@@ -18887,18 +18988,14 @@ function registrarPago() {
       }
     }, 100);
   }
-  if (__adjStaged) {
-    const st = __adjStaged; __adjStaged = null;
-    sbGuardarComprobante(pago.id, st.file).then(info => {
-      CAJA_ADJ[pago.id] = { nombre: st.nombre, tipo: st.tipo, path: info.path, url: info.url };
-      saveCajaLocalAdj(); sbPushPago(pago); renderCaja();
-    }).catch(e => sbAvisarError(e));
-  }
+  { const st = adjStaged('jud').slice(); __adjStaged = [];
+    if (st.length) adjSubirYSumar('jud', pago.id, st);
+    adjStagedPintar('jud'); }
   ['cjCliente','cjConcepto','cjMonto','cjReceptor'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('cjComOri').checked = false;
   const cjcp = document.getElementById('cjComisionPara'); if (cjcp) cjcp.value = '';
   cjResetCuota('jud');
-  const b = document.getElementById('cjAdjBtn'); if (b) b.textContent = '📎 Adjuntar foto / PDF';
+  adjStagedPintar('jud');
   document.getElementById('cajaMes').value = fecha.slice(0, 7);
   renderCajaDatalists(); renderCaja();
 }
@@ -19071,7 +19168,7 @@ function cajaBuscarRender(){
         <td>${esc(p.concepto||'—')}${p.planId?' '+etiquetaCuota(p.planId,p.nroCuota):''}</td>
         <td class="monto ${p.moneda==='USD'?'usd':''}">${montoTxt(p)}</td>
         <td style="font-size:11.5px">${met}${p.receptor?' → '+esc(p.receptor):''}</td>
-        <td>${CAJA_ADJ[p.id]?`<button class="mini-btn" onclick="verComprobante(${p.id})">📄 Ver</button>`:'<span style="color:var(--tinta-suave);font-size:11px">—</span>'}</td>
+        <td style="white-space:nowrap">${adjBoton('jud', p.id) || '<span style="color:var(--tinta-suave);font-size:11px">—</span>'}</td>
       </tr>`;}).join('')+'</tbody></table></div>';
 }
 function cajaBuscarMesChange(){ CJ_BUSQ_MES=(document.getElementById('cajaBuscarMes')||{}).value||''; cajaBuscarRender(); }
@@ -19112,7 +19209,7 @@ function cajaSocBuscarRender(){
         <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;color:${gasto?'#b3372a':'#1e7a48'}">${sim}${fmtNumStr(m.monto)}</td>
         <td style="font-size:11.5px">${tipoTxt}</td>
         <td style="font-size:11.5px">${met}${m.receptor?' → '+esc(m.receptor):''}</td>
-        <td>${CAJASOC_ADJ[m.id]?`<button class="mini-btn" onclick="verComprobanteSoc(${m.id})">📄 Ver</button>`:'<span style="color:var(--tinta-suave);font-size:11px">—</span>'}</td>
+        <td style="white-space:nowrap">${adjBoton('soc', m.id) || '<span style="color:var(--tinta-suave);font-size:11px">—</span>'}</td>
       </tr>`;}).join('')+'</tbody></table></div>';
 }
 function cajaSocBuscarMesChange(){ CS_BUSQ_MES=(document.getElementById('csBuscarMes')||{}).value||''; cajaSocBuscarRender(); }
@@ -19304,9 +19401,7 @@ function renderCaja() {
         <td style="font-size:11.5px">${met}${p.receptor ? ' → ' + esc(p.receptor) : ''}</td>
         <td class="monto">${sim}${fmtNumStr(c.k)}</td>
         <td class="monto">${c.o ? sim + fmtNumStr(c.o) : '—'}</td>
-        <td>${CAJA_ADJ[p.id]
-          ? `<button class="mini-btn" onclick="verComprobante(${p.id})" title="${esc(CAJA_ADJ[p.id].nombre)}">📄 Ver</button>`
-          : `<button class="mini-btn" onclick="adjuntarA(${p.id})">＋ Adjuntar</button>`}</td>
+        <td style="white-space:nowrap">${adjBoton('jud', p.id) || `<button class="mini-btn" onclick="adjuntarA(${p.id})">＋ Adjuntar</button>`}</td>
         <td style="text-align:center"><input type="checkbox" ${p.revisado ? 'checked' : ''} ${puedeRevisar() ? `onchange="toggleRevisado(${p.id})"` : 'disabled title="Solo Ivana puede marcar como revisado"'} title="Revisado" style="accent-color:var(--sello)"></td>
         <td style="white-space:nowrap"><button class="cs-edit-b" onclick="cjEditarPago(${p.id})" title="Editar este pago">✎</button><button class="tarea-del" onclick="eliminarPago(${p.id})" title="Eliminar pago">✕</button></td>
       </tr>`;
@@ -19337,19 +19432,7 @@ function renderCaja() {
       <span class="rank-monto">${r.ars ? '$ ' + fmtNumStr(r.ars) : ''}${r.ars && r.usd ? ' · ' : ''}${r.usd ? 'u$s ' + fmtNumStr(r.usd) : ''}${r.n > 1 ? `<small class="rank-n">${r.n} cobros</small>` : ''}</span>
     </div>`;
 
-  // Qué generó más ingresos → por CONCEPTO / servicio
-  const rankConcepto = agrupar('concepto', '(sin concepto)', true);
-  const maxConcepto = rankConcepto.length ? rankConcepto[0].clave : 1;
-  document.getElementById('cajaRanking').innerHTML = rankConcepto.length
-    ? rankConcepto.slice(0, 8).map((r, i) => filaRank(r, i, maxConcepto)).join('')
-    : '<div class="panel-empty">Sin pagos este mes.</div>';
-
-  // Quién más abonó → por CLIENTE
-  const rankCliente = agrupar('cliente', '(sin cliente)');
-  const maxCliente = rankCliente.length ? rankCliente[0].clave : 1;
-  document.getElementById('cajaRankingClientes').innerHTML = rankCliente.length
-    ? rankCliente.slice(0, 8).map((r, i) => filaRank(r, i, maxCliente)).join('')
-    : '<div class="panel-empty">Sin pagos este mes.</div>';
+  // (Los rankings "Qué generó más ingresos" y "Clientes que más abonaron" se sacaron a pedido.)
 
   renderCuotasPendientes('');
 }
@@ -20137,9 +20220,11 @@ async function descargarReporteCaja() {
   const rank = Object.entries(porConcepto).map(([n, v]) => ({ n, ...v, clave: v.ars + v.usd * (dolar || 1) })).sort((a, b) => b.clave - a.clave);
   const maxClave = rank.length ? rank[0].clave : 1;
   const conAdj = pagos.filter(p => CAJA_ADJ[p.id]);
+  // Todos los comprobantes de cada pago (uno por recuadro), no solo el principal
+  const compsJ = pagos.flatMap(p => adjLista(CAJA_ADJ[p.id]).map((adj, k, l) => ({ p, adj, clave: p.id + '#' + k, k, n: l.length })));
   // Los comprobantes se incrustan en el archivo: así el balance sirve para siempre,
   // aunque los enlaces venzan o el archivo se mueva.
-  const EMB = await sbEmbeberAdjuntos(conAdj.map(p => [p.id, CAJA_ADJ[p.id]]));
+  const EMB = await sbEmbeberAdjuntos(compsJ.map(c => [c.clave, c.adj]));
   const ficha = (lbl, val, sub, hi) => `<div class="ficha${hi ? ' hi' : ''}"><span>${lbl}</span><b>${val}</b>${sub ? `<i>${sub}</i>` : ''}</div>`;
 
   const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
@@ -20400,17 +20485,14 @@ ${ficha('Comisión Ori — dólares', 'u$s ' + fmtNumStr(t.oUsd), '')}
 ${dolar > 0 ? ficha('Comisión Ori — pesificada', '$ ' + fmtNumStr(oPes), '', true) : ''}
 </div>
 
-<h2>Qué generó más ingresos</h2>
-<table><thead><tr><th style="width:26px">#</th><th>Concepto / servicio</th><th class="r">Pesos</th><th class="r">Dólares</th></tr></thead><tbody>
-${rank.map((r, i) => `<tr><td>${i + 1}</td><td><b>${esc(r.n)}</b><div class="barra"><i style="width:${Math.max(4, Math.round(r.clave / maxClave * 100))}%"></i></div></td><td class="r">${r.ars ? '$ ' + fmtNumStr(r.ars) : '—'}</td><td class="r usd">${r.usd ? 'u$s ' + fmtNumStr(r.usd) : '—'}</td></tr>`).join('')}
-</tbody></table>
 
 <h2>Detalle de pagos</h2>
 <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Concepto</th><th class="r">Monto</th><th>Método</th><th class="r">Com. Kevin</th><th class="r">Com. Ori</th><th>Comprob.</th><th style="text-align:center">Rev.</th></tr></thead><tbody>
 ${pagos.map(p => { const c = comisionesDe(p); const sim = p.moneda === 'USD' ? 'u$s ' : '$ ';
   const adj = CAJA_ADJ[p.id];
-  const compSrc = adj ? (EMB[p.id] || adj.data || '') : '';
-  const comp = adj ? (compSrc ? `<a href="${compSrc}" download="${esc(adj.nombre || 'comprobante')}">Ver</a>` : 'Sí') : '—';
+  const nAdj = adjLista(adj).length;
+  const compSrc = adj ? (EMB[p.id + '#0'] || adj.data || '') : '';
+  const comp = adj ? (compSrc ? `<a href="${compSrc}" download="${esc(adj.nombre || 'comprobante')}">Ver</a>` : 'Sí') + (nAdj > 1 ? ' (' + nAdj + ')' : '') : '—';
   return `<tr><td style="white-space:nowrap">${formatFechaCorta(p.fecha)}</td><td><b>${esc(p.cliente)}</b>${p.comisionOri ? '<span class="chip">Ori</span>' : ''}</td><td>${esc(p.concepto || '—')}</td>
   <td class="r ${p.moneda === 'USD' ? 'usd' : ''}">${montoTxt(p)}</td><td style="font-size:11.5px">${p.metodo}${p.receptor ? ' → ' + esc(p.receptor) : ''}</td>
   <td class="r">${sim}${fmtNumStr(c.k)}</td><td class="r">${c.o ? sim + fmtNumStr(c.o) : '—'}</td>
@@ -20418,10 +20500,10 @@ ${pagos.map(p => { const c = comisionesDe(p); const sim = p.moneda === 'USD' ? '
   <td style="text-align:center"><input type="checkbox" class="rev" data-id="${p.id}" ${p.revisado ? 'checked' : ''}></td></tr>`; }).join('')}
 </tbody></table>
 
-${conAdj.length ? `<h2>Comprobantes de pago</h2>
+${compsJ.length ? `<h2>Comprobantes de pago</h2>
 <div class="comp">
-${conAdj.map(p => { const adj = CAJA_ADJ[p.id]; const esImg = (adj.tipo || '').startsWith('image/') || /\.(jpe?g|png|webp|gif)$/i.test(adj.nombre || '');
-  const src = EMB[p.id] || adj.data || adj.url || '';
+${compsJ.map(c => { const p = c.p, adj = c.adj; const esImg = (adj.tipo || '').startsWith('image/') || /\.(jpe?g|png|webp|gif)$/i.test(adj.nombre || '');
+  const src = EMB[c.clave] || adj.data || adj.url || '';
   return `<figure>
   ${esImg && src ? `<a href="${src}" target="_blank"><img src="${src}" alt="Comprobante ${esc(p.cliente)}"></a>` : `<div style="font-size:34px;text-align:center;padding:18px 0">📄</div>`}
   <figcaption><b>${esc(p.cliente)}</b> · ${formatFechaCorta(p.fecha)}<br>${montoTxt(p)} — ${p.metodo}${p.receptor ? ' → ' + esc(p.receptor) : ''}<br>${src ? `<a href="${src}" download="${esc(adj.nombre || 'comprobante')}">⬇ ${esc(adj.nombre || 'Ver comprobante')}</a>` : ''}</figcaption>
