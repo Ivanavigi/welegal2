@@ -176,9 +176,7 @@ body.cajasoc-gastos #paginaCajaSoc #panelCuotasPendSoc{display:none}
 body.cajasoc-gastos #paginaCajaSoc .grid-caja-4{display:none}
 body.cajasoc-gastos #paginaCajaSoc .f-col:has(#csPack){display:none}
 body.cajasoc-gastos #paginaCajaSoc #csComisionWrap{display:none}
-body.cajasoc-gastos #paginaCajaSoc #csOpcionesWrap{display:none}
 body.cajasoc-gastos #paginaCajaSoc #csDesgloseBox{display:none}
-body.cajasoc-gastos #paginaCajaSoc #csCuotaBox{display:none}
 body.cajasoc-gastos #paginaCajaSoc #csPackHint{display:none}
 body.cajasoc-gastos #paginaCajaSoc th:nth-child(7),body.cajasoc-gastos #paginaCajaSoc td:nth-child(7){display:none}
 
@@ -3705,7 +3703,7 @@ body.locked .app{margin-left:0}
               <div class="f-col" style="flex:0 0 105px" id="csWrapMonPlan"><label>Moneda del plan</label>
                 <select id="csMonPlan" onchange="cjRenderCuotaUI('soc')"><option value="USD">u$s USD</option><option value="ARS">$ ARS</option></select></div>
               <div class="f-col" style="flex:0 0 125px" id="csWrapTotal"><label>Cuotas</label>
-                <select id="csTotal" onchange="cjRenderCuotaUI('soc')"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select>
+                <select id="csTotal" onchange="cjRenderCuotaUI('soc')"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select>
               </div>
               <div class="f-col" style="flex:0 0 170px"><label>¿Qué cuota paga?</label><select id="csNro" onchange="cjRenderCuotaUI('soc')"></select></div>
             </div>
@@ -7243,11 +7241,14 @@ async function __sbCargarTodoInterno() {
     // llega ya es viejo: pisarlo le borraba el cambio en pantalla y, al tocar otra
     // cosa, el mapa viejo volvía a subir a la nube.
     if (cfg.abonos_caja && (typeof __aboCajaTocado === 'undefined' || __aboCajaTocado < __t0)) {
-      try { appStore.setItem(ABONOS_CAJA_KEY, cfg.abonos_caja); } catch(e){}
+      try { appStore.setItem(ABONOS_CAJA_KEY, JSON.stringify(abonoCajaParse(cfg.abonos_caja).m)); } catch(e){ console.error('abonos_caja:', e); }
     }
     // Desde acá el reparto se puede editar: ya sabemos qué hay guardado. Vale aunque
     // la clave no exista todavía en `config`, porque eso también es una respuesta.
-    if (typeof __aboCajaListo !== 'undefined') __aboCajaListo = true;
+    // Pero si la LECTURA falló (rCfg null), no sabemos nada: se reintenta aparte y,
+    // hasta que llegue, el selector avisa que se está sincronizando.
+    if (Array.isArray(rCfg)) { if (typeof __aboCajaListo !== 'undefined') __aboCajaListo = true; __aboCajaRefrescoUlt = Date.now(); }
+    else if (typeof abonoCajaRefrescar === 'function') setTimeout(() => abonoCajaRefrescar(true), 3000);
     if (__repintarAbonos && typeof renderAbonos === 'function' && document.getElementById('abonosPanel')) {
       __repintarAbonos = false;
       try { renderAbonos(); } catch(e){}
@@ -10657,25 +10658,147 @@ function abonoCajaMapa(){
 var __aboCajaTocado = 0;
 // Se pone en true cuando la config de la nube ya llegó y se aplicó.
 var __aboCajaListo = false;
-// Guarda el reparto y CONFIRMA contra la base: no alcanza con que el upsert no
-// tire error, porque sbUpsert se va en silencio si no hay sesión. Se relee la
-// fila y se compara antes de avisar que quedó guardado.
-async function abonoCajaGuardar(m){
+// ══ GUARDADO DE LA DISTRIBUCIÓN ══
+// El reparto es UN solo valor en `config` (un mapa con todos los abonos). Antes cada
+// navegador subía el mapa COMPLETO que tenía en memoria: si alguien tenía la app abierta
+// desde temprano y daba de alta, editaba o borraba un abono, subía su mapa viejo y
+// borraba sin aviso lo que otra persona había guardado después (era el caso de Brenda:
+// veía "Cambio guardado" y al rato el cambio no estaba). Y si al abrir fallaba la lectura
+// de `config`, el primer cambio pisaba la base con un mapa casi vacío.
+// Ahora cada cambio es un "delta" (solo los abonos tocados): se lee lo que hay en la base
+// EN ESE MOMENTO, se le aplica el delta y se escribe CONDICIONADO: cada versión guardada
+// lleva una marca al azar ("zmarca") y la base solo acepta la escritura si la marca sigue
+// siendo la que se leyó. Si otra persona guardó en el medio, la base no actualiza nada
+// y se reintenta sobre la versión nueva. Así dos personas guardando en el mismo
+// instante no se pisan. Los cambios de un mismo navegador salen en fila.
+// La marca es una clave más del mapa: las versiones viejas de la app la ignoran. Va sin
+// guiones bajos a propósito: en el `like` de SQL el "_" es un comodín.
+var __aboCajaCola = Promise.resolve();
+// Texto guardado → { m: mapa sin la marca, t: marca o null }
+function abonoCajaParse(txt){
+  if (!txt) return { m: {}, t: null };
+  const o = JSON.parse(txt);
+  if (!o || typeof o !== 'object' || Array.isArray(o)) throw new Error('la distribución guardada tiene un formato inválido');
+  const t = (typeof o.zmarca === 'string' && /^[a-z0-9]{8,}$/.test(o.zmarca)) ? o.zmarca : null;
+  const m = Object.assign({}, o); delete m.zmarca;
+  return { m, t };
+}
+function abonoCajaMarca(){
+  let s = ''; while (s.length < 16) s += Math.random().toString(36).slice(2);
+  return s.slice(0, 16);
+}
+async function abonoCajaLeerBase(){
+  const r = await sbFetch(`${SB_URL}/rest/v1/config?clave=eq.abonos_caja&select=valor`, {});
+  if (!r.ok) throw new Error('no se pudo leer la distribución (' + r.status + ')');
+  const filas = await r.json();
+  const txt = Array.isArray(filas) && filas[0] ? filas[0].valor : null;
+  const p = abonoCajaParse(txt);
+  return { m: p.m, t: p.t, txt, existe: !!txt };
+}
+// Escritura condicionada: actualiza solo si la fila todavía tiene la marca `marca` (o, si
+// `marca` es null, solo si todavía NO tiene ninguna: el formato anterior a la marca).
+// Devuelve true si escribió, false si otra persona guardó antes (no tocó nada).
+async function abonoCajaEscribirSi(marca, txt){
+  if (typeof appBloqueada === 'function' && appBloqueada()) throw new Error('sesión requerida');
+  if (typeof sbSesionActiva === 'function' && !sbSesionActiva()) throw new Error('sesión vencida: volvé a entrar');
+  const cond = marca ? `valor=like.*${marca}*` : 'valor=not.like.*zmarca*';
+  const r = await sbFetch(`${SB_URL}/rest/v1/config?clave=eq.abonos_caja&${cond}`,
+    { method: 'PATCH', body: JSON.stringify({ valor: txt }) }, { 'Prefer': 'return=representation' });
+  if (!r.ok) throw new Error('config ' + r.status + ': ' + (await r.text()).slice(0, 120));
+  const filas = await r.json().catch(() => []);
+  return Array.isArray(filas) && filas.length > 0;
+}
+function abonoCajaLocalSet(m){ try { appStore.setItem(ABONOS_CAJA_KEY, JSON.stringify(m)); } catch(e){} }
+function abonoCajaConDelta(m, delta){
+  const out = Object.assign({}, m);
+  Object.keys(delta).forEach(k => { if (delta[k] == null) delete out[k]; else out[k] = delta[k]; });
+  return out;
+}
+function abonoCajaDeltaOk(m, delta){
+  return Object.keys(delta).every(k => delta[k] == null
+    ? !Object.prototype.hasOwnProperty.call(m, k)
+    : JSON.stringify(m[k]) === JSON.stringify(delta[k]));
+}
+// Repinta lo que muestra el reparto, solo si está a la vista
+function abonoCajaRepintar(){
+  const vis = id => { const e = document.getElementById(id); return !!e && e.style.display !== 'none'; };
+  try { if (vis('paginaAbonos') && typeof renderAbonos === 'function') renderAbonos(); } catch(e){}
+  try { if (vis('paginaCajaSoc') && typeof renderCajaSoc === 'function') renderCajaSoc(); } catch(e){}
+}
+// Aplica un cambio { idAbono: {caja,pct} | null } y lo confirma contra la base
+function abonoCajaAplicar(delta){
   __aboCajaTocado = Date.now();
-  const txt = JSON.stringify(m);
-  try { appStore.setItem(ABONOS_CAJA_KEY, txt); } catch(e){}
-  if (typeof SB_ON === 'undefined' || !SB_ON) return;
+  abonoCajaLocalSet(abonoCajaConDelta(abonoCajaMapa(), delta));   // en pantalla, al instante
+  if (typeof SB_ON === 'undefined' || !SB_ON) return Promise.resolve(true);
+  const p = __aboCajaCola.catch(() => {}).then(() => abonoCajaEscribir(delta));
+  __aboCajaCola = p;
+  return p;
+}
+async function abonoCajaEscribir(delta){
   try {
-    await sbUpsert('config', { clave: 'abonos_caja', valor: txt });
-    const r = await sbFetch(`${SB_URL}/rest/v1/config?clave=eq.abonos_caja&select=valor`, {});
-    const filas = r.ok ? await r.json() : null;
-    const guardado = Array.isArray(filas) && filas[0] ? filas[0].valor : null;
-    if (guardado === txt) abonoCajaAviso('Cambio guardado', 'ok');
-    else abonoCajaAviso('No se pudo confirmar el guardado. Revisá la conexión y reintentá.', 'mal');
+    for (let intento = 0; intento < 5; intento++){
+      const base = await abonoCajaLeerBase();
+      const nuevo = abonoCajaConDelta(base.m, delta);
+      nuevo.zmarca = abonoCajaMarca();
+      const txt = JSON.stringify(nuevo);
+      if (base.existe){
+        // Condicionada a que nadie haya guardado desde la lectura. Si la fila todavía
+        // tiene el formato anterior (sin marca), condicionada a que siga sin marca.
+        const escribio = await abonoCajaEscribirSi(base.t, txt);
+        if (!escribio){ await new Promise(r => setTimeout(r, 120 + Math.random() * 380)); continue; }
+      } else {
+        // La fila no existe todavía (nunca se guardó un reparto): se crea.
+        await sbUpsert('config', { clave: 'abonos_caja', valor: txt });
+      }
+      const conf = await abonoCajaLeerBase();
+      if (abonoCajaDeltaOk(conf.m, delta)){
+        __aboCajaTocado = Date.now();
+        const antes = appStore.getItem(ABONOS_CAJA_KEY);
+        abonoCajaLocalSet(conf.m);          // queda igual a la base, con lo que hayan cambiado otros
+        if (antes !== JSON.stringify(conf.m)) abonoCajaRepintar();
+        abonoCajaAviso('Cambio guardado', 'ok');
+        return true;
+      }
+      // Otra persona guardó entre la lectura y la escritura: se reintenta sobre lo nuevo
+    }
+    throw new Error('no se pudo confirmar en la base');
   } catch(err){
     console.error('abonos_caja:', err);
-    abonoCajaAviso('No se pudo guardar el cambio: ' + ((err && err.message) || err), 'mal');
+    abonoCajaAviso('No se guardó el cambio de distribución: ' + ((err && err.message) || err) + '. Volvé a intentarlo.', 'mal');
+    // No se deja en pantalla algo que no está en la base
+    try { const b = await abonoCajaLeerBase(); if (b.existe) abonoCajaLocalSet(b.m); __aboCajaTocado = Date.now(); } catch(e){}
+    abonoCajaRepintar();
+    return false;
   }
+}
+// Compatibilidad: si alguien pasa un mapa completo, se guarda SOLO la diferencia
+function abonoCajaGuardar(m){
+  const act = abonoCajaMapa(), delta = {};
+  new Set(Object.keys(act).concat(Object.keys(m || {}))).forEach(k => {
+    if (JSON.stringify(act[k]) !== JSON.stringify((m || {})[k])) delta[k] = (m || {})[k] == null ? null : m[k];
+  });
+  return Object.keys(delta).length ? abonoCajaAplicar(delta) : Promise.resolve(true);
+}
+// Trae de la base el reparto vigente (lo que guardaron otras personas). Se llama al
+// entrar a las pantallas que lo usan y al volver a la pestaña; como mucho cada 30 s.
+var __aboCajaRefrescoUlt = 0;
+function abonoCajaRefrescar(forzar){
+  if (typeof SB_ON === 'undefined' || !SB_ON) return Promise.resolve();
+  if (typeof appBloqueada === 'function' && appBloqueada()) return Promise.resolve();
+  if (!forzar && Date.now() - __aboCajaRefrescoUlt < 30000) return Promise.resolve();
+  __aboCajaRefrescoUlt = Date.now();
+  const t0 = Date.now();
+  const p = __aboCajaCola.catch(() => {}).then(async () => {
+    try {
+      const b = await abonoCajaLeerBase();
+      __aboCajaListo = true;                       // ya sabemos qué hay guardado
+      if (__aboCajaTocado > t0) return;            // hubo una edición en el medio: manda esa
+      if (!b.existe) return;
+      if (appStore.getItem(ABONOS_CAJA_KEY) !== JSON.stringify(b.m)){ abonoCajaLocalSet(b.m); abonoCajaRepintar(); }
+    } catch(e){ console.warn('abonos_caja refresco:', e); }
+  });
+  __aboCajaCola = p;
+  return p;
 }
 // Aviso fijo al pie de la pantalla
 function abonoCajaAviso(msg, tipo){
@@ -10710,16 +10833,16 @@ function abonoCajaSet(cliId, caja, pct){
     try { renderAbonos(); } catch(e){}   // deja el selector como estaba
     return;
   }
-  const m = abonoCajaMapa();
   const k = String(cliId);
-  if (caja === 'abono') delete m[k];
-  else if (caja === 'societario') m[k] = { caja: 'societario', pct: 100 };
+  let v;
+  if (caja === 'abono') v = null;
+  else if (caja === 'societario') v = { caja: 'societario', pct: 100 };
   else {
     let p = Number(pct);
     if (!isFinite(p)) p = 50;
-    m[k] = { caja: 'mixto', pct: Math.max(0, Math.min(100, p)) };
+    v = { caja: 'mixto', pct: Math.max(0, Math.min(100, p)) };
   }
-  abonoCajaGuardar(m);
+  return abonoCajaAplicar({ [k]: v });   // solo este abono: no toca el reparto de los demás
 }
 function abonoEsActas(cli){ return abonoCajaDe(cli).caja !== 'abono'; }
 // Etiqueta para el listado: de un vistazo se ve a qué caja va cada abono.
@@ -12100,8 +12223,7 @@ function abonoEliminar(cliId){
   if (typeof SB_ON !== 'undefined' && SB_ON) sbDelete('abonos_clientes', cliId).catch(sbAvisarError);
   // Regla de reparto abono/societario del cliente eliminado
   try {
-    const m = abonoCajaMapa();
-    if (Object.prototype.hasOwnProperty.call(m, String(cliId))) { delete m[String(cliId)]; abonoCajaGuardar(m); }
+    if (Object.prototype.hasOwnProperty.call(abonoCajaMapa(), String(cliId))) abonoCajaAplicar({ [String(cliId)]: null });
   } catch(e){}
   abonoCerrarRegistro();
   renderAbonos();
@@ -14004,6 +14126,8 @@ function navTo(p) {
   if (!PAGE_IDS[p]) p = 'inicio';
   if (typeof permisoPagina === 'function' && !permisoPagina(p)) p = 'inicio';
   __navToInterno(p);
+  // El reparto de abonos puede haberlo cambiado otra persona: se trae el vigente
+  if ((p === 'abonos' || p === 'cajasoc' || p === 'ingresos') && typeof abonoCajaRefrescar === 'function') abonoCajaRefrescar();
   if (__navHistOn) {
     try {
       const st = history.state;
@@ -23122,6 +23246,10 @@ if (sesionActiva()) aplicarPermisos();
   try { history.replaceState({ jcPage: inicial }, '', '#' + inicial); } catch (e) {}
   __navToInterno(inicial);
 })();
+// Al volver a la pestaña (la app suele quedar abierta todo el día) se trae el reparto vigente
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && typeof abonoCajaRefrescar === 'function') abonoCajaRefrescar();
+});
 // ══ VIGILANTE DEL CANDADO ══
 // Si alguien saca la clase 'locked' desde la consola sin tener sesión, se repone
 // sola y se vacía todo lo que hubiera quedado en memoria. El esqueleto se ve; los
