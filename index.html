@@ -1560,6 +1560,9 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .abo-estado{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;display:inline-block}
 .abo-estado.ok{background:var(--ok-bg,#e6f3ec);color:var(--ok,#1e7a48)}
 .abo-estado.debe{background:var(--warn-bg,#f8eed7);color:var(--warn,#a86e17)}
+.abo-estado.inact{background:#f1f1ef;color:#8a8a84;border:1px dashed #d6d6d0;font-weight:600}
+.abo-row.inact{opacity:.6}
+.abo-mm-chip.inact{opacity:.4;cursor:not-allowed;border-style:dashed}
 .abo-reg{flex:0 0 auto;font-size:12px;font-weight:600;border:1px solid var(--filo);background:var(--carta);color:#14294a;border-radius:8px;padding:7px 13px;cursor:pointer;white-space:nowrap}
 .abo-reg:hover{background:var(--papel)}
 .abo-reg-sp{width:78px;flex:0 0 auto}
@@ -1620,6 +1623,7 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
    motivo quede con espacio real para escribir. */
 .abo-com-fila .abo-reg-fld.mesc input{padding-left:7px;padding-right:2px;font-size:12.5px}
 .abo-com-fila .abo-reg-fld.mesc input::-webkit-calendar-picker-indicator{padding:0;margin:0}
+@media (max-width:620px){ .abo-mon-fila > .abo-reg-fld{flex:1 1 40%} .abo-mon-fila > .abo-reg-fld.mesc{flex:1 1 40%} .abo-mon-fila > .abo-reg{flex:1 1 100%} }
 .abo-reg-fld textarea{resize:vertical}
 .abo-reg-comprob{margin-top:2px}
 .abo-comprob-drop{display:flex;align-items:center;gap:10px;padding:14px;border:1.5px dashed var(--filo);border-radius:var(--radio-s,9px);cursor:pointer;font-size:13px;color:var(--tinta-suave);background:var(--papel);transition:border-color .15s}
@@ -1871,6 +1875,18 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .abo-m-nuevo{flex:1.4}
 .abo-m-nuevo input{width:100%;padding:8px 11px;border:1px solid var(--filo);border-radius:7px;font-family:var(--f-ui,inherit);font-size:13px;box-sizing:border-box}
 .abo-m-nuevo input:focus{outline:none;border-color:#14294a}
+/* En el celular la fila de "Actualizar montos" no entra en una línea: el nombre arriba y los campos abajo */
+@media (max-width:760px){
+  .abo-row.abo-mrow:not(.abo-row-head){flex-wrap:wrap;row-gap:8px;column-gap:8px}
+  .abo-row.abo-mrow.abo-row-head{display:none}
+  .abo-row.abo-mrow > .abo-c-nom{flex:1 1 100%;max-width:100%}
+  .abo-row.abo-mrow > .abo-m-actual{flex:1 1 100%}
+  .abo-row.abo-mrow > .abo-m-actual::before{content:'Monto actual: ';font-weight:400;color:var(--tinta-suave)}
+  .abo-row.abo-mrow > .abo-m-nuevo{flex:1 1 55%;min-width:0}
+  .abo-row.abo-mrow > .abo-m-desde{flex:1 1 35%;min-width:0}
+  .abo-row.abo-mrow > .abo-row-acc{flex:1 1 auto;justify-content:flex-start}
+  .abo-row.abo-mrow > .abo-m-avisado{width:auto;justify-content:flex-start}
+}
 .abo-m-desde{flex:1.1}
 .abo-m-desde input{width:100%;padding:8px 11px;border:1px solid var(--filo);border-radius:7px;font-family:var(--f-ui,inherit);font-size:13px;box-sizing:border-box}
 .abo-m-desde input:focus{outline:none;border-color:#14294a}
@@ -2116,6 +2132,7 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 #avisoVersion button:hover{filter:brightness(1.08)}
 #avisoVersion button.x{background:transparent;color:#f7f7f7;opacity:.55;padding:4px 6px;font-weight:400}
 #avisoVersion button.x:hover{opacity:1}
+@media (max-width:600px){ #avisoVersion{left:12px;right:12px;transform:none;max-width:none;flex-wrap:wrap} }
 
 .abo-m-avisado{flex:0 0 auto;width:90px;display:flex;align-items:center;justify-content:center}
 .abo-row-head .abo-m-avisado{font-size:10.5px}
@@ -2393,6 +2410,8 @@ body.locked .app{margin-left:0}
 .sue-form{background:var(--carta);border:1px solid var(--filo);border-radius:var(--radio,12px);padding:18px 20px;margin-top:20px}
 .sue-form-h{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--tinta-suave);font-weight:700;margin-bottom:14px}
 .sue-form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sue-gasto .sue-c-monto{color:var(--mal,#b3372a)}
+.sue-gasto-tag{display:inline-block;font-size:11px;font-weight:700;color:var(--mal,#b3372a);background:rgba(179,55,42,.08);border-radius:6px;padding:2px 8px}
 .sue-form .abo-reg-fld{margin-bottom:12px}
 .sue-form select{width:100%;padding:9px 11px;border:1px solid var(--filo);border-radius:8px;
   font-family:var(--f-ui);font-size:13px;color:var(--tinta);background:var(--carta);box-sizing:border-box}
@@ -7646,7 +7665,7 @@ function abonoAplicarFiltroVivo(){
           const st = abonoEstadoMes(c, ym);
           const pago = st.estado==='pagado';
           if(ABONOS_FILTRO==='pagaron' && !pago) ok=false;
-          if(ABONOS_FILTRO==='pendientes' && pago) ok=false;
+          if(ABONOS_FILTRO==='pendientes' && (pago || st.estado==='inactivo')) ok=false;
         }
         if(ok && ABONOS_F_FORMA && abonoFormaDe(c) !== ABONOS_F_FORMA) ok = false;
         if(ok && (ABONOS_F_DIA_D || ABONOS_F_DIA_H) && !abonoCobroEnRango(c, ym, ABONOS_F_DIA_D, ABONOS_F_DIA_H)) ok = false;
@@ -7708,6 +7727,8 @@ function abonoEstadoMes(cli, ym){
   const esperado = abonoMontoAPagar(cli, ym);
   const abonado = abonoTotalMes(cli, ym);
   const nParc = p && p.parciales ? p.parciales.length : 0;
+  // Antes del mes de alta el abono no existía: no debe nada
+  if(nParc === 0 && !abonoActivoEn(cli, ym)) return { estado:'inactivo', abonado:0, esperado:0, falta:0 };
   if(nParc === 0) return { estado:'pendiente', abonado:0, esperado, falta:esperado };
   // si algún parcial no tiene monto, lo tratamos como pago sin importe detallado → pagado
   const algunoSinMonto = p.parciales.some(x => x.monto==null || x.monto==='');
@@ -7823,6 +7844,95 @@ function abonoMontoVigente(cli, ym){
   for(const h of hist){ if(h.desde <= ym) val = h.monto; else break; }
   return val;
 }
+// ── Moneda por tramo ──
+// Un abono puede pasar de pesos a dólares (o al revés) desde un mes dado. Cada
+// tramo de montoHist puede llevar su `moneda`; el período anterior al primer tramo
+// usa `monedaAntes` de ese primer tramo. Lo que no tiene moneda guardada usa la del
+// abono (c.moneda), así todo lo cargado antes de esta función sigue igual.
+function abonoMon(cli, ym){
+  if (!cli) return 'ARS';
+  const def = cli.moneda === 'USD' ? 'USD' : 'ARS';
+  const hist = Array.isArray(cli.montoHist)
+    ? cli.montoHist.filter(h => h && /^\d{4}-\d{2}$/.test(h.desde)).sort((a,b)=> a.desde.localeCompare(b.desde)) : [];
+  if (!hist.length) return def;
+  const mes = /^\d{4}-\d{2}$/.test(ym || '') ? ym : abonoMesActual();
+  let cur = null;
+  for (const h of hist){ if (h.desde <= mes) cur = h; else break; }
+  const m = cur ? cur.moneda : hist[0].monedaAntes;
+  return m === 'USD' ? 'USD' : (m === 'ARS' ? 'ARS' : def);
+}
+// Sección "Moneda" dentro del abono: historial de monedas y cambio desde un mes
+function abonoMonedaSecHTML(c, ym){
+  const nom = m => m === 'USD' ? 'dólares' : 'pesos';
+  const sim = m => m === 'USD' ? 'US$ ' : '$ ';
+  const actual = abonoMon(c, ym);
+  const otra = actual === 'USD' ? 'ARS' : 'USD';
+  // Tramos donde cambió la moneda, para que se vea el historial
+  const hist = (Array.isArray(c.montoHist) ? c.montoHist.slice() : [])
+    .filter(h => h && /^\d{4}-\d{2}$/.test(h.desde)).sort((a,b)=> a.desde.localeCompare(b.desde));
+  const cambios = hist.filter(h => abonoMon(c, h.desde) !== abonoMon(c, abonoMesMas(h.desde, -1)) && (hist[0] !== h || h.monedaAntes));
+  const lista = cambios.length ? cambios.map(h => `<div class="abo-desc-item"><span>Desde <b>${esc(abonoMesLabel(h.desde))}</b>: en ${nom(abonoMon(c, h.desde))} · ${sim(abonoMon(c, h.desde))}${Math.round(Number(h.monto)||0).toLocaleString('es-AR')}</span></div>`).join('') : '';
+  return `<div class="abo-com-sec">
+        <div class="abo-com-sec-h">Moneda</div>
+        <div class="abo-com-sec-n">En ${esc(abonoMesLabel(ym))} el abono está en <b>${nom(actual)}</b>.</div>
+        ${lista}
+        <div class="abo-com-fila abo-mon-fila" style="margin-top:10px">
+          <div class="abo-reg-fld"><label>Pasa a</label>
+            <select id="aboMonNueva">
+              <option value="${otra}" selected>${otra === 'USD' ? 'US$ Dólares' : '$ Pesos'}</option>
+              <option value="${actual}">${actual === 'USD' ? 'US$ Dólares' : '$ Pesos'}</option>
+            </select></div>
+          <div class="abo-reg-fld mesc"><label>Desde</label>
+            <input type="month" id="aboMonDesde" value="${esc(ym)}"></div>
+          <div class="abo-reg-fld"><label>Monto mensual</label>
+            <input type="text" inputmode="numeric" id="aboMonMonto" placeholder="En la moneda nueva" oninput="abonoFmtInput(this)"></div>
+          <button class="abo-reg" onclick="abonoCambiarMonedaFicha(${c.id})">Cambiar</button>
+        </div>
+        <div class="abo-com-sec-n">Desde ese mes el abono queda en la moneda nueva con ese monto. Los meses anteriores conservan su moneda, sus montos y sus pagos.</div>
+      </div>`;
+}
+function abonoCambiarMonedaFicha(cliId){
+  const c = abonoBuscarCli(cliId); if(!c) return;
+  const v = id => (document.getElementById(id) || {}).value || '';
+  const nueva = v('aboMonNueva') === 'USD' ? 'USD' : 'ARS';
+  const desde = v('aboMonDesde');
+  const monto = abonoParseInput(document.getElementById('aboMonMonto'));
+  const nom = m => m === 'USD' ? 'dólares' : 'pesos';
+  if (!/^\d{4}-\d{2}$/.test(desde)){ aricToast('Elegí desde qué mes'); return; }
+  if (abonoMon(c, desde) === nueva){ aricToast('En ' + abonoMesLabel(desde) + ' ya está en ' + nom(nueva)); return; }
+  const ini = abonoMesInicio(c);
+  if (ini && desde < ini){ aricToast('El abono se dio de alta en ' + abonoMesLabel(ini) + ': el cambio tiene que ser desde ese mes o después'); return; }
+  if (monto === '' || !(Number(monto) > 0)){ aricToast('Poné el monto mensual en ' + nom(nueva)); const i = document.getElementById('aboMonMonto'); if (i) i.focus(); return; }
+  const sim = nueva === 'USD' ? 'US$ ' : '$ ';
+  const posteriores = (c.montoHist || []).filter(h => h && h.desde > desde).length;
+  if (!confirm('¿Pasar el abono de «' + c.nombre + '» a ' + nom(nueva) + ' desde ' + abonoMesLabel(desde) + '?\n\n'
+    + 'Desde ese mes paga ' + sim + Math.round(Number(monto)).toLocaleString('es-AR') + ' por mes. '
+    + 'Los meses anteriores quedan en ' + nom(abonoMon(c, abonoMesMas(desde, -1))) + ', con sus montos y pagos como están.'
+    + (posteriores ? '\n\nOjo: había ' + posteriores + ' cambio' + (posteriores !== 1 ? 's' : '') + ' de monto programado' + (posteriores !== 1 ? 's' : '') + ' después de ese mes, en la moneda vieja: se quita' + (posteriores !== 1 ? 'n' : '') + '.' : ''))) return;
+  if (!abonoCambiarMoneda(cliId, desde, nueva, Number(monto))){ aricToast('No se pudo cambiar la moneda'); return; }
+  aricToast('Desde ' + abonoMesLabel(desde) + ' el abono queda en ' + nom(nueva));
+  abonoPintarRegistro();
+  renderAbonos();
+}
+// ¿Tiene algún cambio de moneda cargado?
+function abonoTieneMonTramos(cli){
+  return !!cli && Array.isArray(cli.montoHist) && cli.montoHist.some(h => h && (h.moneda || h.monedaAntes));
+}
+// ── Mes de alta ──
+// Un abono dado de alta desde el formulario arranca con monto base 0 y su primer
+// tramo en el mes desde el que rige: antes de ese mes el abono no existía, así que
+// no se lo muestra como impago sino como "no activo". Los abonos viejos con monto
+// base cargado rigen desde siempre.
+function abonoMesInicio(cli){
+  if (!cli || (Number(cli.monto) || 0) > 0) return '';
+  const ds = (Array.isArray(cli.montoHist) ? cli.montoHist : [])
+    .filter(h => h && /^\d{4}-\d{2}$/.test(h.desde)).map(h => h.desde).sort();
+  return ds.length ? ds[0] : '';
+}
+function abonoActivoEn(cli, ym){
+  const ini = abonoMesInicio(cli);
+  return !ini || !ym || ym >= ini;
+}
 // ── Descuentos por tramo de meses ──
 // Van como capa aparte del precio de lista: `montoHist` guarda la lista y el
 // descuento se aplica encima. Así el ajuste por inflación sigue trabajando sobre
@@ -7886,22 +7996,64 @@ function abonoFijarMonto(cliId, desde, monto){
   const m = Number(monto)||0;
   const previo = abonoMontoPrevioA(c, desde);
   const ex = c.montoHist.find(h=>h.desde===desde);
-  if(m === previo){
+  // Si el abono tuvo un cambio de moneda, cada tramo guarda la suya: el nuevo
+  // tramo toma la que rige ese mes, y un tramo que cambia de moneda nunca es "igual al anterior".
+  const conMon = abonoTieneMonTramos(c);
+  const monAca = abonoMon(c, desde);
+  const cambiaMon = conMon && monAca !== abonoMon(c, abonoMesMas(desde, -1));
+  if(m === previo && !cambiaMon){
     // No hubo cambio real → sacar cualquier entrada en ese 'desde' y limpiar el "avisado" si apuntaba ahí
     c.montoHist = c.montoHist.filter(h=>h.desde!==desde);
     if(c.avisadoMonto === desde) c.avisadoMonto = '';
     if(c.ultAjusteInfl === desde) c.ultAjusteInfl = '';
   } else if(ex){ ex.monto = m; if(c.ultAjusteInfl===desde) c.ultAjusteInfl=''; }
-  else { c.montoHist.push({ desde, monto:m }); }
+  else {
+    const nuevo = { desde, monto:m };
+    if (conMon){
+      nuevo.moneda = monAca;
+      // si pasa a ser el primer tramo, se lleva la moneda del período anterior
+      const prim = c.montoHist.slice().sort((a,b)=> a.desde.localeCompare(b.desde))[0];
+      if (prim && desde < prim.desde && prim.monedaAntes){ nuevo.monedaAntes = prim.monedaAntes; delete prim.monedaAntes; }
+    }
+    c.montoHist.push(nuevo);
+  }
   c.montoHist.sort((a,b)=> a.desde.localeCompare(b.desde));
   saveAbonos();
   sbPushAbonoCli(cliId);
+}
+// ── Cambio de moneda desde un mes ──
+// Los meses anteriores quedan en la moneda que tenían (con sus montos y pagos);
+// desde `desde` el abono pasa a `nueva` con el monto indicado. Los aumentos que
+// estuvieran programados después de ese mes estaban en la moneda vieja, así que se quitan.
+function abonoCambiarMoneda(cliId, desde, nueva, monto){
+  const c = abonoBuscarCli(cliId); if(!c) return false;
+  if (!/^\d{4}-\d{2}$/.test(desde || '')) return false;
+  const mon = nueva === 'USD' ? 'USD' : 'ARS';
+  const m = Number(monto) || 0;
+  if (!(m > 0)) return false;
+  if (abonoMon(c, desde) === mon) return false;
+  const hist = (Array.isArray(c.montoHist) ? c.montoHist.slice() : [])
+    .filter(h => h && /^\d{4}-\d{2}$/.test(h.desde)).sort((a,b)=> a.desde.localeCompare(b.desde));
+  // Se fija por escrito la moneda de todo lo anterior antes de tocar nada
+  const monBase = hist.length ? abonoMon(c, abonoMesMas(hist[0].desde, -1)) : (c.moneda === 'USD' ? 'USD' : 'ARS');
+  const quedan = hist.filter(h => h.desde < desde).map(h => ({ ...h, moneda: abonoMon(c, h.desde) }));
+  quedan.forEach(h => { delete h.monedaAntes; });
+  quedan.push({ desde, monto: m, moneda: mon });
+  quedan[0].monedaAntes = monBase;
+  c.montoHist = quedan;
+  c.moneda = mon;                       // la moneda del último tramo
+  if (c.avisadoMonto && c.avisadoMonto >= desde) c.avisadoMonto = '';
+  if (c.ultAjusteInfl && c.ultAjusteInfl >= desde) c.ultAjusteInfl = '';
+  saveAbonos();
+  sbPushAbonoCli(cliId);
+  return true;
 }
 // ¿El último cambio de monto es real? (difiere del que regía justo antes)
 function abonoTieneCambioReal(c){
   const hist = (Array.isArray(c.montoHist) ? c.montoHist.slice() : []).sort((a,b)=> a.desde.localeCompare(b.desde));
   if(!hist.length) return false;
   const ult = hist[hist.length-1];
+  if (abonoTieneMonTramos(c) && abonoMon(c, ult.desde) !== abonoMon(c, abonoMesMas(ult.desde, -1))) return true;
   return ult.monto !== abonoMontoPrevioA(c, ult.desde);
 }
 const ABONO_MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -8335,7 +8487,7 @@ function abonoTocaAjusteInflacion(){
   if(!inflTocaAjuste()) return false;
   // ¿ya se aplicó el ajuste de este trimestre? (algún cliente en pesos con ultAjusteInfl >= el cierre)
   const cierre = inflMesCierre();
-  if(ABONOS.some(c => c.moneda==='ARS' && c.ultAjusteInfl && c.ultAjusteInfl >= cierre)) return false;
+  if(ABONOS.some(c => abonoMon(c, cierre)==='ARS' && c.ultAjusteInfl && c.ultAjusteInfl >= cierre)) return false;
   return true;
 }
 // Mes de cierre del trimestre en curso (compatibilidad con el nombre viejo)
@@ -10907,29 +11059,30 @@ function abonoActasDelMes(ym){
     if (!abonoEsActas(c)) return;
     if (c.estado && c.estado !== 'activo') return;      // los pausados no se listan
     const r = abonoRepartoMes(c, ym);                 // percibido: entró este mes
+    if (!abonoActivoEn(c, ym) && !r.cobrado && !abonoTotalMes(c, ym)) return;
     const esp = abonoEsperadoSoc(c, ym);
     const st = abonoEstadoMes(c, ym);
     // Lo que falta cobrar DEL MES ym, en la proporción societaria. Se mide contra
     // lo saldado de ese mes (devengado), no contra lo que entró en caja.
     const saldadoDelMes = abonoTotalMes(c, ym) * (abonoCajaDe(c).pct||0) / 100;
     const falta = Math.max(0, esp - saldadoDelMes);
-    if (c.moneda === 'USD'){ out.espUsd += esp; out.pendUsd += falta; }
+    if (abonoMon(c, ym) === 'USD'){ out.espUsd += esp; out.pendUsd += falta; }
     else { out.espArs += esp; out.pendArs += falta; }
     if (r.cobrado){
       out.n++;
-      if (c.moneda === 'USD'){ out.usd += r.soc; out.aboUsd += r.abo; }
+      if (abonoMon(c, ym) === 'USD'){ out.usd += r.soc; out.aboUsd += r.abo; }
       else { out.ars += r.soc; out.aboArs += r.abo; }
     }
     if (st.estado !== 'pagado') out.nPend++;
     if (r.atrasos.length){
       out.nAtras++;
       const socAtras = r.atrasos.reduce((a,m)=> a + (r.porMes[m]||0), 0) * (r.pct/100);
-      if (c.moneda === 'USD') out.atrasUsd += socAtras; else out.atrasArs += socAtras;
-      out.atrasos.push({ nombre: c.nombre, moneda: c.moneda, monto: socAtras,
+      if (abonoMon(c, ym) === 'USD') out.atrasUsd += socAtras; else out.atrasArs += socAtras;
+      out.atrasos.push({ nombre: c.nombre, moneda: abonoMon(c, ym), monto: socAtras,
                          meses: r.atrasos.slice() });
       r.atrasos.forEach(m => out.mesesAtras[m] = true);
     }
-    out.filas.push({ cli: c, nombre: c.nombre, moneda: c.moneda,
+    out.filas.push({ cli: c, nombre: c.nombre, moneda: abonoMon(c, ym),
                      cobrado: r.cobrado, soc: r.soc, abo: r.abo, pct: r.pct, caja: r.caja,
                      estado: st.estado, esperadoSoc: esp, faltaSoc: falta,
                      mesesCubiertos: r.mesesCubiertos, atrasos: r.atrasos });
@@ -11005,7 +11158,7 @@ function ingresosDelMes(ym){
   (typeof ABONOS !== 'undefined' ? ABONOS : []).forEach(c => {
     const cobrado = abonoCobradoEnMes(c, ym).total;
     if(!cobrado) return;
-    if(c.moneda === 'USD') aboUsd += cobrado; else aboArs += cobrado;
+    if(abonoMon(c, ym) === 'USD') aboUsd += cobrado; else aboArs += cobrado;
   });
   // Abonos de actas: son ingreso de societario. Se pasan de la fuente Abonos a la
   // fuente Caja societaria — NO se suman de nuevo. Cada peso se cuenta una sola vez.
@@ -11074,7 +11227,7 @@ function ingresosPorCliente(ymDesde, ymHasta){
         const f = x.fecha || (p.mes ? p.mes+'-01' : '');
         if(!enRango(f)) return;
         const m = Number(x.monto)||0;
-        if(m) sumar(c.nombre, m, c.moneda, 'abo');
+        if(m) sumar(c.nombre, m, abonoMon(c, p.mes), 'abo');
       });
     });
   });
@@ -11167,7 +11320,7 @@ function ingresosPorConcepto(ymDesde, ymHasta){
         if(!f || f < ymDesde || f > ymHasta) return;
         const m = Number(x.monto)||0;
         if(!m) return;
-        if(c.moneda==='USD') aboUsd += m; else aboArs += m;
+        if(abonoMon(c, p.mes)==='USD') aboUsd += m; else aboArs += m;
       });
     });
   });
@@ -11201,17 +11354,17 @@ function ingresosPendientes(ym){
     const st = abonoEstadoMes(c, mesVer);
     if(st.estado === 'pagado') return;
     // Los de mes vencido todavía no deben nada: ese abono se cobra el mes que viene
-    aboPend.push({ nombre:c.nombre, moneda:c.moneda, falta:st.falta, estado:st.estado,
+    aboPend.push({ nombre:c.nombre, moneda:abonoMon(c, mesVer), falta:st.falta, estado:st.estado,
                    vencido: abonoFormaDe(c) === 'vencido' });
     if (abonoFormaDe(c) === 'vencido'){
-      if(c.moneda==='USD') aboVencUsd += st.falta; else aboVencArs += st.falta;
+      if(abonoMon(c, mesVer)==='USD') aboVencUsd += st.falta; else aboVencArs += st.falta;
     } else {
-      if(c.moneda==='USD') aboPendUsd += st.falta; else aboPendArs += st.falta;
+      if(abonoMon(c, mesVer)==='USD') aboPendUsd += st.falta; else aboPendArs += st.falta;
     }
   });
   const meses = Object.values(porMes).sort((a,b)=> a.ym.localeCompare(b.ym));
-  const cuotasArs = cuotas.filter(c=>c.moneda!=='USD').reduce((a,c)=>a+(Number(c.monto)||0),0);
-  const cuotasUsd = cuotas.filter(c=>c.moneda==='USD').reduce((a,c)=>a+(Number(c.monto)||0),0);
+  const cuotasArs = cuotas.filter(c=>abonoMon(c, mesVer)!=='USD').reduce((a,c)=>a+(Number(c.monto)||0),0);
+  const cuotasUsd = cuotas.filter(c=>abonoMon(c, mesVer)==='USD').reduce((a,c)=>a+(Number(c.monto)||0),0);
   return { ym: mesVer, meses, cuotas, cuotasArs, cuotasUsd, aboPend, aboPendArs, aboPendUsd,
            aboVencArs, aboVencUsd,
            totalArs: cuotasArs + aboPendArs, totalUsd: cuotasUsd + aboPendUsd };
@@ -11245,7 +11398,7 @@ function abonoAplicarInflacion(infl, desde){
   if(!validos.length || validos.every(x=>x===0)){ aricToast('Cargá los porcentajes de inflación'); return false; }
   // snapshot para deshacer: guardamos, por cliente, el monto vigente ANTES del ajuste y su montoHist previo
   const snap = { desde, infl: validos, ts: Date.now(), clientes: [] };
-  ABONOS.filter(c=>c.moneda==='ARS' && c.estado==='activo').forEach(c=>{
+  ABONOS.filter(c=>abonoMon(c, desde)==='ARS' && c.estado==='activo').forEach(c=>{
     const base = abonoMontoVigente(c, desde); // lo que rige en ese mes hoy
     const nuevo = abonoCalcInflacion(base, validos);
     snap.clientes.push({ id:c.id, montoHistPrev: JSON.parse(JSON.stringify(c.montoHist||[])), avisadoPrev: c.avisadoMonto||'', inflPrev: c.ultAjusteInfl||'', base, nuevo });
@@ -11307,7 +11460,7 @@ function renderAbonos(){
 
   // Totales del mes por moneda: esperado (según monto vigente) vs cobrado (suma de parciales)
   const calc = (moneda) => {
-    const cs = activos.filter(c=>c.moneda===moneda);
+    const cs = activos.filter(c=>abonoMon(c, ym)===moneda);
     let esperado=0, cobrado=0, pagados=0;
     cs.forEach(c=>{
       esperado += abonoMontoAPagar(c, ym);
@@ -11315,7 +11468,7 @@ function renderAbonos(){
       cobrado += st.abonado;
       if (st.estado==='pagado') pagados++;
     });
-    return { cs, esperado, cobrado, pagados, total: cs.length };
+    return { cs, esperado, cobrado, pagados, total: cs.filter(c => abonoActivoEn(c, ym)).length };
   };
   const ars = calc('ARS'), usd = calc('USD');
   // Parte de los abonos que en realidad es ingreso de societario (actas)
@@ -11384,7 +11537,7 @@ function renderAbonos(){
       const st = abonoEstadoMes(c, ym);
       const pago = st.estado === 'pagado';
       if (ABONOS_FILTRO === 'pagaron' && !pago) return false;
-      if (ABONOS_FILTRO === 'pendientes' && pago) return false; // pendiente y parcial cuentan como no-pagado
+      if (ABONOS_FILTRO === 'pendientes' && (pago || st.estado === 'inactivo')) return false; // pendiente y parcial cuentan como no-pagado
     }
     if (ABONOS_F_FORMA && abonoFormaDe(c) !== ABONOS_F_FORMA) return false;
     if ((ABONOS_F_DIA_D || ABONOS_F_DIA_H) && !abonoCobroEnRango(c, ym, ABONOS_F_DIA_D, ABONOS_F_DIA_H)) return false;
@@ -11397,8 +11550,8 @@ function renderAbonos(){
     const st = abonoEstadoMes(c, ym);
     const monto = abonoMontoAPagar(c, ym);
     const pctD = abonoDescPct(c, ym);
-    const montoTxt = monto ? fmtM(monto, c.moneda) + (pctD ? ` <span class="chip-desc">-${pctD}%</span>` : '') : '—';
-    const abonadoTxt = st.abonado ? fmtM(st.abonado, c.moneda) : '—';
+    const montoTxt = monto ? fmtM(monto, abonoMon(c, ym)) + (pctD ? ` <span class="chip-desc">-${pctD}%</span>` : '') : '—';
+    const abonadoTxt = st.abonado ? fmtM(st.abonado, abonoMon(c, ym)) : '—';
     const parciales = p && p.parciales ? p.parciales : [];
     const conComprob = parciales.filter(x => x.comprobante && (x.comprobante.url || x.comprobante.path));
     const efectivo = parciales.length && parciales.every(x => x.aQuien && /efectivo/i.test(x.aQuien)) && !conComprob.length;
@@ -11412,13 +11565,14 @@ function renderAbonos(){
     // Estado
     let estadoHtml;
     if(st.estado==='pagado') estadoHtml = '<span class="abo-estado ok">✓ Pagado</span>';
-    else if(st.estado==='parcial') estadoHtml = `<span class="abo-estado parcial">Parcial · falta ${fmtM(st.falta,c.moneda)}</span>`;
+    else if(st.estado==='parcial') estadoHtml = `<span class="abo-estado parcial">Parcial · falta ${fmtM(st.falta,abonoMon(c, ym))}</span>`;
+    else if(st.estado==='inactivo') estadoHtml = `<span class="abo-estado inact" title="No estaba activo: se dio de alta en ${esc(abonoMesLabel(abonoMesInicio(c)))}">No activo</span>`;
     else estadoHtml = '<span class="abo-estado debe">Pendiente</span>';
     // Fecha (del último parcial)
     const ultFecha = parciales.length ? parciales[parciales.length-1].fecha : '';
     const fechaTxt = ultFecha ? formatFechaCorta(ultFecha) : '—';
     const btnTitulo = parciales.length ? 'Ver o editar los pagos de este mes' : 'Registrar el pago de este mes';
-    return `<div class="abo-row ${st.estado==='pagado'?'pg':st.estado==='parcial'?'parc':''}" data-cli="${c.id}">
+    return `<div class="abo-row ${st.estado==='pagado'?'pg':st.estado==='parcial'?'parc':st.estado==='inactivo'?'inact':''}" data-cli="${c.id}">
       <div class="abo-c-nom"><span class="abo-c-nom-t" onclick="abonoAbrirRegistro(${c.id})" title="${esc(c.nombre)}">${esc(abonoNombreCorto(c.nombre).toUpperCase())}</span>${abonoEtiquetaCaja(c)}</div>
       <div class="abo-c-tipo">
         <span class="abo-tipo-tx${c.tipo ? '' : ' vacio'}" onclick="event.stopPropagation();abonoVerIncluye(${c.id})" title="Tocá para ver o editar qué incluye">${esc(abonoNombreCorto(c.tipo) || '—')}${c.incluye ? '<span class="abo-tipo-lupa">▾</span>' : ''}</span></div>
@@ -11428,7 +11582,7 @@ function renderAbonos(){
       <div class="abo-c-abonado">${abonadoTxt}</div>
       <div class="abo-c-comprob">${comprobCell}</div>
       <div class="abo-c-fecha">${fechaTxt}</div>
-      ${c.moneda === 'ARS' ? `<div class="abo-c-factura">
+      ${abonoMon(c, ym) === 'ARS' ? `<div class="abo-c-factura">
         <select class="abo-fact-sel" onchange="abonoSetFactura(${c.id},this.value)" onclick="event.stopPropagation()">
           <option value="" ${!c.factura?'selected':''}>— elegir —</option>
           ${ABONO_FACTURA.map(f=>`<option value="${f}" ${c.factura===f?'selected':''}>${f}</option>`).join('')}
@@ -11436,7 +11590,7 @@ function renderAbonos(){
       </div>` : ''}
       <div class="abo-c-estado">${estadoHtml}</div>
       <div class="abo-row-acc">
-        ${st.estado!=='pagado' ? `<button class="abo-wa-mini" onclick="abonoReclamarPago(${c.id})" title="Reclamar pago por WhatsApp"><img src="${WA_LOGO_B64}" class="wa-ico" alt="WhatsApp"></button>` : ''}
+        ${st.estado!=='pagado' && st.estado!=='inactivo' ? `<button class="abo-wa-mini" onclick="abonoReclamarPago(${c.id})" title="Reclamar pago por WhatsApp"><img src="${WA_LOGO_B64}" class="wa-ico" alt="WhatsApp"></button>` : ''}
         <button class="abo-reg abo-reg-bill${parciales.length ? ' hecho' : ''}" onclick="abonoAbrirRegistro(${c.id})" title="${btnTitulo}" aria-label="${btnTitulo}">$</button>
       </div>
       <div class="abo-c-del"><button class="abo-del-x" onclick="event.stopPropagation();abonoEliminar(${c.id})" title="Eliminar este abono">✕</button></div>
@@ -11473,8 +11627,8 @@ function renderAbonos(){
     </div>`;
   };
 
-  const arsCli = activos.filter(c=>c.moneda==='ARS').sort((a,b)=>a.nombre.localeCompare(b.nombre));
-  const usdCli = activos.filter(c=>c.moneda==='USD').sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  const arsCli = activos.filter(c=>abonoMon(c, ym)==='ARS').sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  const usdCli = activos.filter(c=>abonoMon(c, ym)==='USD').sort((a,b)=>a.nombre.localeCompare(b.nombre));
 
   const pausCerrada = !!colap['pausados'];
   const pausSec = pausados.length ? `
@@ -11532,7 +11686,7 @@ function abonoInflDesde(){ return ABONOS_INFL_DESDE || inflMesCierre(); }
 function abonoInflSetDesde(v){ ABONOS_INFL_DESDE = v || ''; renderAbonos(); }
 function renderAbonosInflacion(cont){
   const ym = abonoInflDesde();
-  const arsCli = ABONOS.filter(c=>c.moneda==='ARS' && c.estado==='activo').sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  const arsCli = ABONOS.filter(c=>abonoMon(c, ym)==='ARS' && c.estado==='activo').sort((a,b)=>a.nombre.localeCompare(b.nombre));
   const fmt = n => '$ ' + Math.round(Number(n)||0).toLocaleString('es-AR');
   const infl = ABONOS_INFL_INPUT.map(x=>Number(String(x).replace(',','.'))||0);
   const hayInfl = infl.some(x=>x>0);
@@ -11599,7 +11753,7 @@ function abonoInflInput(i, v){
   const infl = ABONOS_INFL_INPUT.map(x=>Number(String(x).replace(',','.'))||0);
   const hayInfl = infl.some(x=>x>0);
   const fmt = n => '$ ' + Math.round(Number(n)||0).toLocaleString('es-AR');
-  const arsCli = ABONOS.filter(c=>c.moneda==='ARS' && c.estado==='activo').sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  const arsCli = ABONOS.filter(c=>abonoMon(c, ym)==='ARS' && c.estado==='activo').sort((a,b)=>a.nombre.localeCompare(b.nombre));
   const filas = document.querySelectorAll('#abonosPanel .abo-sec .abo-row:not(.abo-row-head)');
   arsCli.forEach((c,idx)=>{
     const row = filas[idx]; if(!row) return;
@@ -11614,7 +11768,7 @@ function abonoConfirmarInflacion(){
   const infl = ABONOS_INFL_INPUT.map(x=>Number(String(x).replace(',','.'))||0);
   if(!infl.some(x=>x>0)){ aricToast('Cargá los porcentajes de inflación'); return; }
   const ym = abonoInflDesde();
-  const cant = ABONOS.filter(c=>c.moneda==='ARS'&&c.estado==='activo').length;
+  const cant = ABONOS.filter(c=>abonoMon(c, ym)==='ARS'&&c.estado==='activo').length;
   if(!confirm('¿Aplicar el ajuste por inflación a los '+cant+' clientes en pesos?\n\nLos montos regirán desde '+abonoMesLabel(ym)+' inclusive; los meses anteriores no se tocan. Podés deshacerlo después si algo sale mal.')) return;
   if(abonoAplicarInflacion(infl, ym)){
     ABONOS_INFL_INPUT = ['','','']; ABONOS_INFL_DESDE = '';
@@ -11666,8 +11820,8 @@ function renderAbonosCaja(cont){
         ? `<input type="number" min="0" max="100" step="5" value="${Math.round(r.pct)}" onchange="abonoPctCambiar('${c.id}', this.value)"><span class="pct-sig">% a societario</span>`
         : `<span class="abo-c-pct-fijo">${r.caja === 'societario' ? '100 % a societario' : '100 % a abonos'}</span>`}</div>
       <div class="abo-c-reparto">${vig
-        ? (r.pct ? `<b>${fmtM(soc, c.moneda)}</b> societario${r.pct < 100 ? ` · ${fmtM(vig - soc, c.moneda)} abonos` : ''}`
-                 : `<span class="abo-c-solo">${fmtM(vig, c.moneda)} a la caja de abonos</span>`)
+        ? (r.pct ? `<b>${fmtM(soc, abonoMon(c, ym))}</b> societario${r.pct < 100 ? ` · ${fmtM(vig - soc, abonoMon(c, ym))} abonos` : ''}`
+                 : `<span class="abo-c-solo">${fmtM(vig, abonoMon(c, ym))} a la caja de abonos</span>`)
         : '—'}</div>
     </div>`;
   };
@@ -11697,8 +11851,8 @@ function renderAbonosCaja(cont){
     ${abonoSubtabsHTML()}
     <div class="abo-montos-hint">Los abonos de <b>actas</b> son ingreso de la caja societaria, aunque se cobren desde acá. Marcá cada uno como <b>Abono</b> (queda entero en la caja de abonos), <b>Societario</b> (va entero a societario) o <b>Mixto</b> (se reparte por porcentaje). Los cobros parciales se reparten en la misma proporción.
       ${(act.ars || act.usd) ? `<div class="abo-hint-tot">Este mes ya se cobraron <b>${act.ars ? fmtM(act.ars,'ARS') : ''}${act.ars && act.usd ? ' · ' : ''}${act.usd ? fmtM(act.usd,'USD') : ''}</b> que se imputan a societario.</div>` : ''}</div>
-    ${seccion('Abonos en dólares', orden(activos.filter(c => c.moneda === 'USD')))}
-    ${seccion('Abonos en pesos', orden(activos.filter(c => c.moneda === 'ARS')))}`;
+    ${seccion('Abonos en dólares', orden(activos.filter(c => abonoMon(c, ym) === 'USD')))}
+    ${seccion('Abonos en pesos', orden(activos.filter(c => abonoMon(c, ym) === 'ARS')))}`;
 }
 
 function renderAbonosMontos(cont){
@@ -11710,8 +11864,8 @@ function renderAbonosMontos(cont){
     const vig = abonoMontoVigente(c, ym);
     return `<div class="abo-row abo-mrow" data-cli="${c.id}">
       <div class="abo-c-nom"><span class="abo-c-nom-t">${esc(c.nombre.toUpperCase())}</span>${abonoEtiquetaCaja(c, true)}</div>
-      <div class="abo-m-actual">${vig?fmtM(vig,c.moneda):'—'}</div>
-      <div class="abo-m-nuevo"><input type="text" inputmode="numeric" id="abom-nuevo-${c.id}" placeholder="Nuevo monto (${c.moneda==='USD'?'US$':'$'})" oninput="abonoFmtInput(this)"></div>
+      <div class="abo-m-actual">${vig?fmtM(vig,abonoMon(c, ym)):'—'}</div>
+      <div class="abo-m-nuevo"><input type="text" inputmode="numeric" id="abom-nuevo-${c.id}" placeholder="Nuevo monto (${abonoMon(c, ym)==='USD'?'US$':'$'})" oninput="abonoFmtInput(this)"></div>
       <div class="abo-m-desde"><input type="month" id="abom-desde-${c.id}" value="${ym}"></div>
       <div class="abo-row-acc">
         ${abonoTieneCambioReal(c) ? `<button class="abo-wa-mini" onclick="abonoAvisarMonto('${c.id}')" title="Avisar el nuevo monto por WhatsApp"><img src="${WA_LOGO_B64}" class="wa-ico" alt="WhatsApp"></button>` : ''}
@@ -11733,8 +11887,8 @@ function renderAbonosMontos(cont){
       </div>
       ${lista.map(filaCli).join('')}
     </div>` : '';
-  const arsCli = activos.filter(c=>c.moneda==='ARS').sort((a,b)=>a.nombre.localeCompare(b.nombre));
-  const usdCli = activos.filter(c=>c.moneda==='USD').sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  const arsCli = activos.filter(c=>abonoMon(c, ym)==='ARS').sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  const usdCli = activos.filter(c=>abonoMon(c, ym)==='USD').sort((a,b)=>a.nombre.localeCompare(b.nombre));
 
   cont.innerHTML = `
     <div class="abo-top"><div>
@@ -11742,7 +11896,7 @@ function renderAbonosMontos(cont){
       <h1 class="abo-h1">Actualizar montos</h1>
     </div></div>
     ${abonoSubtabsHTML()}
-    <div class="abo-montos-hint">Fijá el nuevo monto y desde qué mes rige. Ese valor se mantiene de ese mes en adelante hasta que lo vuelvas a cambiar; los meses anteriores no se tocan.</div>
+    <div class="abo-montos-hint">Fijá el nuevo monto y desde qué mes rige. Ese valor se mantiene de ese mes en adelante hasta que lo vuelvas a cambiar; los meses anteriores no se tocan. Para pasar un abono de pesos a dólares (o al revés), entrá al abono (tocando su nombre) y usá «Moneda».</div>
     ${seccion('Abonos en pesos', arsCli)}
     ${seccion('Abonos en dólares', usdCli)}`;
 }
@@ -11768,7 +11922,7 @@ function abonoPausar(cliId){
 // ── WhatsApp: reclamar el pago del abono (contempla pagos parciales) ──
 function abonoMensajeReclamo(c, ym){
   const hola = 'Hola, ¿cómo estás? ';
-  const simbolo = c.moneda === 'USD' ? 'US$' : '$';
+  const simbolo = abonoMon(c, ym) === 'USD' ? 'US$' : '$';
   const fmt = n => simbolo + ' ' + Math.round(Number(n)||0).toLocaleString('es-AR');
   const st = abonoEstadoMes(c, ym);
   const mesTxt = abonoMesLabel(ym);
@@ -11790,7 +11944,7 @@ function abonoReclamarPago(cliId){
 // ── WhatsApp: avisar la actualización del monto del abono ──
 function abonoMensajeActualizacion(c, desde, nuevoMonto){
   const hola = 'Hola, ¿cómo estás? ';
-  const simbolo = c.moneda === 'USD' ? 'US$' : '$';
+  const simbolo = abonoMon(c, desde) === 'USD' ? 'US$' : '$';
   const fmt = n => simbolo + ' ' + Math.round(Number(n)||0).toLocaleString('es-AR');
   const mesTxt = abonoMesLabel(desde);
   let m = hola + 'Te escribo para comentarte una actualización en el valor del abono mensual.\n';
@@ -11906,7 +12060,7 @@ function abonoAbrirNuevo(){
       </div>
       <div class="abo-reg-grid">
         <div class="abo-reg-fld">
-          <label>Rige desde</label>
+          <label>Mes de alta</label>
           <input type="month" id="abonoNuevoDesde" value="${ym}">
         </div>
         <div class="abo-reg-fld" id="abonoNuevoPctWrap" style="display:none">
@@ -11927,7 +12081,7 @@ function abonoAbrirNuevo(){
           <input type="number" id="abonoNuevoDescMeses" min="1" max="60" step="1" placeholder="3">
         </div>
       </div>
-      <div class="abo-montos-hint" style="margin:0">El monto rige desde el mes que elijas en adelante: los meses anteriores quedan en cero, así no se altera ningún balance ya cerrado. Si el cliente no está en el CRM, se le crea la ficha sola al guardar.</div>
+      <div class="abo-montos-hint" style="margin:0">El abono rige desde el mes de alta en adelante: los meses anteriores figuran como <b>no activo</b> (no como impagos), así no se altera ningún balance ya cerrado. Si el cliente no está en el CRM, se le crea la ficha sola al guardar.</div>
     </div>
     <div class="abo-reg-foot">
       <div class="abo-reg-foot-r" style="margin-left:auto">
@@ -12053,7 +12207,7 @@ function abonoCrearNuevo(){
   const c = { id: abonoNuevoId(), nombre, moneda, monto: 0, tipo: '', estado: 'activo', pagos: [], descuentos,
               formaPago: ABONO_NUEVO.formaPago === 'vencido' ? 'vencido' : 'adelantado', incluye: '', formaPagoObs: '',
               comisionPara: comPara, comisionMes: comPara ? desde : '',
-              montoHist: monto ? [{ desde, monto }] : [] };
+              montoHist: [{ desde, monto }] };   // el primer tramo marca el mes de alta, aunque el monto quede para después
   ABONOS.push(c);
   saveAbonos();
   sbPushAbonoCli(c.id);
@@ -12249,7 +12403,7 @@ function abonoPintarRegistro(){
   const ym = abonoMesActual();
   const p = abonoPagoDe(c, ym);
   const parciales = p && p.parciales ? p.parciales : [];
-  const simbolo = c.moneda === 'USD' ? 'US$' : '$';
+  const simbolo = abonoMon(c, ym) === 'USD' ? 'US$' : '$';
   const fmtM = (n)=> simbolo+' '+Math.round(Number(n)||0).toLocaleString('es-AR');
   const st = abonoEstadoMes(c, ym);
   const monto = abonoMontoAPagar(c, ym);
@@ -12257,6 +12411,7 @@ function abonoPintarRegistro(){
   const falta = st.estado === 'pagado' ? 0 : Math.max(0, Number(st.falta) || 0);
   const chipEst = st.estado === 'pagado' ? '<span class="abo-estado ok">✓ Pagado</span>'
     : st.estado === 'parcial' ? '<span class="abo-estado parcial">Pago parcial</span>'
+    : st.estado === 'inactivo' ? `<span class="abo-estado inact">No activo · alta ${esc(abonoMesLabel(abonoMesInicio(c)))}</span>`
     : '<span class="abo-estado debe">Pendiente</span>';
   const descMes = (typeof abonoDescuentoDe === 'function') ? abonoDescuentoDe(c, ym) : null;
   const body = document.getElementById('abonoRegBody');
@@ -12290,7 +12445,7 @@ function abonoPintarRegistro(){
     <div class="abo-reg-head">
       <div>
         <div class="abo-reg-cli">${esc(c.nombre)}</div>
-        <div class="abo-reg-sub">${esc(abonoMesLabel(ym))} · abono ${c.moneda === 'USD' ? 'en dólares' : 'en pesos'} · ${abonoFormaDe(c) === 'vencido' ? 'mes vencido' : 'adelantado'}</div>
+        <div class="abo-reg-sub">${esc(abonoMesLabel(ym))} · abono ${abonoMon(c, ym) === 'USD' ? 'en dólares' : 'en pesos'} · ${abonoFormaDe(c) === 'vencido' ? 'mes vencido' : 'adelantado'}</div>
       </div>
       <button class="abo-reg-x" onclick="abonoCerrarRegistro()">✕</button>
     </div>
@@ -12411,6 +12566,8 @@ function abonoPintarRegistro(){
         </div>
         <div class="abo-com-sec-n">Se descuenta del monto de lista solo en esos meses. Dejá «Hasta» vacío si no vence. El ajuste por inflación sigue calculándose sobre la lista, no sobre el precio con descuento.</div>
       </div>
+      <!-- Moneda: pasar el abono de pesos a dólares (o al revés) desde un mes -->
+      ${abonoMonedaSecHTML(c, ym)}
       <!-- Qué incluye el abono: se despliega tocando el título y se edita acá mismo -->
       <div class="abo-inc-acc" id="aboIncAcc">
         <button type="button" class="abo-inc-cab" onclick="abonoIncToggle()">
@@ -12456,9 +12613,10 @@ function abonoChipsMesesHTML(c){
     const activo = sel.indexOf(ym) !== -1;
     const [y,m] = ym.split('-');
     const lbl = ABONO_MESES[parseInt(m,10)-1].slice(0,3);
-    const cls = activo ? 'on' : (st.estado==='pagado' ? 'pago' : st.estado==='parcial' ? 'parc' : 'debe');
-    const tit = st.estado==='pagado' ? 'Ya está pagado' : st.estado==='parcial' ? 'Pago parcial' : 'Pendiente';
-    return `<button type="button" class="abo-mm-chip ${cls}" title="${capPrim(abonoMesLabel(ym))} · ${tit}" onclick="abonoMMToggle('${ym}')">
+    const inact = st.estado === 'inactivo' && !activo;
+    const cls = activo ? 'on' : (st.estado==='pagado' ? 'pago' : st.estado==='parcial' ? 'parc' : inact ? 'inact' : 'debe');
+    const tit = st.estado==='pagado' ? 'Ya está pagado' : st.estado==='parcial' ? 'Pago parcial' : inact ? 'No activo: el abono todavía no se había dado de alta' : 'Pendiente';
+    return `<button type="button" class="abo-mm-chip ${cls}" title="${capPrim(abonoMesLabel(ym))} · ${tit}"${inact ? ' disabled' : ''} onclick="abonoMMToggle('${ym}')">
       <span class="mm-m">${capPrim(lbl)}</span><span class="mm-y">${y.slice(2)}</span></button>`;
   }).join('');
 }
@@ -12479,7 +12637,7 @@ function abonoMMActualizarHint(){
   const sel = abonoRegMeses();
   const inp = document.getElementById('abonoRegMonto');
   const raw = inp ? abonoParseInput(inp) : '';
-  const simbolo = c.moneda === 'USD' ? 'US$' : '$';
+  const simbolo = abonoMon(c, sel[0]) === 'USD' ? 'US$' : '$';
   const fmt = n => simbolo+' '+Math.round(Number(n)||0).toLocaleString('es-AR');
   if(sel.length <= 1){
     cont.innerHTML = '<span class="mm-hint-uno">Cubre solo '+esc(abonoMesLabel(sel[0]))+'. Tocá otros meses si el pago salda atrasos.</span>';
@@ -14475,7 +14633,7 @@ function renderAlertasInicio() {
     else {
       aiPanel.style.display = '';
       const meses = abonoMesesInflacion();
-      const nPesos = ABONOS.filter(c=>c.moneda==='ARS' && c.estado==='activo').length;
+      const nPesos = ABONOS.filter(c=>abonoMon(c)==='ARS' && c.estado==='activo').length;
       aiLista.innerHTML = `<div class="infl-remin">
         <div class="infl-remin-txt">Toca el ajuste trimestral por inflación de los abonos en pesos (${nPesos} cliente${nPesos!==1?'s':''}). Cargá la inflación de <b>${meses.join(', ')}</b>.</div>
         <div class="infl-remin-acc">
@@ -17220,7 +17378,7 @@ function abonoDetalleTemprano(c, ym, dia){
     });
     if (acum + 0.5 >= objetivo)
       return { cli: c, mesAbono: mes, fechaPago: ultima, monto: acum,
-               moneda: c.moneda || 'ARS',
+               moneda: abonoMon(c, mes),
                atrasado: mes < ym };   // abono de un mes anterior, pagado ahora
   }
   return null;
@@ -17308,7 +17466,7 @@ function abonoVentaUsd(c, dolarRef){
   const ym = abonoComMes(c);
   const base = (typeof abonoMontoVigente === 'function') ? (abonoMontoVigente(c, ym) || Number(c.monto) || 0) : (Number(c.monto) || 0);
   if (!(base > 0)) return 0;
-  if ((c.moneda || 'ARS') === 'USD') return base;
+  if (abonoMon(c, ym) === 'USD') return base;
   return dolarRef > 0 ? base / dolarRef : 0;
 }
 function abonoComVentaMonto(c, dolarRef){
@@ -19574,6 +19732,7 @@ let SUELDO_INFL_DESDE = '';            // mes desde el que rige (vacío = cierre
 function sueldoInflDesde(){ return SUELDO_INFL_DESDE || inflMesCierre(); }
 function sueldoInflSetDesde(v){ SUELDO_INFL_DESDE = v || ''; renderSueldo(); }
 let SUELDO_ADJ = null;                 // comprobante que se está por adjuntar
+let SUELDO_TIPO = 'cobro';             // el formulario carga un cobro o un gasto
 
 function loadSueldo(){
   try { SUELDO = JSON.parse(appStore.getItem(SUELDO_KEY) || 'null'); } catch(e){ SUELDO = null; }
@@ -19615,6 +19774,11 @@ function sueldoCalculo(ym){
 // Pagos recibidos en el mes
 function sueldoPagosMes(ym){ loadSueldo(); return SUELDO.pagos[ym] || []; }
 function sueldoCobrado(ym){ return sueldoPagosMes(ym).reduce((a,p)=> a + (Number(p.monto)||0), 0); }
+// Gastos que se descuentan de lo que cobró: plata que entró como sueldo pero se usó
+// para otra cosa. Van como un movimiento más del mes, con monto negativo y forma
+// 'gasto', así la suma del mes ya da lo cobrado neto (y el arrastre lo respeta).
+function sueldoEsGasto(p){ return !!p && (p.metodo === 'gasto' || Number(p.monto) < 0); }
+function sueldoGastosMes(ym){ return sueldoPagosMes(ym).filter(sueldoEsGasto).reduce((a,p)=> a + Math.abs(Number(p.monto)||0), 0); }
 
 // ── Saldo que se traslada al mes siguiente, en los dos sentidos ──
 // Si en un mes se cobró de más, ese sobrante arranca el mes siguiente como ya cobrado.
@@ -20083,21 +20247,26 @@ function renderSueldo(){
   const pagos = sueldoPagosMes(ym).slice().sort((a,b)=> (a.fecha||'').localeCompare(b.fecha||''));
   const fmt = n => '$ ' + fmtNumStr(Math.round(Number(n)||0));
   const fmtS = n => { const v = Math.round(Number(n)||0); return (v < 0 ? '-$ ' : '$ ') + fmtNumStr(Math.abs(v)); };
-  const pct = st.aCobrar ? Math.min(100, st.cobrado / st.aCobrar * 100) : 0;
+  const pct = st.aCobrar ? Math.max(0, Math.min(100, st.cobrado / st.aCobrar * 100)) : 0;
+  const esGastoF = SUELDO_TIPO === 'gasto';
 
+  const gastosMes = sueldoGastosMes(ym);
+  const nCobros = pagos.filter(p => !sueldoEsGasto(p)).length;
   const filas = pagos.length ? pagos.map(p => {
+    const gasto = sueldoEsGasto(p);
     const comp = p.comprobante && (p.comprobante.url || p.comprobante.path)
       ? `<button class="abo-c-dl" onclick="sueldoDescargarComprob('${p.id}')">📎 Descargar</button>`
-      : (p.metodo === 'efectivo' ? '<span class="abo-c-efec">Pago en efectivo</span>' : '<span class="abo-c-empty">Sin comprobante</span>');
-    return `<div class="abo-row">
+      : (gasto ? '<span class="abo-c-empty">—</span>'
+        : p.metodo === 'efectivo' ? '<span class="abo-c-efec">Pago en efectivo</span>' : '<span class="abo-c-empty">Sin comprobante</span>');
+    return `<div class="abo-row${gasto ? ' sue-gasto' : ''}">
       <div class="sue-c-fecha">${p.fecha ? formatFechaCorta(p.fecha) : '—'}</div>
-      <div class="sue-c-metodo">${p.metodo === 'efectivo' ? 'Efectivo' : 'Transferencia'}</div>
-      <div class="sue-c-monto">${fmt(p.monto)}</div>
+      <div class="sue-c-metodo">${gasto ? '<span class="sue-gasto-tag">Gasto</span>' : p.metodo === 'efectivo' ? 'Efectivo' : 'Transferencia'}</div>
+      <div class="sue-c-monto">${gasto ? '− ' + fmt(Math.abs(Number(p.monto)||0)) : fmt(p.monto)}</div>
       <div class="sue-c-comp">${comp}</div>
       <div class="sue-c-obs">${p.obs ? esc(p.obs) : ''}</div>
-      <button class="abo-pp-del" onclick="sueldoEliminarPago('${p.id}')" title="Eliminar este cobro">✕</button>
+      <button class="abo-pp-del" onclick="sueldoEliminarPago('${p.id}')" title="${gasto ? 'Eliminar este gasto' : 'Eliminar este cobro'}">✕</button>
     </div>`;
-  }).join('') : '<div class="abo-sec-vacio">Todavía no hay cobros registrados este mes.</div>';
+  }).join('') : '<div class="abo-sec-vacio">Todavía no hay cobros ni gastos registrados este mes.</div>';
 
   const chip = st.estado === 'pagado'
       ? (st.excedente > 0
@@ -20131,7 +20300,7 @@ function renderSueldo(){
       <div class="sue-kpi">
         <div class="lbl">Ya cobró</div>
         <div class="val">${fmt(st.cobrado)}</div>
-        <div class="sub">${pagos.length} cobro${pagos.length!==1?'s':''} registrado${pagos.length!==1?'s':''}${st.arrastre > 0 ? ' · incluye ' + fmt(st.arrastre) + ' del mes anterior' : ''}${st.deuda > 0 ? ' · menos ' + fmt(st.deuda) + ' que quedaron sin cobrar antes' : ''}</div>
+        <div class="sub">${nCobros} cobro${nCobros!==1?'s':''} registrado${nCobros!==1?'s':''}${gastosMes > 0 ? ' · menos ' + fmt(gastosMes) + ' de gastos' : ''}${st.arrastre > 0 ? ' · incluye ' + fmt(st.arrastre) + ' del mes anterior' : ''}${st.deuda > 0 ? ' · menos ' + fmt(st.deuda) + ' que quedaron sin cobrar antes' : ''}</div>
         <div class="bar"><span style="width:${pct.toFixed(1)}%"></span></div>
       </div>
       <div class="sue-kpi ${st.falta>0?'falta':'ok'}">
@@ -20148,6 +20317,7 @@ function renderSueldo(){
       <div class="sue-des-row sub"><span>Suma</span><b>${fmt(st.suma)}</b></div>
       <div class="sue-des-row"><span>Mínimo garantizado</span><b>${fmt(st.minimo)}</b></div>
       <div class="sue-des-row total"><span>${st.aplicaMinimo ? 'Cobra el mínimo, porque la suma no lo alcanza' : 'Cobra base + comisiones, porque supera el mínimo'}</span><b>${fmt(st.aCobrar)}</b></div>
+      ${gastosMes > 0 ? `<div class="sue-des-row deuda"><span>Gastos descontados de lo cobrado este mes</span><b>− ${fmt(gastosMes)}</b></div>` : ''}
       ${st.arrastre > 0 ? `<div class="sue-des-row"><span>Excedente arrastrado del mes anterior</span><b>${fmt(st.arrastre)}</b></div>` : ''}
       ${st.deuda > 0 ? `<div class="sue-des-row deuda"><span>Quedó sin cobrar de meses anteriores</span><b>${fmt(st.deuda)}</b></div>` : ''}
       ${st.excedente > 0 ? `<div class="sue-des-row"><span>Excedente que pasa al mes siguiente</span><b>${fmt(st.excedente)}</b></div>` : ''}
@@ -20155,7 +20325,7 @@ function renderSueldo(){
     </div>
 
     <div class="abo-sec">
-      <div class="abo-sec-h" style="cursor:default"><span class="abo-sec-tw">Cobros registrados</span><span class="abo-sec-count">${fmt(st.pagado)}</span></div>
+      <div class="abo-sec-h" style="cursor:default"><span class="abo-sec-tw">Cobros y gastos registrados</span><span class="abo-sec-count">${fmt(st.pagado)}</span></div>
       <div class="abo-row abo-row-head">
         <div class="sue-c-fecha">Fecha</div><div class="sue-c-metodo">Forma</div>
         <div class="sue-c-monto">Monto</div><div class="sue-c-comp">Comprobante</div>
@@ -20165,21 +20335,28 @@ function renderSueldo(){
     </div>
 
     <div class="sue-form">
-      <div class="sue-form-h">Registrar un cobro</div>
+      <div class="sue-form-h">${esGastoF ? 'Cargar un gasto' : 'Registrar un cobro'}</div>
+      <div class="abo-reg-fld">
+        <div class="abo-seg" id="sueTipo">
+          <button type="button" class="${esGastoF ? '' : 'on'}" onclick="sueldoSetTipo('cobro')">Cobro</button>
+          <button type="button" class="${esGastoF ? 'on' : ''}" onclick="sueldoSetTipo('gasto')">Gasto (se descuenta)</button>
+        </div>
+      </div>
+      ${esGastoF ? '<div class="abo-montos-hint" style="margin:0 0 12px">Plata que cobró como sueldo pero usó para otra cosa: se resta de lo que cobró este mes.</div>' : ''}
       <div class="sue-form-grid">
         <div class="abo-reg-fld"><label>Fecha</label><input type="date" id="sueFecha" value="${hoyISO()}"></div>
-        <div class="abo-reg-fld"><label>Monto ($)</label><input type="text" inputmode="numeric" id="sueMonto" placeholder="Cuánto recibió" oninput="abonoFmtInput(this)"></div>
-        <div class="abo-reg-fld"><label>Forma de pago</label>
+        <div class="abo-reg-fld"><label>${esGastoF ? 'Monto del gasto ($)' : 'Monto ($)'}</label><input type="text" inputmode="numeric" id="sueMonto" placeholder="${esGastoF ? 'Cuánto se descuenta' : 'Cuánto recibió'}" oninput="abonoFmtInput(this)"></div>
+        ${esGastoF ? '' : `<div class="abo-reg-fld"><label>Forma de pago</label>
           <select id="sueMetodo" onchange="sueldoPintarComprob()">
             <option value="transferencia">Transferencia</option>
             <option value="efectivo">Efectivo</option>
-          </select></div>
+          </select></div>`}
       </div>
-      <div class="abo-reg-fld"><label>Detalle <span class="opt">(opcional)</span></label>
-        <input type="text" id="sueObs" placeholder="Ej: adelanto, segunda parte…"></div>
+      <div class="abo-reg-fld"><label>${esGastoF ? 'En qué se usó' : 'Detalle <span class="opt">(opcional)</span>'}</label>
+        <input type="text" id="sueObs" placeholder="${esGastoF ? 'Ej: pago de la tarjeta, compra para el estudio…' : 'Ej: adelanto, segunda parte…'}"></div>
       <div class="abo-reg-fld" id="sueComprobWrap"><label>Comprobante <span class="opt">(opcional)</span></label>
         <div id="sueComprob" class="abo-reg-comprob"></div></div>
-      <button class="abo-pp-add" onclick="sueldoGuardarPago()">+ Registrar cobro</button>
+      <button class="abo-pp-add" onclick="sueldoGuardarPago()">${esGastoF ? '+ Cargar gasto' : '+ Registrar cobro'}</button>
     </div>`;
   sueldoPintarComprob();
 }
@@ -20188,7 +20365,7 @@ function sueldoPintarComprob(){
   const cont = document.getElementById('sueComprob'); if (!cont) return;
   const wrap = document.getElementById('sueComprobWrap');
   const met = (document.getElementById('sueMetodo')||{}).value;
-  if (wrap) wrap.style.display = met === 'efectivo' ? 'none' : '';
+  if (wrap) wrap.style.display = (met === 'efectivo' && SUELDO_TIPO !== 'gasto') ? 'none' : '';
   if (SUELDO_ADJ && (SUELDO_ADJ.url || SUELDO_ADJ.path)){
     cont.innerHTML = `<div class="abo-comprob-ok">
       <span class="ico">📎</span>
@@ -20223,12 +20400,34 @@ async function sueldoSubirComprob(input){
     if (status) status.textContent = 'No se pudo subir. Probá de nuevo.';
   }
 }
+// Cambia el formulario entre cobro y gasto sin perder lo que ya se escribió
+function sueldoSetTipo(t){
+  const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const prev = { f: val('sueFecha'), m: val('sueMonto'), o: val('sueObs') };
+  SUELDO_TIPO = t === 'gasto' ? 'gasto' : 'cobro';
+  renderSueldo();
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+  set('sueFecha', prev.f); set('sueMonto', prev.m); set('sueObs', prev.o);
+}
 function sueldoGuardarPago(){
+  const esGasto = SUELDO_TIPO === 'gasto';
   const monto = abonoParseInput(document.getElementById('sueMonto'));
-  if (monto === '' || !monto){ aricToast('Poné cuánto cobró'); return; }
+  if (monto === '' || !monto || Number(monto) <= 0){ aricToast(esGasto ? 'Poné el monto del gasto' : 'Poné cuánto cobró'); return; }
   const fecha = document.getElementById('sueFecha').value || hoyISO();
-  const metodo = document.getElementById('sueMetodo').value;
   const obs = document.getElementById('sueObs').value.trim();
+  if (esGasto){
+    if (!obs){ aricToast('Contá en qué se usó esa plata'); const o = document.getElementById('sueObs'); if (o) o.focus(); return; }
+    sueldoAgregarPago(sueldoMesActual(), {
+      monto: -Math.abs(Number(monto)), fecha, metodo: 'gasto', obs,
+      comprobante: SUELDO_ADJ ? { ...SUELDO_ADJ } : null
+    });
+    SUELDO_ADJ = null;
+    SUELDO_TIPO = 'cobro';
+    renderSueldo();
+    aricToast('Gasto cargado: se descontó de lo cobrado');
+    return;
+  }
+  const metodo = document.getElementById('sueMetodo').value;
   sueldoAgregarPago(sueldoMesActual(), {
     monto: Number(monto), fecha, metodo, obs,
     comprobante: (metodo !== 'efectivo' && SUELDO_ADJ) ? { ...SUELDO_ADJ } : null
@@ -20238,7 +20437,8 @@ function sueldoGuardarPago(){
   aricToast('Cobro registrado');
 }
 function sueldoEliminarPago(id){
-  if (!confirm('¿Eliminar este cobro?')) return;
+  const p = sueldoPagosMes(sueldoMesActual()).find(x => x.id === id);
+  if (!confirm(sueldoEsGasto(p) ? '¿Eliminar este gasto? Vuelve a sumarse a lo cobrado.' : '¿Eliminar este cobro?')) return;
   sueldoQuitarPago(sueldoMesActual(), id);
   renderSueldo();
 }
@@ -25454,11 +25654,12 @@ function accPagos(c) {
     const ymA = (typeof abonoMesActual === 'function') ? abonoMesActual() : '';
     const st = (typeof abonoEstadoMes === 'function') ? abonoEstadoMes(abo, ymA) : null;
     const vig = (typeof abonoMontoAPagar === 'function') ? (abonoMontoAPagar(abo, ymA) || 0) : 0;
-    const sim = abo.moneda === 'USD' ? 'u$s ' : '$ ';
+    const sim = abonoMon(abo, ymA) === 'USD' ? 'u$s ' : '$ ';
     const chip = !st ? '' : st.estado === 'pagado'
       ? '<span class="crm-abo-chip ok">Pagado</span>'
       : st.estado === 'parcial'
         ? `<span class="crm-abo-chip parc">Parcial · falta ${sim}${fmtN(Math.round(st.falta))}</span>`
+        : st.estado === 'inactivo' ? '<span class="crm-abo-chip">No activo</span>'
         : '<span class="crm-abo-chip debe">Pendiente</span>';
     body += `<div class="crm-serv-label">Abono mensual</div>
       <div class="crm-abo-box">
@@ -25510,6 +25711,80 @@ function accObs(c, editar) {
   return `<div class="${accCls(id,'obs',false)}">${accHead(id, 'obs', 'OBSERVACIONES', '', true)}<div class="acc-body">${body}</div></div>`;
 }
 
+
+// ═══════════ SIEMPRE LA ÚLTIMA VERSIÓN ═══════════
+// Número de esta versión (año-mes-día-hora-minuto). Se sube en cada publicación.
+// Si alguien abre el sistema desde un acceso directo y le aparece una versión vieja
+// (o deja la pestaña abierta varios días), se detecta acá y se recarga sola: así
+// nadie trabaja ni guarda cambios sobre una versión desactualizada.
+const APP_BUILD = '202611012330';
+(function(){
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') return;
+  const CLAVE = 'welegal-recarga-version';
+  let nueva = false, chequeando = false, esperando = null;
+  // Se saca de la barra de direcciones la marca que se usa para saltear la caché
+  try {
+    const u = new URL(location.href);
+    if (u.searchParams.has('vnueva')){ u.searchParams.delete('vnueva'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); }
+  } catch (e) {}
+  // Trae el index publicado sin pasar por ninguna caché y lee su número de versión
+  async function versionPublicada(){
+    // URL fija (el service worker guarda una sola copia de ella) y sin caché del navegador
+    const r = await fetch(location.pathname + '?chequeo=1', { cache: 'no-store', credentials: 'same-origin', headers: { 'Accept': 'text/html' } });
+    if (!r.ok) return '';
+    const m = (await r.text()).match(/const APP_BUILD = '(\d{8,})'/);
+    return m ? m[1] : '';
+  }
+  function ocupado(){
+    try {
+      const a = document.activeElement;
+      if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && (a.value || '') !== '') return true;
+      if (document.querySelector('.crm-modal-ov.on, .modal-bg[style*="flex"], .abo-reg-modal[style*="flex"]')) return true;
+    } catch (e) {}
+    return false;
+  }
+  function recienRecargo(){
+    try { return Date.now() - Number(sessionStorage.getItem(CLAVE) || 0) < 2 * 60 * 1000; } catch (e) { return false; }
+  }
+  function recargar(){
+    try { sessionStorage.setItem(CLAVE, String(Date.now())); } catch (e) {}
+    try { const u = new URL(location.href); u.searchParams.set('vnueva', String(Date.now())); location.replace(u.toString()); }
+    catch (e) { location.reload(); }
+  }
+  function aviso(){
+    if (document.getElementById('avisoVersion')) return;
+    const d = document.createElement('div');
+    d.id = 'avisoVersion';
+    d.innerHTML = '<span>Hay una versión nueva del sistema. Terminá lo que estás cargando y tocá Actualizar.</span>' +
+                  '<button onclick="__versionRecargar()">Actualizar</button>';
+    document.body.appendChild(d);
+  }
+  window.__versionRecargar = recargar;
+  function actuar(arranque){
+    // Si recién se recargó y el servidor todavía entrega la anterior, no se entra en bucle:
+    // se avisa y se vuelve a probar en un rato.
+    if (recienRecargo()){ aviso(); setTimeout(() => { nueva = false; chequear(false); }, 3 * 60 * 1000); return; }
+    if (arranque || !ocupado()) { recargar(); return; }
+    // Está cargando algo: se le avisa y se recarga sola apenas termine
+    aviso();
+    if (!esperando) esperando = setInterval(() => { if (!ocupado()) recargar(); }, 3000);
+  }
+  async function chequear(arranque){
+    if (chequeando || nueva) return;
+    chequeando = true;
+    try {
+      const v = await versionPublicada();
+      // Solo si la publicada es MÁS nueva: nunca se vuelve a una anterior
+      if (v && v > APP_BUILD){ nueva = true; window.__versionVieja = true; }
+    } catch (e) {}
+    chequeando = false;
+    if (nueva) actuar(arranque);
+  }
+  chequear(true);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) chequear(false); });
+  window.addEventListener('focus', () => chequear(false));
+  setInterval(() => chequear(false), 5 * 60 * 1000);
+})();
 
 // ═══════════ APP INSTALABLE ═══════════
 // Registra el service worker que hace posible instalar el sistema como aplicación.
