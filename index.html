@@ -4153,6 +4153,7 @@ body.locked .app{margin-left:0}
           <option value="Sociedad">Sociedad</option>
           <option value="Cooperativa">Cooperativa</option>
           <option value="Persona fisica">Persona física</option>
+          <option value="__inase">INASE</option>
         </select>
         <select id="crmFiltroTipoSoc" onchange="crmSetFiltro('tipoSoc', this.value)" style="display:none">
           <option value="">Sociedad: todas</option>
@@ -4192,10 +4193,8 @@ body.locked .app{margin-left:0}
           <option value="si">Con pendiente</option>
           <option value="no">Sin pendiente</option>
         </select>
-        <select id="crmFiltroEtiq" onchange="crmSetFiltro('etiqueta', this.value)">
-          <option value="">Etiquetas: todas</option>
-          <option value="INASE">INASE</option>
-          <option value="sin">Sin etiquetas</option>
+        <select id="crmFiltroRegistro" onchange="crmSetFiltro('registro', this.value)">
+          <option value="">Registro: todos</option>
         </select>
         <select id="crmFiltroContacto" onchange="crmSetFiltro('contacto', this.value)">
           <option value="">Contacto: todos</option>
@@ -24215,7 +24214,7 @@ function pagosDeCliente(id) {
 // ══════════════════════════════════════════════════════════════════
 //  MÓDULO CRM — vista (listado paginado + filtros)  · Etapa 1
 // ══════════════════════════════════════════════════════════════════
-var __crmFiltros = { texto: '', tipo: '', tipoSoc: '', etiqueta: '', grupo: '', contacto: '', encargada: '', repro: '', pack: '', situacion: '', servPend: '', doc: '', reunion: '', vencePack: '', estado: '', orden: 'proximo' };
+var __crmFiltros = { texto: '', tipo: '', tipoSoc: '', etiqueta: '', registro: '', grupo: '', contacto: '', encargada: '', repro: '', pack: '', situacion: '', servPend: '', doc: '', reunion: '', vencePack: '', estado: '', orden: 'proximo' };
 
 const TIPO_LABEL = { 'AC': 'Asoc. Civil', 'Sociedad': 'Sociedad', 'Cooperativa': 'Cooperativa', 'Persona fisica': 'Persona física' };
 const TIPO_CLS = { 'AC': 'ac', 'Sociedad': 'sas', 'Cooperativa': 'coop', 'Persona fisica': 'pf' };
@@ -24264,7 +24263,12 @@ function clientesFiltrados() {
       __normBusqueda(c.grupo || '').includes(t)      // grupo
     );
   }
-  if (f.tipo) arr = arr.filter(c => (c.tipo || '') === f.tipo);
+  // "INASE" dentro de Tipo: los clientes con la etiqueta INASE (puesta a mano o por el padrón)
+  if (f.tipo === '__inase') arr = arr.filter(c => etiquetasDe(c).indexOf('INASE') >= 0);
+  else if (f.tipo) arr = arr.filter(c => (c.tipo || '') === f.tipo);
+  // Jurisdicción: el "Registro" de la ficha (Identidad y contacto)
+  if (f.registro === '__sin') arr = arr.filter(c => !(c.registro || '').trim());
+  else if (f.registro) arr = arr.filter(c => (c.registro || '').trim() === f.registro);
   if (f.tipo === 'Sociedad' && f.tipoSoc) arr = arr.filter(c => (c.tipoSoc || '') === f.tipoSoc);
   if (f.etiqueta === 'sin') arr = arr.filter(c => !etiquetasDe(c).length);
   else if (f.etiqueta) arr = arr.filter(c => etiquetasDe(c).indexOf(f.etiqueta) >= 0);
@@ -24416,6 +24420,15 @@ function poblarFiltrosCRM() {
     encSel.value = __crmFiltros.encargada;
     encSel.dataset.pobladoCount = String((CLIENTES || []).length);
   }
+  // Registro (jurisdicción): los de la ficha + cualquier otro que traigan los datos
+  const rgSel = document.getElementById('crmFiltroRegistro');
+  if (rgSel) {
+    const enData = (CLIENTES || []).map(c => (c.registro || '').trim()).filter(Boolean);
+    const rs = [...new Set([...REGISTRO_OP, ...enData])];
+    const html = '<option value="">Registro: todos</option>' + rs.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('') + '<option value="__sin">Sin registro cargado</option>';
+    if (rgSel.dataset.html !== html){ rgSel.innerHTML = html; rgSel.dataset.html = html; }
+    rgSel.value = __crmFiltros.registro || '';
+  }
   // Grupos: se rearma siempre (cambian al editar una ficha sin cambiar la cantidad)
   const grSel = document.getElementById('crmFiltroGrupo');
   if (grSel) {
@@ -24433,7 +24446,7 @@ function crmToggleChip(campo) {
   renderCRM();
 }
 function crmLimpiarFiltros() {
-  __crmFiltros = { texto: '', tipo: '', tipoSoc: '', etiqueta: '', grupo: '', contacto: '', encargada: '', repro: '', pack: '', situacion: '', servPend: '', doc: '', reunion: '', vencePack: '', estado: '', orden: __crmFiltros.orden };
+  __crmFiltros = { texto: '', tipo: '', tipoSoc: '', etiqueta: '', registro: '', grupo: '', contacto: '', encargada: '', repro: '', pack: '', situacion: '', servPend: '', doc: '', reunion: '', vencePack: '', estado: '', orden: __crmFiltros.orden };
   const b = document.getElementById('crmBuscar'); if (b) b.value = '';
   __paginas['crm'] = 0;
   renderCRM();
@@ -24448,10 +24461,10 @@ function sincronizarControlesCRM() {
   set('crmFiltroTipo', f.tipo); set('crmFiltroEncargada', f.encargada); set('crmFiltroRepro', f.repro);
   set('crmFiltroPack', f.pack); set('crmFiltroSituacion', f.situacion); set('crmFiltroServ', f.servPend || ''); set('crmFiltroDoc', f.doc);
   set('crmFiltroEstado', f.estado); set('crmOrden', f.orden);
-  set('crmFiltroTipoSoc', f.tipoSoc || ''); set('crmFiltroEtiq', f.etiqueta || ''); set('crmFiltroContacto', f.contacto || ''); set('crmFiltroGrupo', f.grupo || '');
+  set('crmFiltroTipoSoc', f.tipoSoc || ''); set('crmFiltroRegistro', f.registro || ''); set('crmFiltroContacto', f.contacto || ''); set('crmFiltroGrupo', f.grupo || '');
   { const ts = document.getElementById('crmFiltroTipoSoc'); if (ts) ts.style.display = f.tipo === 'Sociedad' ? '' : 'none'; }
   const marcar = (id) => { const el = document.getElementById(id); if (el) el.classList.toggle('activo', !!el.value); };
-  ['crmFiltroTipo','crmFiltroTipoSoc','crmFiltroEncargada','crmFiltroRepro','crmFiltroPack','crmFiltroSituacion','crmFiltroServ','crmFiltroDoc','crmFiltroEtiq','crmFiltroContacto','crmFiltroGrupo','crmFiltroEstado'].forEach(marcar);
+  ['crmFiltroTipo','crmFiltroTipoSoc','crmFiltroEncargada','crmFiltroRepro','crmFiltroPack','crmFiltroSituacion','crmFiltroServ','crmFiltroDoc','crmFiltroRegistro','crmFiltroContacto','crmFiltroGrupo','crmFiltroEstado'].forEach(marcar);
 }
 // Panel de métricas de cartera (sobre TODOS los clientes, no los filtrados)
 function renderCrmMetricas() {
@@ -25427,7 +25440,7 @@ function accIdentidad(c, editar) {
       <div class="crm-fld"><label>Mail</label><input id="f_mail" value="${esc(c.mail || '')}"></div>
       <div class="crm-fld"><label>Provincia</label><input id="f_provincia" value="${esc(c.provincia || '')}" placeholder="Ej: Buenos Aires"></div>
       <div class="crm-fld"><label>Link Drive</label><input id="f_driveLink" value="${esc(c.driveLink || '')}"></div>
-      <div class="crm-fld"><label>Grupo</label><input id="f_grupo" list="crmGruposDL" value="${esc(c.grupo || '')}" placeholder="Ej: Noriega (mismo titular)"><datalist id="crmGruposDL">${crmGruposExistentes().map(g => `<option value="${esc(g)}">`).join('')}</datalist></div>
+      <div class="crm-fld"><label>Grupo</label><input id="f_grupo" autocomplete="off" list="crmGruposDL" value="${esc(c.grupo || '')}" placeholder="Ej: Noriega (mismo titular)"><datalist id="crmGruposDL">${crmGruposExistentes().map(g => `<option value="${esc(g)}">`).join('')}</datalist></div>
       </div>
       <div class="crm-sec-btns"><button class="crm-btn-cancelar" onclick="toggleEditSeccion(${id},'identidad')">Cancelar</button><button class="crm-btn-guardar" onclick="guardarSeccion(${id},'identidad')">Guardar sección</button></div>`;
   } else {
@@ -25717,7 +25730,7 @@ function accObs(c, editar) {
 // Si alguien abre el sistema desde un acceso directo y le aparece una versión vieja
 // (o deja la pestaña abierta varios días), se detecta acá y se recarga sola: así
 // nadie trabaja ni guarda cambios sobre una versión desactualizada.
-const APP_BUILD = '202611012330';
+const APP_BUILD = '202611052335';
 (function(){
   if (location.protocol !== 'https:' && location.hostname !== 'localhost') return;
   const CLAVE = 'welegal-recarga-version';
