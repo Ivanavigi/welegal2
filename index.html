@@ -2111,6 +2111,53 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .cs-grupo::after{content:'';flex:1;height:1px;background:var(--filo)}
 .cs-fila-vinc{display:none;background:#fdfaf1;border:1px solid #e6d3a0;border-radius:10px;padding:12px 14px;margin-bottom:4px}
 .cs-fila-vinc.on{display:block}
+.cs-fila-vinc.on + .cs-fila-cuotas{margin-top:8px}
+.cs-cuo-barra{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap}
+.cs-cuo-btn{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #d9c389;color:#6b5312;border-radius:9px;padding:9px 14px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s,border-color .15s}
+.cs-cuo-btn:hover{background:#fff8e1;border-color:#c9a961}
+.cs-cuo-n{background:#14294a;color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:2px 8px;min-width:22px;text-align:center}
+.cs-cuo-res{font-size:12.5px;color:#8a6d1f;font-weight:600}
+.cs-cuo-sel{display:inline-flex;align-items:center;gap:8px;background:#eef4ff;border:1px solid #bcd0f2;color:#14294a;border-radius:999px;padding:5px 6px 5px 12px;font-size:12.5px;font-weight:600;max-width:100%}
+.cs-cuo-sel b{font-weight:700}
+.cs-cuo-sel button{border:none;background:rgba(20,41,74,.1);color:#14294a;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:11px;line-height:1;flex:0 0 auto}
+.cs-cuo-sel button:hover{background:rgba(20,41,74,.2)}
+/* Ventana de cuotas pendientes */
+.cuo-modal{max-width:760px}
+.cuo-herr{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.cuo-buscar{flex:1 1 100%;min-width:0;padding:10px 13px;border:1px solid var(--filo);border-radius:9px;font-family:inherit;font-size:14px;background:#fff;color:var(--tinta)}
+.cuo-buscar:focus{outline:none;border-color:#14294a;box-shadow:0 0 0 3px rgba(20,41,74,.1)}
+.cuo-chips{display:flex;gap:6px;flex-wrap:wrap}
+.cuo-chip{border:1px solid var(--filo);background:#fff;color:var(--tinta-suave);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.cuo-chip.on{background:#14294a;border-color:#14294a;color:#fff}
+.cuo-lista{max-height:min(52vh,460px);overflow-y:auto;border:1px solid var(--filo);border-radius:11px;background:#fff}
+.cuo-grupo{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;gap:10px;background:#f6f4ee;border-bottom:1px solid var(--filo);padding:7px 14px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta-suave)}
+.cuo-grupo.venc{color:#b3372a}
+.cuo-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #f0ede4;cursor:pointer;transition:background .12s}
+.cuo-item:last-child{border-bottom:none}
+.cuo-item:hover{background:#faf8f2}
+.cuo-item.sel{background:#eef4ff;box-shadow:inset 3px 0 0 #14294a}
+.cuo-radio{flex:0 0 16px;width:16px;height:16px;border-radius:50%;border:2px solid #c5c2b8;background:#fff}
+.cuo-item.sel .cuo-radio{border-color:#14294a;background:radial-gradient(#14294a 45%,#fff 50%)}
+.cuo-info{flex:1;min-width:0}
+.cuo-cli{font-weight:700;font-size:13.5px;color:var(--tinta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cuo-con{font-size:12px;color:var(--tinta-suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.cuo-nro{flex:0 0 auto;font-size:11px;font-weight:700;color:#14294a;background:#e8eefb;border-radius:6px;padding:3px 8px;white-space:nowrap}
+.cuo-der{flex:0 0 auto;text-align:right}
+.cuo-monto{font-weight:700;font-size:14px;color:var(--tinta);white-space:nowrap}
+.cuo-fecha{font-size:11.5px;color:var(--tinta-suave);margin-top:1px;white-space:nowrap}
+.cuo-fecha.venc{color:#b3372a;font-weight:600}
+.cuo-vacio{padding:34px 16px;text-align:center;color:var(--tinta-suave);font-size:13px}
+.cuo-pie{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+.cuo-pie-txt{flex:1 1 200px;min-width:0;font-size:12.5px;color:var(--tinta-suave)}
+.cuo-pie-txt b{color:var(--tinta)}
+.cuo-pie .crm-btn-guardar:disabled{opacity:.45;cursor:not-allowed}
+@media (max-width:560px){
+  .cuo-item{flex-wrap:wrap;gap:6px 10px}
+  .cuo-info{flex:1 1 calc(100% - 30px)}
+  .cuo-nro{margin-left:28px}
+  .cuo-der{flex:1 1 auto}
+  .cuo-pie > button{flex:1 1 auto}
+}
 .cs-fila-vinc .f-col label{color:#8a6d1f;font-weight:700}
 /* Campos que no intervienen mientras se cobra un gasto pendiente */
 .cs-apagado{opacity:.32;pointer-events:none;filter:grayscale(.6)}
@@ -2772,6 +2819,35 @@ body.locked .app{margin-left:0}
 .crm-bita-borrar{color:var(--mal,#b3372a);border-color:#e4c4c0;margin-left:auto}
 .crm-bita-borrar:hover{background:var(--mal,#b3372a);color:#fff;border-color:var(--mal,#b3372a)}
 
+
+/* ═══════════ PASADA DE CONSISTENCIA VISUAL ═══════════ */
+/* Campos de formulario: misma altura para texto, fecha, hora y desplegables (antes 34/36/38 px en la misma fila) */
+.f-col input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]),.f-col select{height:36px;box-sizing:border-box}
+/* Aclaraciones dentro de una etiqueta ("opcional"): no tenían estilo y salían en negrita */
+.crm-hint-min{font-weight:400;font-size:11px;color:var(--tinta-suave);text-transform:none;letter-spacing:0;margin-left:4px}
+/* Foco visible al navegar con teclado */
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible,summary:focus-visible{outline:2px solid #c9a961;outline-offset:2px}
+/* Botones deshabilitados: se nota que no se pueden usar */
+button:disabled{cursor:not-allowed}
+/* Columnas de grilla: que el contenido no las ensanche más que la pantalla */
+.grid-2 > *,.grid-2-eq > *{min-width:0}
+/* Solapas: en pantallas angostas van en una línea y se deslizan, en vez de partirse en 3 renglones o cortarse */
+.abo-subtabs{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.abo-subtabs::-webkit-scrollbar{display:none}
+.abo-subtabs button{white-space:nowrap;flex:0 0 auto}
+@media (max-width:760px){
+  /* Referencias de la columna Pago: que bajen de renglón en vez de salirse de la pantalla */
+  .abo-leyenda{flex-wrap:wrap;white-space:normal;row-gap:8px;font-size:13px !important}
+  /* Buscador + botón de alta (INASE): el botón baja en vez de salirse */
+  .ina-barra{flex-wrap:wrap}
+  .ina-barra .abo-buscar-input{flex:1 1 220px;min-width:0}
+}
+/* Pantallas táctiles: los botones chiquitos de las tablas (editar, borrar, marcar) con área cómoda para el dedo */
+@media (pointer:coarse){
+  .cs-edit-b,.tarea-del{min-width:34px;min-height:34px}
+  .pack-btn,.mini-btn{min-height:30px}
+  .cs-cuo-sel button{width:26px;height:26px}
+}
 </style>
 </head>
 <body>
@@ -3607,6 +3683,15 @@ body.locked .app{margin-left:0}
               <input type="text" inputmode="decimal" id="csGasCobro" oninput="fmtMiles(this);csVincHintTxt()" placeholder="Todo el saldo"></div>
             <div class="f-col" style="flex:0 0 155px;display:none" id="csVincFechaWrap"><label>Fecha del cobro</label>
               <input type="date" id="csVincFecha" onchange="document.getElementById('csFecha').value=this.value"></div>
+            </div>
+          </div>
+
+          <!-- Cuotas pendientes de cobro (de todos los meses): al elegir una se precarga el formulario -->
+          <div class="cs-fila-vinc cs-fila-cuotas" id="csFilaCuotas">
+            <div class="cs-cuo-barra">
+            <button type="button" class="cs-cuo-btn" id="csCuotaPendBtn" onclick="csCuotasAbrir()">💳 Cuotas pendientes de cobro <span class="cs-cuo-n" id="csCuotaPendN">0</span></button>
+            <span class="cs-cuo-res" id="csCuotaPendLbl"></span>
+            <span class="cs-cuo-sel" id="csCuotaPendSel" style="display:none"></span>
             </div>
           </div>
 
@@ -16454,8 +16539,8 @@ function socMostrarComprobantes(opciones){
     document.body.appendChild(ov);
   }
   ov.innerHTML = `<div class="crm-modal" style="max-width:420px">
-    <div class="crm-modal-h"><h3>Comprobantes del movimiento</h3><button class="crm-modal-x" onclick="document.getElementById('socCompOv').classList.remove('on')">✕</button></div>
-    <div class="crm-modal-b" style="display:flex;flex-direction:column;gap:9px">
+    <div class="crm-modal-cab"><h2>Comprobantes del movimiento</h2><button class="crm-modal-x" onclick="document.getElementById('socCompOv').classList.remove('on')">✕</button></div>
+    <div class="crm-modal-body" style="display:flex;flex-direction:column;gap:9px">
       ${opciones.map((o, i) => `<button class="btn-ghost" style="justify-content:flex-start;text-align:left" onclick="__socCompElegir(${i})">📄 ${esc(o.txt)}</button>`).join('')}
     </div></div>`;
   ov.__ops = opciones;
@@ -17839,7 +17924,172 @@ function csVincCambio(){
   const ci = document.getElementById('csGasCobro');
   if (ci && !m) ci.value = '';
   csVincHintTxt();
+  try { csCuotaPendPintar(); } catch(e){}
 }
+// ── Cuotas pendientes de cobro ──
+// Lista TODAS las cuotas que faltan cobrar de los planes de la caja societaria (no solo
+// las de este mes). Al elegir una, el formulario queda precargado para registrar el cobro.
+let __csCuotaSel = '';        // 'planId|nro' de la cuota precargada en el formulario
+let __cuoModal = { q: '', f: 'todas', sel: '' };
+function csCuotaClave(i){ return String(i.plan.id) + '|' + i.nro; }
+function csCuotaTotalesTxt(items){
+  const tArs = items.filter(i => i.moneda !== 'USD').reduce((a, i) => a + (Number(i.monto) || 0), 0);
+  const tUsd = items.filter(i => i.moneda === 'USD').reduce((a, i) => a + (Number(i.monto) || 0), 0);
+  return [tUsd ? 'u$s ' + fmtNumStr(tUsd) : '', tArs ? '$ ' + fmtNumStr(tArs) : ''].filter(Boolean).join(' + ');
+}
+// Barra del formulario: botón que abre la ventana, resumen y la cuota ya elegida
+function csCuotaPendPintar(){
+  const fila = document.getElementById('csFilaCuotas');
+  if (!fila) return;
+  const tipo = (document.getElementById('csTipo') || {}).value || 'ingreso';
+  const cobrandoGastos = !!((document.getElementById('csVincGastos') || {}).value);
+  const items = cuotasPendientesTodas('soc');
+  const hay = tipo === 'ingreso' && !cobrandoGastos && items.length > 0;
+  fila.classList.toggle('on', hay);
+  const n = document.getElementById('csCuotaPendN'); if (n) n.textContent = String(items.length);
+  const lbl = document.getElementById('csCuotaPendLbl');
+  if (lbl) lbl.textContent = items.length ? 'Total a cobrar: ' + csCuotaTotalesTxt(items) : '';
+  // La elegida se conserva solo si el formulario sigue armado para esa cuota
+  const chk = document.getElementById('csEsCuota');
+  const armado = chk && chk.checked
+    ? String((document.getElementById('csPlan') || {}).value || '') + '|' + String((document.getElementById('csNro') || {}).value || '') : '';
+  const it = __csCuotaSel && __csCuotaSel === armado ? items.find(i => csCuotaClave(i) === __csCuotaSel) : null;
+  if (!it) __csCuotaSel = '';
+  const chip = document.getElementById('csCuotaPendSel');
+  if (chip){
+    chip.style.display = it ? '' : 'none';
+    chip.innerHTML = it
+      ? `<span>Precargada: <b>${esc(it.cliente || 'Sin cliente')}</b> · cuota ${it.nro}/${it.total} · ${csSimb(it.moneda)}${fmtNumStr(it.monto)}</span><button type="button" title="Quitar la cuota precargada" onclick="csCuotaPendQuitar()">✕</button>`
+      : '';
+  }
+}
+// Precarga el formulario para cobrar esa cuota
+function csCuotaPendPrecargar(clave){
+  const el = id => document.getElementById(id);
+  const corte = String(clave).lastIndexOf('|');
+  const plan = planPorId(String(clave).slice(0, corte));
+  const nro = Number(String(clave).slice(corte + 1));
+  if (!plan){ csCuotaPendPintar(); return false; }
+  const item = cuotasPendientesTodas('soc').find(i => String(i.plan.id) === String(plan.id) && i.nro === nro);
+  // Cliente y concepto del plan
+  if (el('csContra')) el('csContra').value = plan.cliente || '';
+  if (el('csConcepto')) el('csConcepto').value = plan.concepto || '';
+  // Se marca como cuota del plan existente y se elige la cuota
+  const chk = el('csEsCuota');
+  if (chk){ chk.checked = true; cjToggleCuota('soc'); }
+  if (el('csPlan')){ el('csPlan').value = String(plan.id); cjPlanChange('soc'); }
+  if (el('csNro')) el('csNro').value = String(nro);
+  // Monto de la cuota, en la moneda del plan (si pagó en otra, se cambia a mano)
+  if (el('csMoneda')){ el('csMoneda').value = plan.moneda === 'USD' ? 'USD' : 'ARS'; try { csToggleDolarDia(); csToggleMixto(); } catch(e){} }
+  if (el('csMonto')) el('csMonto').value = item && item.monto ? fmtNumStr(item.monto) : '';
+  if (el('csFecha') && !el('csFecha').value) el('csFecha').value = hoyISO();
+  try { csPackHint(); csChequearDesglose(); } catch(e){}
+  __csCuotaSel = String(plan.id) + '|' + nro;
+  csCuotaPendPintar();
+  aricToast('Cobro de la cuota precargado: revisá fecha, monto y cómo pagó');
+  const m = el('csMonto'); if (m){ try { m.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e){} }
+  return true;
+}
+// Saca la cuota precargada y limpia lo que se había completado
+function csCuotaPendQuitar(){
+  ['csContra', 'csConcepto', 'csMonto'].forEach(k => { const e = document.getElementById(k); if (e) e.value = ''; });
+  cjResetCuota('soc');
+  __csCuotaSel = '';
+  try { csPackHint(); } catch(e){}
+  csCuotaPendPintar();
+}
+// ── Ventana con todas las cuotas pendientes: buscador, filtros y selección ──
+function csCuotasAbrir(){
+  let ov = document.getElementById('csCuotasOv');
+  if (!ov){
+    ov = document.createElement('div'); ov.id = 'csCuotasOv'; ov.className = 'crm-modal-ov';
+    ov.onclick = e => { if (e.target === ov) csCuotasCerrar(); };
+    ov.addEventListener('keydown', e => { if (e.key === 'Escape') csCuotasCerrar(); });
+    document.body.appendChild(ov);
+  }
+  __cuoModal = { q: '', f: 'todas', sel: __csCuotaSel || '' };
+  ov.innerHTML = `<div class="crm-modal cuo-modal">
+    <div class="crm-modal-cab"><h2>Cuotas pendientes de cobro</h2><div class="sub" id="cuoSub"></div>
+      <button class="crm-modal-x" onclick="csCuotasCerrar()">✕</button></div>
+    <div class="crm-modal-body">
+      <div class="cuo-herr">
+        <input type="search" class="cuo-buscar" id="cuoBuscar" placeholder="Buscar por cliente, concepto o monto…" autocomplete="off" oninput="csCuotasBuscar(this.value)" onkeydown="csCuotasTecla(event)">
+        <div class="cuo-chips" id="cuoChips"></div>
+      </div>
+      <div class="cuo-lista" id="cuoLista"></div>
+      <div class="cuo-pie">
+        <div class="cuo-pie-txt" id="cuoPieTxt"></div>
+        <button class="crm-btn-cancelar" onclick="csCuotasCerrar()">Cancelar</button>
+        <button class="crm-btn-guardar" id="cuoConfirmar" onclick="csCuotasConfirmar()">Confirmar</button>
+      </div>
+    </div></div>`;
+  ov.classList.add('on');
+  csCuotasPintarLista();
+  setTimeout(() => { const b = document.getElementById('cuoBuscar'); if (b) b.focus(); }, 60);
+}
+function csCuotasCerrar(){ const ov = document.getElementById('csCuotasOv'); if (ov) ov.classList.remove('on'); }
+function csCuotasBuscar(v){ __cuoModal.q = v || ''; csCuotasPintarLista(); }
+function csCuotasFiltro(f){ __cuoModal.f = f; csCuotasPintarLista(); }
+function csCuotasElegir(clave){ __cuoModal.sel = clave; csCuotasPintarLista(); }
+// Cuotas que pasan el buscador y el filtro, con su grupo (vencidas / este mes / más adelante)
+function csCuotasVisibles(){
+  const hoy = hoyISO(), ym = hoy.slice(0, 7);
+  const grupo = i => (i.fecha || '') < hoy ? 'venc' : (i.fecha || '').slice(0, 7) === ym ? 'mes' : 'prox';
+  const todas = cuotasPendientesTodas('soc').map(i => ({ ...i, clave: csCuotaClave(i), grupo: grupo(i) }));
+  const q = __normBusqueda(__cuoModal.q || '').trim();
+  const pal = q ? q.split(/\s+/) : [];
+  const texto = i => __normBusqueda([i.cliente, i.concepto, 'cuota ' + i.nro + '/' + i.total, fmtNumStr(i.monto), String(Math.round(Number(i.monto) || 0)),
+    i.moneda === 'USD' ? 'usd dolares u$s' : 'ars pesos', fmtFechaCortaCRM(i.fecha)].join(' '));
+  const porTexto = pal.length ? todas.filter(i => { const t = texto(i); return pal.every(p => t.includes(p)); }) : todas;
+  const lista = __cuoModal.f === 'todas' ? porTexto : porTexto.filter(i => i.grupo === __cuoModal.f);
+  return { todas, porTexto, lista };
+}
+function csCuotasPintarLista(){
+  const cont = document.getElementById('cuoLista'); if (!cont) return;
+  const { todas, porTexto, lista } = csCuotasVisibles();
+  const sub = document.getElementById('cuoSub');
+  if (sub) sub.textContent = todas.length + ' cuota' + (todas.length !== 1 ? 's' : '') + ' · total a cobrar ' + (csCuotaTotalesTxt(todas) || '—');
+  const cuenta = g => porTexto.filter(i => i.grupo === g).length;
+  const chips = document.getElementById('cuoChips');
+  if (chips) chips.innerHTML = [['todas', 'Todas', porTexto.length], ['venc', 'Vencidas', cuenta('venc')], ['mes', 'Este mes', cuenta('mes')], ['prox', 'Más adelante', cuenta('prox')]]
+    .map(([k, t, n]) => `<button type="button" class="cuo-chip${__cuoModal.f === k ? ' on' : ''}" onclick="csCuotasFiltro('${k}')">${t} · ${n}</button>`).join('');
+  const nomG = { venc: 'Vencidas', mes: 'Este mes', prox: 'Más adelante' };
+  let html = '';
+  ['venc', 'mes', 'prox'].forEach(g => {
+    const its = lista.filter(i => i.grupo === g);
+    if (!its.length) return;
+    html += `<div class="cuo-grupo${g === 'venc' ? ' venc' : ''}"><span>${nomG[g]} · ${its.length}</span><span>${csCuotaTotalesTxt(its)}</span></div>`;
+    html += its.map(i => `<div class="cuo-item${i.clave === __cuoModal.sel ? ' sel' : ''}" data-clave="${esc(i.clave)}" onclick="csCuotasElegir(this.dataset.clave)" ondblclick="csCuotasElegir(this.dataset.clave);csCuotasConfirmar()">
+        <span class="cuo-radio"></span>
+        <div class="cuo-info"><div class="cuo-cli">${esc(i.cliente || 'Sin cliente')}</div><div class="cuo-con">${esc(i.concepto || 'Sin concepto')}</div></div>
+        <span class="cuo-nro">Cuota ${i.nro}/${i.total}</span>
+        <div class="cuo-der"><div class="cuo-monto">${csSimb(i.moneda)}${fmtNumStr(i.monto)}</div>
+          <div class="cuo-fecha${g === 'venc' ? ' venc' : ''}">${g === 'venc' ? 'Venció el ' : 'Vence el '}${fmtFechaCortaCRM(i.fecha)}</div></div>
+      </div>`).join('');
+  });
+  cont.innerHTML = html || `<div class="cuo-vacio">${todas.length ? 'Ninguna cuota coincide con la búsqueda.' : 'No hay cuotas pendientes de cobro.'}</div>`;
+  const sel = todas.find(i => i.clave === __cuoModal.sel);
+  const pie = document.getElementById('cuoPieTxt');
+  if (pie) pie.innerHTML = sel
+    ? `Elegiste: <b>${esc(sel.cliente || 'Sin cliente')}</b> · cuota ${sel.nro}/${sel.total} · <b>${csSimb(sel.moneda)}${fmtNumStr(sel.monto)}</b>`
+    : 'Elegí una cuota de la lista y tocá Confirmar.';
+  const btn = document.getElementById('cuoConfirmar'); if (btn) btn.disabled = !sel;
+}
+// Enter en el buscador: si quedó una sola, la elige; si ya hay una elegida, confirma
+function csCuotasTecla(e){
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const { lista } = csCuotasVisibles();
+  if (__cuoModal.sel && lista.some(i => i.clave === __cuoModal.sel)) { csCuotasConfirmar(); return; }
+  if (lista.length === 1) csCuotasElegir(lista[0].clave);
+}
+function csCuotasConfirmar(){
+  if (!__cuoModal.sel) return;
+  const clave = __cuoModal.sel;
+  csCuotasCerrar();
+  csCuotaPendPrecargar(clave);
+}
+
 // El aviso se recalcula también cuando cambia el monto que se está cobrando
 function csVincHintTxt(){
   const aviso = document.getElementById('csVincHint'); if (!aviso) return;
@@ -25730,7 +25980,7 @@ function accObs(c, editar) {
 // Si alguien abre el sistema desde un acceso directo y le aparece una versión vieja
 // (o deja la pestaña abierta varios días), se detecta acá y se recarga sola: así
 // nadie trabaja ni guarda cambios sobre una versión desactualizada.
-const APP_BUILD = '202611052335';
+const APP_BUILD = '202611162330';
 (function(){
   if (location.protocol !== 'https:' && location.hostname !== 'localhost') return;
   const CLAVE = 'welegal-recarga-version';
