@@ -788,6 +788,8 @@ body.locked .ofi-overlay,body.locked #causaDetalleOverlay{display:none !importan
 .crm-row .tag.excliente{background:#eef1ec;color:#7a8578}
 .crm-row .tag.esporadico{background:#f4ece0;color:#8a5a2b;border:1px solid #e3d3bd}
 .crm-nombre .tag-enc{font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;background:#f8f1de;color:#8a6d1f;border:1px solid #e6d3a0}
+.crm-nombre .tag-enc.ex{background:#f4f2ec;color:#7a7466;border:1px dashed #cfc6b0;font-weight:600}
+.crm-enc-ant{font-weight:500;color:var(--tinta-suave);font-size:.92em}
 .crm-nombre .tag-enc.vacia{background:#f4f2ec;color:#a89a7a;border:1px dashed #d8cdb0}
 .crm-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;text-align:right;white-space:nowrap}
 .crm-right .repro{font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px}
@@ -3777,8 +3779,9 @@ button:disabled{cursor:not-allowed}
               <select id="csComisionPara">
                 <option value="">— Sin comisión —</option>
                 <option value="naza">Naza</option>
-                <option value="sofig">Sofi G</option>
+                <option value="priscila">Priscila</option>
                 <option value="sofit">Sofi T</option>
+                <option value="sofig" hidden>Sofi G (ya no está)</option>
               </select></div>
             <div class="f-col"><div class="cuota-hint" id="csComisionHint" style="margin:0">La comisión se calcula sobre la venta total (menos gastos): cada 200 USD = $10.000. En planes de cuotas se imputa en la 1ª cuota, sobre el total del plan.</div></div>
           </div>
@@ -7034,6 +7037,7 @@ var SB_TIENE_JUD_COM_PARA = false;
 var SB_TIENE_APODO = false;
 var SB_TIENE_CLI_PACKS = false;   // clientes.packs (varios packs por cliente)
 var SB_TIENE_CLI_ETIQ = false, SB_TIENE_CLI_TIPOSOC = false, SB_TIENE_CLI_GRUPO = false;
+var SB_TIENE_CLI_ENC_ANT = false;   // clientes.encargada_anterior (text) — de quién era antes el cliente
 var SB_TIENE_ABO_CLI = false;
 var SB_TIENE_ABO_EXTRAS = false;
 var SB_TIENE_ABO_COM   = false;   // abonos_clientes.comision_para (text)
@@ -7070,6 +7074,7 @@ function clienteAFila(c) {
   if (SB_TIENE_CLI_ETIQ) f.etiquetas = { si: c.etiquetas || [], no: c.etiquetasNo || [] };
   if (SB_TIENE_CLI_TIPOSOC) f.tipo_soc = c.tipoSoc || null;
   if (SB_TIENE_CLI_GRUPO) f.grupo = (c.grupo || '').trim() || null;
+  if (SB_TIENE_CLI_ENC_ANT) f.encargada_anterior = (c.encargadaAnterior || '').trim() || null;
   return f;
 }
 function filaACliente(f) {
@@ -7091,7 +7096,7 @@ function filaACliente(f) {
     packs: Array.isArray(f.packs) ? f.packs : [],
     etiquetas: (f.etiquetas && Array.isArray(f.etiquetas.si)) ? f.etiquetas.si : [],
     etiquetasNo: (f.etiquetas && Array.isArray(f.etiquetas.no)) ? f.etiquetas.no : [],
-    tipoSoc: f.tipo_soc || '', grupo: f.grupo || '',
+    tipoSoc: f.tipo_soc || '', grupo: f.grupo || '', encargadaAnterior: f.encargada_anterior || '',
     docPendiente: !!f.doc_pendiente, docPendienteQue: f.doc_pendiente_que || '',
     reuniones: f.reuniones || [],
     vencimientos: Array.isArray(f.vencimientos) ? f.vencimientos : [],
@@ -7271,6 +7276,7 @@ async function __sbCargarTodoInterno() {
     if (sbTiene(rClientes, 'etiquetas')) SB_TIENE_CLI_ETIQ = true;
     if (sbTiene(rClientes, 'tipo_soc')) SB_TIENE_CLI_TIPOSOC = true;
     if (sbTiene(rClientes, 'grupo')) SB_TIENE_CLI_GRUPO = true;
+    if (sbTiene(rClientes, 'encargada_anterior')) SB_TIENE_CLI_ENC_ANT = true;
     if (sbTiene(rAboCli, 'cliente_id'))
       SB_TIENE_ABO_CLI = true;
     if (sbTiene(rAboCli, 'incluye'))
@@ -9439,7 +9445,7 @@ function netoCajaVer(v){ NETO_CAJA_VER = v; renderIngresos(); }
 // Quién cobra de cada caja y en qué proporción
 const NETO_CAJA_SUELDOS = {
   jud: [ { id:'kevin', pct:1 }, { id:'ori', pct:1 }, { id:'sofig', pct:.5 } ],
-  soc: [ { id:'brenda', pct:1 }, { id:'naza', pct:1 }, { id:'sofit', pct:1 }, { id:'sofig', pct:.5 } ]
+  soc: [ { id:'brenda', pct:1 }, { id:'naza', pct:1 }, { id:'sofit', pct:1 }, { id:'sofig', pct:.5 }, { id:'priscila', pct:1 } ]
 };
 function netoCajaDatos(caja, ym){
   const lineas = (typeof equipoLineasMes === 'function') ? equipoLineasMes(ym) : [];
@@ -16123,10 +16129,21 @@ function pagoEnMonedaPlan(m, monedaPlan) {
   return __r2(monto);
 }
 
-// Todos los pagos (de cualquier caja) imputados a un plan, ordenados por cuota
+// Todos los pagos (de cualquier caja) imputados a un plan, ordenados por cuota.
+// Un pago mixto son dos movimientos hermanados (grupoId): el plan y la cuota quedan
+// guardados en uno solo, pero lo que entró en la otra moneda también es pago de esa
+// cuota, así que el hermano se suma con el mismo plan y número de cuota.
 function pagosDePlan(planId) {
-  return CAJA_TODAS()
-    .filter(x => String(x.planId) === String(planId))
+  const todos = CAJA_TODAS();
+  const propios = todos.filter(x => String(x.planId) === String(planId));
+  const grupos = {};
+  propios.forEach(x => { if (x.grupoId) grupos[x.grupoId] = x; });
+  const hermanos = Object.keys(grupos).length
+    ? todos.filter(x => x.grupoId && grupos[x.grupoId] && x.planId == null && x._caja === grupos[x.grupoId]._caja && x.id !== grupos[x.grupoId].id)
+        .map(x => ({ ...x, planId: grupos[x.grupoId].planId, nroCuota: grupos[x.grupoId].nroCuota,
+                     dolarDia: x.dolarDia || grupos[x.grupoId].dolarDia }))
+    : [];
+  return propios.concat(hermanos)
     .sort((a, b) => (Number(a.nroCuota) || 0) - (Number(b.nroCuota) || 0));
 }
 
@@ -16801,7 +16818,11 @@ function __validarCuotaSoc(tipo, monto) {
     const st = plan ? estadoPlanSoc(plan.id) : null;
     if (st) {
       const dd = numDe((document.getElementById('csDolarDia') || {}).value);
-      const pagoEnPlan = pagoEnMonedaPlan({ monto, moneda: monedaPago, dolarDia: dd }, monedaPlan);
+      let pagoEnPlan = pagoEnMonedaPlan({ monto, moneda: monedaPago, dolarDia: dd }, monedaPlan);
+      if (typeof csEsMixto === 'function' && csEsMixto()){
+        const otro = numDe((document.getElementById('csMixtoMonto') || {}).value);
+        if (otro > 0) pagoEnPlan = __r2(pagoEnPlan + pagoEnMonedaPlan({ monto: otro, moneda: csMixtoMoneda(), dolarDia: dd }, monedaPlan));
+      }
       const exceso = __r2(pagoEnPlan - st.saldo);
       if (exceso > 0.005) {
         __mostrarAvisoExceso(monedaPlan, st.saldo, pagoEnPlan, exceso);
@@ -16919,6 +16940,11 @@ function registrarMovSoc() {
   if (!fecha || !monto || (!contraparte && !concepto)) { alert('Completá fecha, monto y cliente/proveedor o concepto.'); return; }
   // Chequeos propios de una cuota de plan societario (moneda del pago, dólar del día, exceso de saldo).
   // Devuelve false para frenar el registro (falta un dato o el usuario tiene que confirmar el exceso).
+  if (csEsMixto() && tipo === 'ingreso'){
+    const otro = numDe((document.getElementById('csMixtoMonto') || {}).value);
+    if (!(otro > 0)){ alert('Cargá el monto de la otra moneda o destildá «Pagó en pesos y dólares».'); return; }
+    if (!(numDe((document.getElementById('csDolarDia') || {}).value) > 0)){ alert('Para un pago mixto hace falta el valor del dólar del día: sin eso no se puede calcular la comisión ni dolarizar el balance.'); return; }
+  }
   if (!__validarCuotaSoc(tipo, monto)) return;
   if (cajaSocSoloGastos() && tipo === 'ingreso') { alert('Solo podés registrar gastos en esta caja.'); return; }
   // Reparto del gasto entre varios clientes (opcional)
@@ -17356,9 +17382,10 @@ function __socRank(lista, campo, fallback, dolar) {
 // Personas asignables: Naza, Sofi G, Sofi T.
 // ═══════════════════════════════════════════════════════════════════
 const COM_SOC_PERSONAS = [
-  { id: 'naza',  nombre: 'Naza' },
-  { id: 'sofig', nombre: 'Sofi G' },
-  { id: 'sofit', nombre: 'Sofi T' }
+  { id: 'naza',     nombre: 'Naza' },
+  { id: 'priscila', nombre: 'Priscila' },
+  { id: 'sofit',    nombre: 'Sofi T' },
+  { id: 'sofig',    nombre: 'Sofi G', ex: true }   // ya no está: solo para lo histórico
 ];
 function comSocNombre(pid){ const p = COM_SOC_PERSONAS.find(x => x.id === pid); return p ? p.nombre : ''; }
 // Quiénes pueden comisionar por la VENTA de un abono. Es una lista propia porque
@@ -17693,17 +17720,26 @@ function comTodasTotalMes(pid, ym, dolarRef){
 // gasto del estudio (es plata que cambia de bolsillo); el gasto se descuenta del
 // saldo cuando la persona lo carga en la caja marcándolo como pagado con el fondo.
 const CS_PERSONAS = [
-  { id:'brenda', nombre:'Brenda' },
-  { id:'sofig',  nombre:'Sofi G' },
-  { id:'sofit',  nombre:'Sofi T' },
-  { id:'naza',   nombre:'Naza' }
+  { id:'brenda',   nombre:'Brenda' },
+  { id:'priscila', nombre:'Priscila' },
+  { id:'sofit',    nombre:'Sofi T' },
+  { id:'naza',     nombre:'Naza' },
+  { id:'sofig',    nombre:'Sofi G', ex:true }   // ya no está: aparece solo si tiene movimientos
 ];
+// ¿La persona tiene algo cargado (fondo, comisiones o gastos)? Para mostrar a quien ya no está
+function csPersonaTieneDatos(pid){
+  return (CS_FONDO || []).some(m => m.persona === pid) || (CS_COM || []).some(c => c.persona === pid)
+    || (CAJASOC || []).some(m => m.fondoDe === pid || m.comisionPara === pid);
+}
+// Lista de personas para mostrar: las vigentes, y las que ya no están solo si tienen historial
+function csPersonasActivas(){ return CS_PERSONAS.filter(p => !p.ex || csPersonaTieneDatos(p.id)); }
 function csPersonaNombre(pid){ const p = CS_PERSONAS.find(x => x.id === pid); return p ? p.nombre : pid; }
 // A qué persona del fondo corresponde el usuario logueado
 function csPersonaDeUsuario(){
   const u = (typeof usuarioActual === 'function' ? usuarioActual() : '') || '';
   if (u === 'kevindaich' || u === 'ivana') return null;   // ven todas
-  return CS_PERSONAS.some(p => p.id === u) ? u : null;
+  const pid = personaIdDeUsuario(u);
+  return CS_PERSONAS.some(p => p.id === pid) ? pid : null;
 }
 function csVeTodasLasPersonas(){
   const u = (typeof usuarioActual === 'function' ? usuarioActual() : '') || '';
@@ -18121,7 +18157,7 @@ function csToggleFondo(){
   wrap.style.display = esGasto ? '' : 'none';
   if (!esGasto){ sel.value = ''; return; }
   const mia = csPersonaDeUsuario();
-  const opciones = csVeTodasLasPersonas() ? CS_PERSONAS : CS_PERSONAS.filter(p => p.id === mia);
+  const opciones = csVeTodasLasPersonas() ? CS_PERSONAS.filter(p => !p.ex) : CS_PERSONAS.filter(p => p.id === mia);
   const actual = sel.value;
   sel.innerHTML = '<option value="">No, salió de la caja</option>' +
     opciones.map(p => `<option value="${p.id}">Sí, del fondo de ${esc(p.nombre)}</option>`).join('');
@@ -18142,7 +18178,7 @@ function csIrVista(v){
 }
 function csPersonasVisibles(){
   const mia = csPersonaDeUsuario();
-  return csVeTodasLasPersonas() ? CS_PERSONAS : CS_PERSONAS.filter(p => p.id === mia);
+  return csVeTodasLasPersonas() ? csPersonasActivas() : CS_PERSONAS.filter(p => p.id === mia);
 }
 function csBotonesPersona(sel, fn){
   const vis = csPersonasVisibles();
@@ -18175,7 +18211,7 @@ function renderComManual(){
     <div class="panel" style="margin-bottom:16px">
       <div class="panel-h"><h3>Comisiones del equipo</h3><span class="mini">total de ${mesLargo(mes).toLowerCase()}</span></div>
       <div class="fondo-tablero">
-        ${CS_PERSONAS.map(p => {
+        ${csPersonasActivas().map(p => {
           // Las cápsulas tienen que mostrar lo MISMO que la tabla de abajo y que
           // Sueldos: judicial + societaria automática + trámites a mano + abonos
           // tempranos. Antes contaban solo las cargadas a mano, así que a quien
@@ -18311,7 +18347,7 @@ function renderFondo(){
     <div class="panel" style="margin-bottom:16px">
       <div class="panel-h"><h3>Saldos del equipo</h3><span class="mini">al cierre de ${mesLargo(mes).toLowerCase()}</span></div>
       <div class="fondo-tablero">
-        ${CS_PERSONAS.map(p => {
+        ${csPersonasActivas().map(p => {
           const sArs = fondoSaldo(p.id, mes, 'ARS');
           const sUsd = fondoSaldo(p.id, mes, 'USD');
           // El color va por moneda: un rojo en dólares no ensucia un saldo sano en pesos
@@ -18565,7 +18601,7 @@ function renderCajaSoc() {
       if (m.comisionPara && v > 0 && porPers[m.comisionPara]) { porPers[m.comisionPara].total += v; porPers[m.comisionPara].n++; }
     });
     const totalMes = Object.values(porPers).reduce((a, p) => a + p.total, 0);
-    comCont.innerHTML = COM_SOC_PERSONAS.map(p => {
+    comCont.innerHTML = COM_SOC_PERSONAS.filter(p => !p.ex || porPers[p.id].total > 0).map(p => {
       const d = porPers[p.id];
       return `<div class="tile ${d.total > 0 ? 'tile-destacada' : ''}"><div class="num">$ ${fmtNumStr(d.total)}</div><div class="lbl">Comisión ${esc(p.nombre)}</div><div class="sub">${d.n} venta${d.n !== 1 ? 's' : ''} con comisión</div></div>`;
     }).join('') + `<div class="tile"><div class="num">$ ${fmtNumStr(totalMes)}</div><div class="lbl">Total comisiones del mes</div><div class="sub">${mesLargo(mes)}</div></div>`;
@@ -18885,7 +18921,7 @@ td.der{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-
 </div>
 <h2>Comisiones del mes</h2>
 <div class="fichas">
-  ${COM_SOC_PERSONAS.map(p => `<div class="ficha${comPorPers[p.id].total > 0 ? ' hi' : ''}"><span>Comisión ${esc(p.nombre)}</span><b>$ ${fmtNumStr(comPorPers[p.id].total)}</b><i>${comPorPers[p.id].n} venta${comPorPers[p.id].n !== 1 ? 's' : ''} con comisión</i></div>`).join('')}
+  ${COM_SOC_PERSONAS.filter(p => !p.ex || comPorPers[p.id].total > 0).map(p => `<div class="ficha${comPorPers[p.id].total > 0 ? ' hi' : ''}"><span>Comisión ${esc(p.nombre)}</span><b>$ ${fmtNumStr(comPorPers[p.id].total)}</b><i>${comPorPers[p.id].n} venta${comPorPers[p.id].n !== 1 ? 's' : ''} con comisión</i></div>`).join('')}
   <div class="ficha" style="border-color:#c9a961;background:#fdf9ee"><span>Total comisiones</span><b>$ ${fmtNumStr(comTotalMes)}</b><i>${mesLargo(mes)}</i></div>
 </div>
 <h2>▲ Ingresos</h2>
@@ -20183,6 +20219,7 @@ const EQUIPO_PERSONAS = [
   { id:'sofig',  nombre:'Sofi G', fuente:'soc', comSoc:'sofig' },
   { id:'sofit',  nombre:'Sofi T', fuente:'soc', comSoc:'sofit' },
   { id:'naza',   nombre:'Naza',   fuente:'soc', comSoc:'naza' },
+  { id:'priscila', nombre:'Priscila', fuente:'soc', comSoc:'priscila' },
   { id:'brenda', nombre:'Brenda', fuente:null }
 ];
 const EQUIPO_BASES_INI = { ori:1403000, sofig:936000, sofit:1230000, naza:1440000, brenda:0 };
@@ -24526,7 +24563,11 @@ function clientesFiltrados() {
   else if (f.grupo) arr = arr.filter(c => __normBusqueda(c.grupo || '').trim() === __normBusqueda(f.grupo).trim());
   if (f.contacto === 'si') arr = arr.filter(c => !!calcularUltimoContacto(c));
   if (f.contacto === 'no') arr = arr.filter(c => !calcularUltimoContacto(c));
-  if (f.encargada) arr = arr.filter(c => (c.encargada || '') === f.encargada);
+  if (f.encargada && f.encargada.indexOf('__ex:') === 0) {
+    const ex = f.encargada.slice(5);
+    arr = arr.filter(c => (c.encargadaAnterior || '').trim() === ex || (c.encargada || '').trim() === ex);
+  }
+  else if (f.encargada) arr = arr.filter(c => (c.encargada || '') === f.encargada);
   if (f.repro) arr = arr.filter(c => (c.reproTienen || 'no_aplica') === f.repro);
   if (f.pack) arr = arr.filter(c => packsDe(c).some(p => (p.tipo || '') === f.pack));
   if (f.situacion) arr = arr.filter(c => packsDe(c).some(p => (p.situacion || '') === f.situacion));
@@ -24637,6 +24678,7 @@ function renderCRM() {
         <div class="crm-nombre"><span class="crm-ent">${esc(c.entidad)}</span>
           ${tipoLbl ? `<span class="tag ${tipoCls}">${esc(tipoLbl)}</span>` : ''}
           ${c.encargada ? `<span class="tag-enc">👤 ${esc(c.encargada)}</span>` : '<span class="tag-enc vacia">Sin encargada</span>'}
+          ${c.encargadaAnterior && c.encargadaAnterior !== c.encargada ? `<span class="tag-enc ex" title="Este cliente antes lo tenía ${esc(crmNombreEnc(c.encargadaAnterior))}">antes ${esc(c.encargadaAnterior)}</span>` : ''}
           ${noContactar ? '<span class="tag nocontactar">⚠ No contactar</span>' : ''}
           ${exCliente ? '<span class="tag excliente">Ex cliente</span>' : ''}
           ${esporadico ? `<span class="tag esporadico">◆ Cliente esporádico${origenCaja ? ' · ' + esc(origenCaja) : ''}</span>` : ''}
@@ -24664,9 +24706,14 @@ function poblarFiltrosCRM() {
   const encSel = document.getElementById('crmFiltroEncargada');
   if (encSel && encSel.dataset.pobladoCount != String((CLIENTES || []).length)) {
     // Lista fija de encargadas + cualquier otra que traigan los datos (para no perder ninguna)
+    // Las que ya no están no aparecen como encargada: aparecen como "Ex clientes de …"
+    const exs = [...new Set([...(typeof ENCARGADAS_EX !== 'undefined' ? ENCARGADAS_EX : []),
+      ...(CLIENTES || []).map(c => (c.encargadaAnterior || '').trim()).filter(Boolean)])];
     const enData = (CLIENTES || []).map(c => c.encargada).filter(Boolean);
-    const encs = [...new Set([...(typeof ENCARGADAS !== 'undefined' ? ENCARGADAS : []), ...enData])].sort();
-    encSel.innerHTML = '<option value="">Toda encargada</option>' + encs.map(e => `<option value="${esc(e)}">${esc(e)}</option>`).join('');
+    const encs = [...new Set([...(typeof ENCARGADAS !== 'undefined' ? ENCARGADAS : []), ...enData])]
+      .filter(e => !(typeof ENCARGADAS_EX !== 'undefined' && ENCARGADAS_EX.includes(e))).sort();
+    encSel.innerHTML = '<option value="">Toda encargada</option>' + encs.map(e => `<option value="${esc(e)}">${esc(e)}</option>`).join('')
+      + exs.map(e => `<option value="__ex:${esc(e)}">Ex clientes de ${esc(crmNombreEnc(e))}</option>`).join('');
     encSel.value = __crmFiltros.encargada;
     encSel.dataset.pobladoCount = String((CLIENTES || []).length);
   }
@@ -24908,14 +24955,31 @@ var __crmSecAbierta = {}; // { clienteId: { seccion: true } } — recuerda qué 
 
 const REPRO_LABEL = { 'no_iniciado': 'Sin iniciar', 'en_tramite': 'En trámite', 'aprobado': 'Aprobado', 'rechazado': 'Rechazado', 'no_aplica': 'No aplica' };
 const REGISTRO_OP = ['IGJ', 'DPPJ', 'INAES', 'Otro'];
-const ENCARGADAS = ['SOFI G', 'SOFI T', 'ORI', 'NAZA'];
+const ENCARGADAS = ['PRISCILA', 'SOFI T', 'ORI', 'NAZA'];
+// Encargadas que ya no están: sus clientes se repartieron y en el filtro aparecen como
+// "Ex clientes de …" (por la encargada anterior que quedó guardada en la ficha).
+const ENCARGADAS_EX = ['SOFI G'];
 // Cómo se llama en el CRM la encargada correspondiente a cada usuario del sistema
-const USUARIO_A_ENCARGADA = { ivana: 'IVANA', brenda: 'BRENDA', ori: 'ORI', sofig: 'SOFI G', sofit: 'SOFI T', naza: 'NAZA' };
+const USUARIO_A_ENCARGADA = { ivana: 'IVANA', brenda: 'BRENDA', ori: 'ORI', sofig: 'SOFI G', sofit: 'SOFI T', naza: 'NAZA', priscila: 'PRISCILA' };
+function encargadaDeUsuario(u) {
+  if (!u) return '';
+  return USUARIO_A_ENCARGADA[u] || (esPriscila(u) ? 'PRISCILA' : '');
+}
 // Encargada del usuario logueado ('' para Kevin/Ivana, que ven todo)
 function encargadaActual() {
   const u = (typeof usuarioActual === 'function') ? usuarioActual() : null;
-  return u ? (USUARIO_A_ENCARGADA[u] || '') : '';
+  return encargadaDeUsuario(u);
 }
+// Priscila se dio de alta desde el panel de usuarios: se la reconoce por su usuario,
+// nombre o mail, sin depender de cómo se haya escrito el usuario.
+function esPriscila(u) {
+  if (!u) return false;
+  if (/prisc/i.test(String(u))) return true;
+  const f = (typeof usuarioFila === 'function') ? usuarioFila(u) : null;
+  return !!f && /prisc/i.test((f.nombre || '') + ' ' + (f.mail || ''));
+}
+// Id de persona (fondo, comisiones) del usuario logueado
+function personaIdDeUsuario(u) { return esPriscila(u) ? 'priscila' : u; }
 // ¿El usuario ve la cartera completa en el panel de contactar/trámites?
 // (Kevin, Ivana y Brenda coordinan el CRM y necesitan ver todos los clientes)
 function veTodaLaCartera() {
@@ -24925,9 +24989,9 @@ function veTodaLaCartera() {
 // Genera <option>s para un select de encargada, incluyendo la actual aunque no esté en la lista
 // ═══════════ REPARTO AUTOMÁTICO DE ENCARGADAS ═══════════
 // Cada cliente nuevo se asigna siguiendo un orden fijo y rotativo, no al azar:
-// Sofi G → Sofi T → Naza → Ori → Sofi G → …
+// Priscila → Sofi T → Naza → Ori → Priscila → …
 // El puntero se guarda para que la rueda siga donde quedó, aunque cambie de máquina.
-const ENC_ROTACION = ['SOFI G', 'SOFI T', 'NAZA', 'ORI'];
+const ENC_ROTACION = ['PRISCILA', 'SOFI T', 'NAZA', 'ORI'];
 const ENC_TURNO_KEY = 'jc-encargada-turno-v1';
 function encTurnoActual(){
   const n = parseInt(appStore.getItem(ENC_TURNO_KEY), 10);
@@ -24954,6 +25018,10 @@ function encAsignar(cli){
 }
 // Reparte entre los clientes que todavía no tienen encargada.
 // dryRun=true por defecto: no escribe, solo devuelve qué haría.
+// "SOFI G" → "Sofi G" para leerlo en una frase
+function crmNombreEnc(e) {
+  return String(e || '').toLowerCase().replace(/(^|\s)\S/g, s => s.toUpperCase());
+}
 function opcionesEncargada(actual) {
   const set = ENCARGADAS.slice();
   if (actual && !set.includes(actual)) set.unshift(actual);
@@ -25549,7 +25617,7 @@ function vencPanelInicio(){
   const cont = document.getElementById('inicioVencClientes');
   if (!cont) return;
   const u = (typeof usuarioActual === 'function') ? usuarioActual() : null;
-  const enc = (typeof USUARIO_A_ENCARGADA !== 'undefined') ? USUARIO_A_ENCARGADA[u] : null;
+  const enc = (typeof encargadaDeUsuario === 'function') ? (encargadaDeUsuario(u) || null) : null;
   // Kevin e Ivana ven todo; cada encargada ve lo suyo
   const verTodo = (u === 'kevindaich' || u === 'ivana');
   const lista = vencProximos(verTodo ? null : enc);
@@ -25695,7 +25763,7 @@ function accIdentidad(c, editar) {
       <div class="crm-sec-btns"><button class="crm-btn-cancelar" onclick="toggleEditSeccion(${id},'identidad')">Cancelar</button><button class="crm-btn-guardar" onclick="guardarSeccion(${id},'identidad')">Guardar sección</button></div>`;
   } else {
     body = `<div class="crm-datos">
-      <div class="crm-dato"><span>Encargada</span><b>${c.encargada ? esc(c.encargada) : '<span style=\'color:var(--crm-rojo)\'>Sin asignar</span>'}</b></div>
+      <div class="crm-dato"><span>Encargada</span><b>${c.encargada ? esc(c.encargada) : '<span style=\'color:var(--crm-rojo)\'>Sin asignar</span>'}${c.encargadaAnterior && c.encargadaAnterior !== c.encargada ? ` <span class="crm-enc-ant">· antes era cliente de ${esc(crmNombreEnc(c.encargadaAnterior))}</span>` : ''}</b></div>
       <div class="crm-dato"><span>Referente</span><b>${val(c.referente)}</b></div>
       <div class="crm-dato"><span>Apodo interno</span><b>${val(c.apodo)}</b></div>
       <div class="crm-dato"><span>Teléfono</span><b>${val(c.telefono)}</b></div>
@@ -25980,7 +26048,7 @@ function accObs(c, editar) {
 // Si alguien abre el sistema desde un acceso directo y le aparece una versión vieja
 // (o deja la pestaña abierta varios días), se detecta acá y se recarga sola: así
 // nadie trabaja ni guarda cambios sobre una versión desactualizada.
-const APP_BUILD = '202611162330';
+const APP_BUILD = '202611232245';
 (function(){
   if (location.protocol !== 'https:' && location.hostname !== 'localhost') return;
   const CLAVE = 'welegal-recarga-version';
