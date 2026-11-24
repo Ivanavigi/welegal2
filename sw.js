@@ -5,7 +5,7 @@
 // con una versión vieja del día anterior.
 // ═══════════════════════════════════════════════════════════════════
 
-const CACHE_VERSION = 'welegal-v10';
+const CACHE_VERSION = 'welegal-v11';
 
 // Lo único que se guarda de entrada: los íconos y el manifiesto, que casi
 // nunca cambian. El index.html no se precachea a propósito.
