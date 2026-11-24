@@ -2189,6 +2189,21 @@ body.inicio-kevin #panelInicioContactar,body.inicio-kevin #panelInicioPacks{disp
 .abo-avisado-chk input{width:16px;height:16px;cursor:pointer;accent-color:var(--ok,#1e7a48)}
 .abo-infl-box{background:var(--carta);border:1px solid var(--filo);border-radius:var(--radio,12px);padding:20px;margin-bottom:22px}
 .abo-infl-hint{font-size:12.5px;color:var(--tinta-suave);line-height:1.55;margin-bottom:16px}
+.infl-reg{background:#f7f5ef;border:1px solid var(--filo);border-left:3px solid #c9a961;border-radius:10px;padding:13px 15px;margin-bottom:16px;font-size:13px;color:var(--tinta);line-height:1.5}
+.infl-reg-ult{margin-bottom:6px}
+.infl-reg-prox b{color:#14294a}
+.infl-reg-man{display:block;color:#8a6d1f;font-size:12px;margin-top:2px}
+.infl-reg-cuando{color:var(--tinta-suave);font-size:12px}
+.infl-reg-fila{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.infl-reg-fila label{font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:700;color:var(--tinta-suave)}
+.infl-reg-fila input{padding:6px 9px;border:1px solid var(--filo);border-radius:7px;font-size:13px;font-family:inherit;background:#fff;color:var(--tinta)}
+.infl-reg-hist{margin-top:10px}
+.infl-reg-hist summary{cursor:pointer;font-size:12px;font-weight:700;color:#14294a}
+.infl-reg-tabla{margin-top:8px;border:1px solid var(--filo);border-radius:8px;background:#fff}
+.infl-reg-it{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 12px;border-bottom:1px solid #f0ede4;font-size:12.5px}
+.infl-reg-it:last-child{border-bottom:none}
+.infl-reg-it .ir-m{font-weight:700;flex:1 1 200px}
+.infl-reg-it .ir-p,.infl-reg-it .ir-d,.infl-reg-it .ir-f{color:var(--tinta-suave)}
 .abo-infl-inputs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
 .abo-infl-fld label{display:block;font-size:11.5px;font-weight:600;color:var(--tinta-suave);margin-bottom:5px}
 .abo-infl-fld input{width:100%;padding:10px 12px;border:1px solid var(--filo);border-radius:8px;font-family:var(--f-ui,inherit);font-size:14px;box-sizing:border-box}
@@ -7368,6 +7383,8 @@ async function __sbCargarTodoInterno() {
     if (cfg.encargada_turno != null) { try { appStore.setItem(ENC_TURNO_KEY, String(cfg.encargada_turno)); } catch(e){} }
     // Trimestre de ajuste por inflación en curso (compartido por abonos y sueldos)
     if (cfg.infl_ancla && /^\d{4}-\d{2}$/.test(cfg.infl_ancla)) { try { appStore.setItem(INFL_ANCLA_KEY, cfg.infl_ancla); } catch(e){} }
+    // Registro de ajustes por inflación (por ámbito)
+    if (cfg.infl_registro) { try { JSON.parse(cfg.infl_registro); appStore.setItem(INFL_REG_KEY, cfg.infl_registro); } catch(e){} }
     if (cfg.uma) appStore.setItem(UMA_KEY, cfg.uma);
     // Recién ahora se contrasta con la resolución vigente: si la nube trae una
     // superada, se pisa y se sube la nueva. Antes esto corría ANTES de leer
@@ -8541,16 +8558,113 @@ function inflSetAncla(ym){
   try { appStore.setItem(INFL_ANCLA_KEY, ym); } catch(e){}
   if (typeof SB_ON !== 'undefined' && SB_ON && typeof sbPushConfig === 'function') sbPushConfig('infl_ancla', ym);
 }
+// ═══ REGISTRO DE AJUSTES POR INFLACIÓN ═══
+// Cada herramienta (abonos, sueldos del equipo y sueldo de Kevin) lleva su propio
+// trimestre: antes compartían uno solo y, al ajustar abonos, los sueldos pasaban a
+// pedir el trimestre siguiente aunque nunca se hubieran ajustado. Cada ajuste aplicado
+// queda anotado (meses, porcentajes, desde cuándo rige, cuándo y quién) y viaja a la
+// nube en config.infl_registro, así se ve igual en todas las máquinas.
+const INFL_REG_KEY = 'jc-infl-registro-v1';
+const INFL_AMBITOS = { abonos: 'Abonos', sueldos: 'Sueldos del equipo', kevin: 'Sueldo de Kevin' };
+// Sin ajustes anotados, el primer trimestre a cargar es agosto, septiembre y octubre 2026
+const INFL_REG_INI = '2026-07';
+function inflRegLeer(){
+  try {
+    const v = JSON.parse(appStore.getItem(INFL_REG_KEY) || 'null');
+    if (v && typeof v === 'object') return {
+      hist: Array.isArray(v.hist) ? v.hist.filter(x => x && Array.isArray(x.meses) && x.meses.length === 3) : [],
+      ancla: (v.ancla && typeof v.ancla === 'object') ? v.ancla : {} };
+  } catch(e){}
+  return { hist: [], ancla: {} };
+}
+function inflRegGuardar(r){
+  try { appStore.setItem(INFL_REG_KEY, JSON.stringify(r)); } catch(e){}
+  if (typeof SB_ON !== 'undefined' && SB_ON && typeof sbPushConfig === 'function') sbPushConfig('infl_registro', JSON.stringify(r));
+}
+// Ajustes de un ámbito, del más viejo al más nuevo
+function inflHist(ambito){
+  return inflRegLeer().hist.filter(x => x.ambito === ambito)
+    .sort((a, b) => (a.meses[2] || '').localeCompare(b.meses[2] || '') || (a.fecha || '').localeCompare(b.fecha || ''));
+}
+function inflUltimo(ambito){ const hs = inflHist(ambito); return hs.length ? hs[hs.length - 1] : null; }
+// Último mes ya cubierto por un ajuste en ese ámbito, y de dónde sale ese dato
+function inflAnclaInfo(ambito){
+  ambito = ambito || 'abonos';
+  const reg = inflRegLeer();
+  const man = reg.ancla[ambito];
+  if (/^\d{4}-\d{2}$/.test(man || '')) return { ym: man, origen: 'manual' };
+  const ult = inflUltimo(ambito);
+  if (ult) return { ym: ult.meses[2], origen: 'registro' };
+  return { ym: INFL_REG_INI, origen: 'inicial' };
+}
 // Los tres meses cuya inflación hay que cargar, en 'YYYY-MM'
-function inflTrimestre(){
-  const a = inflAncla();
+function inflTrimestre(ambito){
+  const a = inflAnclaInfo(ambito).ym;
   return [inflMasMeses(a,1), inflMasMeses(a,2), inflMasMeses(a,3)];
 }
-// Mes de cierre del trimestre: cuando toca hacer el ajuste y desde cuándo rige por defecto
-function inflMesCierre(){ return inflTrimestre()[2]; }
+// Mes en que toca hacer el ajuste y desde el que rige por defecto: el siguiente al
+// trimestre (la inflación de octubre se conoce en noviembre → el ajuste es de noviembre).
+function inflMesCierre(ambito){ return inflMasMeses(inflTrimestre(ambito)[2], 1); }
+// "junio, julio y agosto 2026" (con el año en cada mes si el trimestre cambia de año)
+function inflMesesTexto(meses){
+  const y = meses.map(m => m.slice(0, 4));
+  const mismoAnio = y.every(a => a === y[0]);
+  const n = meses.map(m => ABONO_MESES[Number(m.slice(5, 7)) - 1] + (mismoAnio ? '' : ' ' + m.slice(0, 4)));
+  return n[0] + ', ' + n[1] + ' y ' + n[2] + (mismoAnio ? ' ' + y[0] : '');
+}
+function inflPctTxt(v){ return (Number(v) || 0).toLocaleString('es-AR', { maximumFractionDigits: 2 }) + ' %'; }
+function inflMesTxt(ym){ return ABONO_MESES[Number(ym.slice(5, 7)) - 1] + ' ' + ym.slice(0, 4); }
+// Anota un ajuste aplicado
+// `meses` se toma ANTES de aplicar: aplicar mueve los datos de los que se deduce el trimestre.
+function inflRegistrar(ambito, pct, desde, meses){
+  const r = inflRegLeer();
+  const u = (typeof usuarioActual === 'function') ? usuarioActual() : '';
+  r.hist.push({ id: 'i' + Date.now(), ambito, meses: (Array.isArray(meses) && meses.length === 3) ? meses : inflTrimestre(ambito), pct: (pct || []).map(x => Number(x) || 0),
+    desde, fecha: hoyISO(), por: (typeof usuarioNombre === 'function' ? usuarioNombre(u) : u) || '' });
+  delete r.ancla[ambito];         // el registro manda: la corrección manual ya no hace falta
+  inflRegGuardar(r);
+}
+// Al deshacer, se borra el último ajuste anotado de ese ámbito
+function inflDesregistrar(ambito){
+  const ult = inflUltimo(ambito);
+  if (!ult) return;
+  const r = inflRegLeer();
+  r.hist = r.hist.filter(x => x.id !== ult.id);
+  inflRegGuardar(r);
+}
+// Recuadro con el último ajuste, lo que toca cargar ahora y el historial
+function inflPanelHTML(ambito){
+  const info = inflAnclaInfo(ambito);
+  const ult = inflUltimo(ambito);
+  const tri = inflTrimestre(ambito);
+  const hs = inflHist(ambito).slice().reverse();
+  let ultTxt;
+  if (ult) ultTxt = `Último ajuste: <b>${esc(inflMesTxt(ult.desde))}</b>, con la <b>inflación de ${esc(inflMesesTexto(ult.meses))}</b> (${ult.pct.map(inflPctTxt).join(' · ')}) · rige desde ${esc(inflMesTxt(ult.desde))} · aplicado el ${esc(fmtFechaCortaCRM(ult.fecha))}${ult.por ? ' por ' + esc(ult.por) : ''}.`;
+  else ultTxt = 'Todavía no hay ajustes anotados en el registro.';
+  if (info.origen === 'manual') ultTxt += ` <span class="infl-reg-man">Corregiste a mano: el último mes ajustado es ${esc(inflMesTxt(info.ym))}.</span>`;
+  const hoyYm = hoyISO().slice(0, 7);
+  const mesAj = inflMesCierre(ambito);
+  const cuando = ` <span class="infl-reg-cuando">· ${hoyYm >= mesAj ? 'el ajuste rige desde' : 'el ajuste se hace en'} ${esc(inflMesTxt(mesAj))}</span>`;
+  return `<div class="infl-reg">
+      <div class="infl-reg-ult">${ultTxt}</div>
+      <div class="infl-reg-prox">Ahora toca cargar la inflación de <b>${esc(inflMesesTexto(tri))}</b>${cuando}</div>
+      <div class="infl-reg-fila">
+        <label>Primer mes a cargar</label>
+        <input type="month" value="${esc(tri[0])}" onchange="inflSetPrimerMes(this.value,'${ambito}')">
+        <span class="abo-infl-desde-n">si los meses no son los correctos, corregilo acá</span>
+      </div>
+      ${hs.length ? `<details class="infl-reg-hist"><summary>Historial de ajustes · ${hs.length}</summary>
+        <div class="infl-reg-tabla">${hs.map(x => `<div class="infl-reg-it">
+          <span class="ir-m">${esc(inflMesesTexto(x.meses))}</span>
+          <span class="ir-p">${x.pct.map(inflPctTxt).join(' · ')}</span>
+          <span class="ir-d">rige desde ${esc(inflMesTxt(x.desde))}</span>
+          <span class="ir-f">${esc(fmtFechaCortaCRM(x.fecha))}${x.por ? ' · ' + esc(x.por) : ''}</span></div>`).join('')}</div>
+      </details>` : ''}
+    </div>`;
+}
 // Etiquetas con la inicial en mayúscula ("Julio 2026")
-function inflTrimestreLabels(){
-  return inflTrimestre().map(ym => {
+function inflTrimestreLabels(ambito){
+  return inflTrimestre(ambito).map(ym => {
     const [y,m] = ym.split('-').map(Number);
     const n = ABONO_MESES[m-1];
     return n.charAt(0).toUpperCase() + n.slice(1) + ' ' + y;
@@ -8559,15 +8673,21 @@ function inflTrimestreLabels(){
 // Al aplicar un ajuste, el trimestre queda consumido y se corre al siguiente
 function inflAvanzarAncla(){ inflSetAncla(inflMasMeses(inflAncla(), 3)); }
 // El panel pide el PRIMER mes del trimestre; el ancla guarda el mes anterior a ese.
-function inflSetPrimerMes(ym){
+// Cada ámbito guarda su propia corrección.
+function inflSetPrimerMes(ym, ambito){
   if (!/^\d{4}-\d{2}$/.test(ym || '')) return;
-  inflSetAncla(inflMasMeses(ym, -1));
+  const r = inflRegLeer();
+  r.ancla[ambito || 'abonos'] = inflMasMeses(ym, -1);
+  inflRegGuardar(r);
+  if (typeof EQUIPO_INFL_DESDE !== 'undefined' && ambito === 'sueldos') EQUIPO_INFL_DESDE = '';
+  if (typeof SUELDO_INFL_DESDE !== 'undefined' && ambito === 'kevin') SUELDO_INFL_DESDE = '';
+  if (typeof renderSueldo === 'function' && ambito === 'kevin') { try { renderSueldo(); } catch(e){} }
   if (typeof renderAbonos === 'function') { try { renderAbonos(); } catch(e){} }
   if (typeof renderIngresos === 'function') { try { renderIngresos(); } catch(e){} }
   if (typeof aricToast === 'function') aricToast('Trimestre actualizado');
 }
 // ¿Ya llegó el momento de hacer el ajuste? (recién en el mes de cierre del trimestre)
-function inflTocaAjuste(){ return hoyISO().slice(0,7) >= inflMesCierre(); }
+function inflTocaAjuste(ambito){ return hoyISO().slice(0,7) >= inflMesCierre(ambito); }
 
 function abonoTocaAjusteInflacion(){
   const ym = hoyISO().slice(0,7);
@@ -9423,9 +9543,10 @@ function equipoConfirmarInflacion(){
   if (!infl.some(x => x > 0)){ aricToast('Cargá los porcentajes de inflación'); return; }
   const ym = equipoInflDesde();
   if (!confirm('¿Aplicar el ajuste por inflación a los sueldos del equipo?\n\nLas bases nuevas rigen desde ' + ingMesLabel(ym) + ' inclusive; los meses anteriores no se tocan. El sueldo de Kevin se ajusta aparte, desde la caja judicial. Podés deshacerlo después.')) return;
+  const triEq = inflTrimestre('sueldos');
   if (equipoAplicarInflacion(infl, ym)){
+    inflRegistrar('sueldos', infl, ym, triEq);
     EQUIPO_INFL_INPUT = ['','','']; EQUIPO_INFL_DESDE = '';
-    inflAvanzarAncla();
     EQUIPO_VISTA = 'tabla';
     aricToast('Sueldos actualizados por inflación');
     renderIngresos();
@@ -9433,13 +9554,14 @@ function equipoConfirmarInflacion(){
 }
 function equipoConfirmarDeshacer(){
   if (!confirm('¿Deshacer el último ajuste por inflación de los sueldos?')) return;
-  if (equipoDeshacerInflacion()){ aricToast('Ajuste deshecho'); renderIngresos(); }
+  if (equipoDeshacerInflacion()){ inflDesregistrar('sueldos'); aricToast('Ajuste deshecho'); renderIngresos(); }
 }
 
 // ══════════ NETO POR CAJA ══════════
-// Cada caja se banca sus propios sueldos. Judicial: Kevin, Ori y la mitad de
-// Sofi G. Societaria: Brenda, Naza, Sofi T y la otra mitad de Sofi G. Muestra
-// el resultado del mes de esa caja y qué queda después de pagar esos sueldos.
+// Cada caja se banca sus propios sueldos. Judicial: Kevin y Ori (hasta octubre 2026
+// también la mitad de Sofi G). Societaria: Brenda, Naza, Sofi T y Priscila (entera);
+// Sofi G puso la otra mitad hasta octubre 2026. Muestra el resultado del mes de esa
+// caja y qué queda después de pagar esos sueldos.
 let NETO_CAJA_VER = 'jud';
 function netoCajaVer(v){ NETO_CAJA_VER = v; renderIngresos(); }
 // Quién cobra de cada caja y en qué proporción
@@ -9601,11 +9723,12 @@ function renderIngresosSueldos(cont, subtabs){
   if (EQUIPO_VISTA === 'inflacion'){
     const desde = equipoInflDesde();
     const bases = equipoBasesVigentes(desde);
-    const meses = inflTrimestreLabels().map(s => s.split(' ')[0]);
+    const meses = inflTrimestreLabels('sueldos').map(s => s.split(' ')[0]);
     const puedeDeshacer = equipoHayAjusteParaDeshacer();
     cont.innerHTML = cabecera + `
       <div class="abo-infl-box">
-        <div class="abo-infl-hint">Ajuste trimestral de <b>${esc(inflTrimestreLabels().join(', '))}</b>. El cálculo es compuesto: cada mes se aplica sobre el valor ya ajustado del anterior. Se mueven todas las bases del equipo. <b>No es retroactivo</b>: rige desde el mes que elijas, hacia adelante. El sueldo de Kevin se ajusta aparte, desde la caja judicial.</div>
+        ${inflPanelHTML('sueldos')}
+        <div class="abo-infl-hint">Ajuste trimestral de <b>${esc(inflTrimestreLabels('sueldos').join(', '))}</b>. El cálculo es compuesto: cada mes se aplica sobre el valor ya ajustado del anterior. Se mueven todas las bases del equipo. <b>No es retroactivo</b>: rige desde el mes que elijas, hacia adelante. El sueldo de Kevin se ajusta aparte, desde la caja judicial.</div>
         <div class="abo-infl-inputs">
           ${[0,1,2].map(i => `<div class="abo-infl-fld"><label>Inflación ${meses[i]} (%)</label><input type="text" inputmode="decimal" value="${esc(EQUIPO_INFL_INPUT[i])}" placeholder="Ej: 4,2" oninput="equipoInflInput(${i},this.value)"></div>`).join('')}
         </div>
@@ -9624,7 +9747,7 @@ function renderIngresosSueldos(cont, subtabs){
         <div class="abo-row abo-row-head">
           <div class="sue-i-con">Persona</div><div class="sue-i-act">Base actual</div><div class="sue-i-nue">Con ajuste</div>
         </div>
-        ${equipoConBase().map(p => `<div class="abo-row">
+        ${equipoConBase().filter(p => equipoActivoEn(p, desde)).map(p => `<div class="abo-row">
           <div class="sue-i-con">${esc(p.nombre)}</div>
           <div class="sue-i-act">${(Number(bases[p.id])||0) > 0 ? fmt(bases[p.id]) : '<span class="gas-sue-falta">sin dato</span>'}</div>
           <div class="sue-i-nue" id="eqInflN-${p.id}">—</div>
@@ -9680,7 +9803,7 @@ function renderIngresosSueldos(cont, subtabs){
       <div class="sue-form-h">Cambiar un sueldo base</div>
       <div class="sue-form-grid">
         <div class="abo-reg-fld"><label>Persona</label>
-          <select id="eqNuevaPers">${equipoPersonas().map(p => `<option value="${p.id}">${esc(p.nombre)}${p.externo ? ' (caja judicial)' : ''}</option>`).join('')}</select></div>
+          <select id="eqNuevaPers">${equipoPersonas().filter(p => equipoActivoEn(p, hoyISO().slice(0,7))).map(p => `<option value="${p.id}">${esc(p.nombre)}${p.externo ? ' (caja judicial)' : ''}</option>`).join('')}</select></div>
         <div class="abo-reg-fld"><label>Sueldo base nuevo ($)</label>
           <input type="text" inputmode="numeric" id="eqNuevoMonto" placeholder="Ej: 1.500.000" oninput="abonoFmtInput(this)"></div>
         <div class="abo-reg-fld"><label>Rige desde</label>
@@ -11804,7 +11927,8 @@ function renderAbonosInflacion(cont){
     </div></div>
     ${abonoSubtabsHTML()}
     <div class="abo-infl-box">
-      <div class="abo-infl-hint">Ajuste trimestral <b>solo para clientes en pesos</b>. Cargá la inflación de <b>${esc(inflTrimestreLabels().join(', '))}</b>. El cálculo es compuesto (cada mes se aplica sobre el monto ya ajustado del anterior). <b>No es retroactivo</b>: el monto nuevo rige desde el mes que elijas, hacia adelante.</div>
+      ${inflPanelHTML('abonos')}
+      <div class="abo-infl-hint">Ajuste trimestral <b>solo para clientes en pesos</b>. Cargá la inflación de <b>${esc(inflTrimestreLabels('abonos').join(', '))}</b>. El cálculo es compuesto (cada mes se aplica sobre el monto ya ajustado del anterior). <b>No es retroactivo</b>: el monto nuevo rige desde el mes que elijas, hacia adelante.</div>
       <div class="abo-infl-inputs">
         <div class="abo-infl-fld"><label>Inflación ${mesesLbl[0]} (%)</label><input type="text" inputmode="decimal" id="abonoInfl1" value="${esc(ABONOS_INFL_INPUT[0])}" placeholder="Ej: 4,2" oninput="abonoInflInput(0,this.value)"></div>
         <div class="abo-infl-fld"><label>Inflación ${mesesLbl[1]} (%)</label><input type="text" inputmode="decimal" id="abonoInfl2" value="${esc(ABONOS_INFL_INPUT[1])}" placeholder="Ej: 3,8" oninput="abonoInflInput(1,this.value)"></div>
@@ -11814,11 +11938,6 @@ function renderAbonosInflacion(cont){
         <label>El nuevo monto rige desde</label>
         <input type="month" value="${esc(abonoInflDesde())}" onchange="abonoInflSetDesde(this.value)">
         <span class="abo-infl-desde-n">inclusive · los meses anteriores no se tocan</span>
-      </div>
-      <div class="abo-infl-desde">
-        <label>Primer mes del trimestre</label>
-        <input type="month" value="${esc(inflTrimestre()[0])}" onchange="inflSetPrimerMes(this.value)">
-        <span class="abo-infl-desde-n">cambia los tres meses de inflación que se piden arriba</span>
       </div>
       <div class="abo-infl-acc">
         <button class="abo-infl-aplicar" onclick="abonoConfirmarInflacion()">Aplicar ajuste</button>
@@ -11860,9 +11979,10 @@ function abonoConfirmarInflacion(){
   const ym = abonoInflDesde();
   const cant = ABONOS.filter(c=>abonoMon(c, ym)==='ARS'&&c.estado==='activo').length;
   if(!confirm('¿Aplicar el ajuste por inflación a los '+cant+' clientes en pesos?\n\nLos montos regirán desde '+abonoMesLabel(ym)+' inclusive; los meses anteriores no se tocan. Podés deshacerlo después si algo sale mal.')) return;
+  const triAbo = inflTrimestre('abonos');
   if(abonoAplicarInflacion(infl, ym)){
+    inflRegistrar('abonos', infl, ym, triAbo);
     ABONOS_INFL_INPUT = ['','','']; ABONOS_INFL_DESDE = '';
-    inflAvanzarAncla();
     abonoMarcarInflVisto(); // el aviso de este mes queda atendido
     aricToast('Ajuste aplicado a clientes en pesos');
     ABONOS_SUBTAB = 'montos'; // llevar a la tabla de montos para ver/avisar
@@ -11872,6 +11992,7 @@ function abonoConfirmarInflacion(){
 function abonoConfirmarDeshacer(){
   if(!confirm('¿Deshacer el último ajuste por inflación? Los montos vuelven a como estaban antes del ajuste.')) return;
   if(abonoDeshacerInflacion()){
+    inflDesregistrar('abonos');
     aricToast('Ajuste deshecho');
     renderAbonos();
   }
@@ -20014,7 +20135,7 @@ let SUELDO_MES = null;                 // 'YYYY-MM' visible; null = mes actual
 let SUELDO_VISTA = 'cobros';           // 'cobros' | 'inflacion'
 let SUELDO_INFL_INPUT = ['', '', ''];
 let SUELDO_INFL_DESDE = '';            // mes desde el que rige (vacío = cierre del trimestre)
-function sueldoInflDesde(){ return SUELDO_INFL_DESDE || inflMesCierre(); }
+function sueldoInflDesde(){ return SUELDO_INFL_DESDE || inflMesCierre('kevin'); }
 function sueldoInflSetDesde(v){ SUELDO_INFL_DESDE = v || ''; renderSueldo(); }
 let SUELDO_ADJ = null;                 // comprobante que se está por adjuntar
 let SUELDO_TIPO = 'cobro';             // el formulario carga un cobro o un gasto
@@ -20216,7 +20337,7 @@ const EQUIPO_INFL_KEY = 'jc-equipo-infl-v1';
 const EQUIPO_PERSONAS = [
   { id:'kevin',  nombre:'Kevin',  fuente:'jud', externo:true },
   { id:'ori',    nombre:'Ori',    fuente:'jud' },
-  { id:'sofig',  nombre:'Sofi G', fuente:'soc', comSoc:'sofig' },
+  { id:'sofig',  nombre:'Sofi G', fuente:'soc', comSoc:'sofig', hasta:'2026-10' },   // dejó el estudio: cobra hasta octubre 2026
   { id:'sofit',  nombre:'Sofi T', fuente:'soc', comSoc:'sofit' },
   { id:'naza',   nombre:'Naza',   fuente:'soc', comSoc:'naza' },
   { id:'priscila', nombre:'Priscila', fuente:'soc', comSoc:'priscila' },
@@ -20239,13 +20360,15 @@ let EQUIPO = null;
 let EQUIPO_VISTA = 'tabla';            // 'tabla' | 'inflacion'
 let EQUIPO_INFL_INPUT = ['', '', ''];
 let EQUIPO_INFL_DESDE = '';            // mes desde el que rige el ajuste (vacío = cierre del trimestre)
-function equipoInflDesde(){ return EQUIPO_INFL_DESDE || inflMesCierre(); }
+function equipoInflDesde(){ return EQUIPO_INFL_DESDE || inflMesCierre('sueldos'); }
 function equipoInflSetDesde(v){ EQUIPO_INFL_DESDE = v || ''; renderIngresos(); }
 
 function equipoPersona(pid){ return equipoPersonas().find(p => p.id === pid) || null; }
 function equipoNombre(pid){ const p = equipoPersona(pid); return p ? p.nombre : pid; }
 // Las personas con base propia (Kevin queda afuera: su base vive en el submódulo de la caja judicial)
 function equipoConBase(){ return equipoPersonas().filter(p => !p.externo); }
+// ¿Esa persona trabaja en ese mes? (`hasta` = último mes que cobra, inclusive)
+function equipoActivoEn(p, ym){ return !p || !p.hasta || !ym || ym <= p.hasta; }
 
 function loadEquipo(){
   try { EQUIPO = JSON.parse(appStore.getItem(EQUIPO_KEY) || 'null'); } catch(e){ EQUIPO = null; }
@@ -20337,7 +20460,7 @@ function equipoComisionesMes(pid, ym){
 }
 // Una línea por persona: base + comisión = lo que cuesta ese mes
 function equipoLineasMes(ym){
-  return equipoPersonas().map(p => {
+  return equipoPersonas().filter(p => equipoActivoEn(p, ym)).map(p => {
     const comision = equipoComisionesMes(p.id, ym);
     let base, total, minimo = 0, aplicaMinimo = false;
     if (p.externo && typeof sueldoCalculo === 'function'){
@@ -20455,7 +20578,7 @@ function equipoAplicarInflacion(infl, desde){
   loadEquipo();
   const actuales = equipoBasesVigentes(desde);
   const nuevas = {};
-  equipoConBase().forEach(p => {
+  equipoConBase().filter(p => equipoActivoEn(p, desde)).forEach(p => {
     const b = Number(actuales[p.id]) || 0;
     if (b > 0) nuevas[p.id] = abonoCalcInflacion(b, vals);
   });
@@ -20751,7 +20874,7 @@ function renderSueldoInflacion(cont, subtabs){
   const ym = sueldoInflDesde();
   const v = sueldoVigente(ym);
   const fmt = n => '$ ' + fmtNumStr(Math.round(Number(n)||0));
-  const meses = inflTrimestreLabels().map(s => s.split(' ')[0]);
+  const meses = inflTrimestreLabels('kevin').map(s => s.split(' ')[0]);
   const puedeDeshacer = sueldoHayAjusteParaDeshacer();
   cont.innerHTML = `
     <div class="abo-top" style="margin-top:6px"><div>
@@ -20760,7 +20883,8 @@ function renderSueldoInflacion(cont, subtabs){
     </div></div>
     ${subtabs}
     <div class="abo-infl-box">
-      <div class="abo-infl-hint">Ajuste trimestral de <b>${esc(inflTrimestreLabels().join(', '))}</b>. El cálculo es compuesto: cada mes se aplica sobre el valor ya ajustado del anterior. Se mueven <b>la base y el mínimo garantizado</b> juntos. <b>No es retroactivo</b>: rige desde el mes que elijas, hacia adelante.</div>
+      ${inflPanelHTML('kevin')}
+      <div class="abo-infl-hint">Ajuste trimestral de <b>${esc(inflTrimestreLabels('kevin').join(', '))}</b>. El cálculo es compuesto: cada mes se aplica sobre el valor ya ajustado del anterior. Se mueven <b>la base y el mínimo garantizado</b> juntos. <b>No es retroactivo</b>: rige desde el mes que elijas, hacia adelante.</div>
       <div class="abo-infl-inputs">
         <div class="abo-infl-fld"><label>Inflación ${meses[0]} (%)</label><input type="text" inputmode="decimal" value="${esc(SUELDO_INFL_INPUT[0])}" placeholder="Ej: 4,2" oninput="sueldoInflInput(0,this.value)"></div>
         <div class="abo-infl-fld"><label>Inflación ${meses[1]} (%)</label><input type="text" inputmode="decimal" value="${esc(SUELDO_INFL_INPUT[1])}" placeholder="Ej: 3,8" oninput="sueldoInflInput(1,this.value)"></div>
@@ -20799,7 +20923,9 @@ function sueldoConfirmarInflacion(){
   if (!infl.some(x => x > 0)){ aricToast('Cargá los porcentajes de inflación'); return; }
   const ym = sueldoInflDesde();
   if (!confirm('¿Aplicar el ajuste por inflación al sueldo?\n\nSe actualizan la base y el mínimo garantizado desde ' + sueldoMesLabel(ym) + ' inclusive; los meses anteriores no se tocan. Podés deshacerlo después.')) return;
+  const triKev = inflTrimestre('kevin');
   if (sueldoAplicarInflacion(infl, ym)){
+    inflRegistrar('kevin', infl, ym, triKev);
     SUELDO_INFL_INPUT = ['','','']; SUELDO_INFL_DESDE = '';
     aricToast('Sueldo actualizado por inflación');
     SUELDO_VISTA = 'cobros';
@@ -20808,7 +20934,7 @@ function sueldoConfirmarInflacion(){
 }
 function sueldoConfirmarDeshacer(){
   if (!confirm('¿Deshacer el último ajuste por inflación del sueldo?')) return;
-  if (sueldoDeshacerInflacion()){ aricToast('Ajuste deshecho'); renderSueldo(); }
+  if (sueldoDeshacerInflacion()){ inflDesregistrar('kevin'); aricToast('Ajuste deshecho'); renderSueldo(); }
 }
 
 // ── Balance mensual descargable (HTML imprimible) ──
@@ -26048,7 +26174,7 @@ function accObs(c, editar) {
 // Si alguien abre el sistema desde un acceso directo y le aparece una versión vieja
 // (o deja la pestaña abierta varios días), se detecta acá y se recarga sola: así
 // nadie trabaja ni guarda cambios sobre una versión desactualizada.
-const APP_BUILD = '202611232245';
+const APP_BUILD = '202611240045';
 (function(){
   if (location.protocol !== 'https:' && location.hostname !== 'localhost') return;
   const CLAVE = 'welegal-recarga-version';
